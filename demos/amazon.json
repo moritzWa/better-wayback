@@ -1,0 +1,203 @@
+{
+  "url": "https://www.amazon.com/",
+  "from": "1999",
+  "to": "2019",
+  "firstTimestamp": "19990828014913",
+  "lastTimestamp": "20190301001716",
+  "count": 6,
+  "total": 1200,
+  "sampled": 6,
+  "capped": true,
+  "cached": true,
+  "status": "ready",
+  "curated": true,
+  "source": "Internet Archive Wayback Machine",
+  "captures": [
+    {
+      "timestamp": "19990828014913",
+      "requestedTimestamp": "19990828014913",
+      "original": "http://www.amazon.com:80/?",
+      "digest": "EMIRP65WEHMSS3RHPYWAIRVSRVRJTEPI",
+      "title": "Amazon.com--Earth's Biggest Selection",
+      "text": "Books\nPopular Music\nClassical Music\nVideo\nToys & Games\nElectronics\nAuctions\nAll Products\n• Books\nBestsellers, Computers, Kids, Business...\n• Music\nNew Releases, Top Sellers, Classical, Soundtracks...\n• Video\nDVDs, Top Sellers, New Releases, Kids & Family...\n• Auctions\nBooks, CDs, Photo Equipment, Collectibles...\n• Electronics\nTVs, Cameras, Computer Add-Ons, DVD Players...\n• Toys & Games\nToys for Grownups, Games & Puzzles, Action Figures, Baby Toys...\n• Free E-Cards\nDaily Cards, Hi, Love, Friendship...\n• ...And More\nWomen's Apparel, Garden & Patio, Software, Sporting Goods...\nCommunity\n Purchase Circles\nGift Services\n Gift Certificates\n Special-Occasion Reminders\n Shipping\nNeed Help?\n Help Desk\n Site Guide\n Shipping Policies\n Send Us E-mail\n Our Privacy Policy\nMore to Explore\n Join Associates\n E-mail Recommendations\n Pets.com\n drugstore.com\n Amazon.co.uk\n Amazon.de\nFriday, August 27, 1999\nHello! Shopping at Amazon.com is 100% secure--guaranteed.\nAlready a customer? Sign in.\nWhat are they listening to in Austin, Texas? Explore Amazon.com Purchase Circles.\nAmazon.com 100 Hot Books\nUpdated Hourly\nHarry Potter and the Prisoner of Azkaban\nby J. K. Rowling\nHarry Potter and the Sorcerer's Stone\nby J. K. Rowling\nHarry Potter and the Chamber of Secrets\nby J. K. Rowling\n More Hot Books\nToday in Music\nFree song downloads.\nMusic Top Sellers\nWestern Wall: The Tucson Sessions\nLinda Ronstadt, Emmylou Harris\nFly\nDixie Chicks\nSupernatural\nSantana\n More Music Top Sellers\nToday in Video\nPre-order The Matrix on DVD.\nVHS Top Sellers\nLiving Yoga: A.M./P.M. Yoga for Beginners Set\nThere's Something About Mary (Special Edition)\nTae-Bo Workout: Instructional and Basic\n More VHS Top Sellers\n DVD Top Sellers\nIn Books\nLondon Calling\nWrapping up an ambitious reissue program, the great Penelope Fitzgerald delivers not one but two classics in miniature. The Golden Child is the British author's first novel, in which an ancient mummy ignites a curatorial ruckus, while At Freddie's revolves around a drama academy and its deeply amusing student body. Go to Books\nIn Electronics\nMiniDisc the Magnificent\nSony's Bundle5 MiniDisc package harmonizes two separate products--a MiniDisc home recording deck and a portable MiniDisc player--so you can record, edit, and title your own discs from both analog and digital sources, then enjoy them on the go. Go to Electronics\nIn Toys & Games\nPack with Pride\nWe ain't lion: this adorable Goliath Backpack Pal is a grrreat way to scare away those first-day-of-school jitters. Fill his tummy with books, toys, and treats, and this furry beast will be your child's mane man in no time. Go to Toys & Games\nIn Video\nTexas Two-Step?\nIn a stunning admission this week, the FBI confirmed that in 1993 its agents fired flammable devices at the Branch Davidian compound in Waco, Texas, hours before the inferno erupted. But the Oscar-nominated Waco: The Rules of Engagement suggested this possibility back in 1997. Check out this fearless documentary and prepare to question the government's spin. Go to Video\nIn Music\nIndustrial Evolution\nListen\nThey've been accused of being Nine Inch Nails lite, but on Title of Record, Filter weld their amped-up techno-metal aggression to an uncanny pop sensibility, creating a memorable set of furious, passionate songs sure to keep the mosh pit roiling. Go to Music\nIn Auctions\nBuild a Better Brain\nBefore you hit the books, visit Amazon.com Auctions and check out the huge selection of educational software. Whether you're teaching the ABCs or writing a thesis, our sellers have the tools to help you succeed. Go to Auctions\n* \"The New York Times\" is the registered trademark of The New York Times Company, which is not affiliated with and does not sponsor or endorse the services of Amazon.com.\nText Only\n1-Click Settings | Shopping Cart | Your Account | Help\nAbout Amazon.com | Join Our Staff\nCopyright and disclaimer © 1996-1999, Amazon.com, Inc.",
+      "archiveUrl": "https://web.archive.org/web/19990828014913/http://www.amazon.com:80/?",
+      "timing": {
+        "navigationMs": 2701,
+        "totalMs": 6415,
+        "readiness": {
+          "waitMs": 3645,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 4003,
+          "timedOut": false
+        }
+      },
+      "renderVersion": "render-v2-ready",
+      "image": "/demos/amazon/19990828014913-f8684893ff5a2add3f1528c1.png",
+      "sha256": "f8684893ff5a2add3f1528c1eb8090837a211185dc30a31ff273b4030d39ba94"
+    },
+    {
+      "timestamp": "20031005172643",
+      "requestedTimestamp": "20031005172643",
+      "original": "http://www.amazon.com",
+      "digest": "AXEEK4C3B7DBPNDAR2T2DVZKKAWZFSQ6",
+      "title": "Amazon.com: Welcome",
+      "text": "Your Gold Box\nHello. Sign in to get personalized recommendations. New customer? Start here.\nAll Products\nBooks\nPopular Music\nMusic Downloads\nClassical Music\nDVD\nVHS\nApparel\nRestaurants\nMovie Showtimes\nToys\nBaby\nComputers\nVideo Games\nElectronics\nCamera & Photo\nSoftware\nTools & Hardware\nOffice Products\nMagazines\nSporting Goods Beta\nOutdoor Living\nKitchen\nTravel\nCell Phones & Service\nOutlet\nAuctions\nzShops\nEverything Else\nSci. Supplies\nMed. Supplies\nIndust. Supplies\nCar Parts\nHome Furnishings\nLifestyle\nPet Toys\nArts & Hobbies\nFREE Super Saver Shipping on orders over $25!\nRestrictions apply\nFeatured Stores\n• Sporting Goods\n(Beta - What is this?)\n• Apparel &\n Accessories\n• Office Products\nBooks, Music, DVD\n• Books\n• DVD\n• Magazine\n Subscriptions\n• Music\n• Video\nElectronics & Office\n• Electronics\n• Audio & Video\n• Camera & Photo\n• Office Products\n• Software\n• Computer &\n Video Games\n• Computers\n• Cell Phones\n & Service\nKids & Baby\n• Toys & Games\n• Baby\n• Imaginarium\nHome & Garden\n• Home & Garden\n• Kitchen &\n Housewares\n• Tools &\n Hardware\n• Outdoor Living\n• Health & Beauty\nGifts & Registries\n• Baby Registry\n• Free e-Cards\n• Gift Certificates\n• Gift Store\n• Wedding Registry\n• Wish List\nAmazon.com\nServices\n• Movie Showtimes\n• Cars\n• Corporate Accounts\n• Friends & Favorites\n• In-Store Pickup\n• Restaurants\n• Travel\nBargains\n• Auctions\n• Outlet\n• Used\n• zShops\nFeatured Partners\nMarketplace\nAssociates\nAdvantage\nWeb Services\nPaid Placements\n See all services\nSpecial Features\nAlerts\nAmazon.com Mobile Access\nAmazon Credit Account\nEarly Adopters\nFree e-Cards\nFriends & Favorites\nGift Certificates\nHonor System\nPurchase Circles\nWedding Registry\nGet the Amazon.com Visa® Card Instantly!\nSave 35% on the DVD Debut of The Adventures of Indiana Jones\nIf adventure has a name, it must be Indiana Jones. The highly anticipated trilogy debuts on DVD and qualifies for FREE Super Saver Shipping.\n See more\nEnter The Lion King Special Edition Sweepstakes\nEnter for a chance to win a home entertainment system and other prizes in The Lion King Special Edition Sweepstakes.\nTop Sellers in Computer & Video Games\nHalo\nFrom the Manufacturer\nHalo, the award-winning and critically acclaimed science fiction epic adventure, is coming to the PC courtesy of Bungie and Gearbox Software. Packed with action, Halo contains all the thrilling... Read more\nMore Top Sellers:\n Dude, Where's My Country? by Michael Moore\n Netgear MR814 802.11b Wireless 4-Port Cable/DSL Router by Netgear\n Weber 87886 Chimney Starter Weber\n Finding Nemo VHS ~ Albert Brooks\nNew and Future Releases\nBend It Like Beckham\nAmazon.com\nBend It Like Beckham is true girl power. This glorious comedy centers on Jess (Parminder Nagra), an Indian girl born in England whose only desire is to become a football--or, as we say on this side of... Read more\nMore New and Future Releases\n The Ultimate Weight Solution by Phil McGraw\n Palm Tungsten E Handheld by Palm\n Disney's Lion King (Special Platinum Edition) DVD ~ Matthew Broderick\n Sacred Love ~ Sting\nGameCube Price Lowered $50\nNintendo's GameCube system is now available for just $99.\nAlready a customer?\nSign in to see what's New for You.\nNew customer?\nNew Releases\n Saxophonic\n~ Dave Koz\nMore Categories\n Jazz\n Action & Adventure\n Games\n Portable Audio & Video\n Literature & Fiction\n More New Releases\nMovers & Shakers\n 5,875%\n Through the Lens\nby Leah Bendavid-Val (Editor)\n More Movers & Shakers\nWhere's My Stuff?\n• Track your recent orders.\n• View or change your orders in Your Account. Shipping & Returns\n• See our shipping rates & policies.\n• Return an item (here's our Returns Policy). Need Help?\n• Forgot your password? Click here.\n• Redeem or buy a gift certificate.\n• Visit our Help department.\nSearch \nAll Products\nBooks\nPopular Music\nMusic Downloads\nClassical Music\nDVD\nVHS\nApparel\nRestaurants\nMovie Showtimes\nToys\nBaby\nComputers\nVideo Games\nElectronics\nCamera & Photo\nSoftware\nTools & Hardware\nOffice Products\nMagazines\nSporting Goods Beta\nOutdoor Living\nKitchen\nTravel\nCell Phones & Service\nOutlet\nAuctions\nzShops\nEverything Else\nSci. Supplies\nMed. Supplies\nIndust. Supplies\nCar Parts\nHome Furnishings\nLifestyle\nPet Toys\nArts & Hobbies\n for \nTop of Page\nDirectory of All Stores\nOur International Sites: Canada | United Kingdom | Germany | Japan | France\nContact Us | Help | Shopping Cart | Your Account | Sell Items | 1-Click Settings\nInvestor Relations | Press Releases | Join Our Staff | Join Associates | Join Advantage | Join Honor System\nBottom of the PageTM Deals for October 05\nAmazon.com = low prices. Save up to 50% on these one-day-only deals.\n Our Price You Save \nRemifemin Menopause Herbal Supplement (140 Tablets)\nReduce menopause symptoms the natural way, with Remifemin. $25.20 $11.42 \n(31%) \nKarcher K520M 1500 PSI at 1.8 GPM Electric Pressure Washer\nGet 43% off the no-hassle way to power-wash your deck, patio, grill, or car. $209.99 $159.96 \n(43%) \nScotch Super Strength Packaging Tape (16 Rolls)\nMore than 50% savings on everyone's favorite packaging tape. $39.49 $40.35 \n(51%) \nSOLD OUT FOR TODAY Nature Made Triple Flex Joint Care Formula (150 Caplets)\nKeep joints supple and stay active with Triple Flex. $25.34 \nStarbucks Colombia Whole Bean Coffee, 6 12-Ounce FlavorLock Bags (72 ounces total)\nThe invigorating whole-bean brew you love to wake up to--shipped free. $39.99 $5.00 \n(11%) \nDuracell Ultra AAA Batteries (48 Batteries)\nSave over 40% on Duracell's premium battery bundle for high-power devices. $38.97 $26.91 \n(41%) \nTanita BF-555-LG Family Model Scale with Extra Large LCD Display\nAs accurate as the doctor's office, with the privacy and convenience of home. $69.99 $70.01 \n(50%) \nDentyne Ice Sugarless Gum, Spearmint (48 Packs)\nRefresh your mouth with the cool, sweet, long-lasting flavor of Dentyne Ice. $32.99 $14.53 \n(31%) \nMemorex 80 Minute/700 MB 48X CD-R Discs (100-Pack Spindle)\n100 Memorex 80-minute CD-Rs, 40% off and shipped free. $29.99 $10.00 \n(25%) \n FREE Super Saver Shipping on orders over $25. See details. \nAmazon.com now offers bargains on brand-name essentials, all priced so low they've sunk to the bottom of the page! We take up to 50% off standard retail prices and deliver right to your door--no club fees, no hassle, no parking lot. These offers are only good until they're gone, and only for today. Check back tomorrow for all-new Bottom of the PageTM Deals.\nConditions of Use | Privacy Notice © 1996-2003, Amazon.com, Inc. or its affiliates",
+      "archiveUrl": "https://web.archive.org/web/20031005172643/http://www.amazon.com",
+      "timing": {
+        "navigationMs": 11697,
+        "totalMs": 18372,
+        "readiness": {
+          "waitMs": 6606,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 6616,
+          "timedOut": false
+        }
+      },
+      "renderVersion": "render-v2-ready",
+      "image": "/demos/amazon/20031005172643-14a721185aaab5aeddd4280e.png",
+      "sha256": "14a721185aaab5aeddd4280e189f786d944b6b549699e05182c2e63f7c510411"
+    },
+    {
+      "timestamp": "20070602125001",
+      "requestedTimestamp": "20070602125001",
+      "original": "http://www.amazon.com/",
+      "digest": "YDX4RHEGHSXSFTFC47PHU4Y4V7BDYH5C",
+      "title": "Amazon.com: Online Shopping for Electronics, Apparel, Computers, Books, DVDs & more",
+      "text": "A different version of this web site containing similar content optimized for screen readers and mobile devices may be found at the web address: www.amazon.com/access\nYour\nAmazon.com\nSee All 41\nProduct Categories\n Your Account | Cart | Your Lists | Help | \nGift Certificates\n | \nInternational\n | \nNew Releases\n | \nTop Sellers\n | \nToday's Deals\n | \nSell Your Stuff\nSearch \nAmazon.com\nApparel\nAutomotive\nBaby\nBeauty\nBooks\nCell Phones\nDVD\nElectronics\nEverything Else\nGourmet Food\nGrocery\nHealth & Personal Care\nHome & Garden\nHome Improvement\nIndustrial & Scientific\nJewelry & Watches\nMagazines\nMusic\nMusical Instruments\nOffice Products\nSoftware\nSports & Outdoors\nToys & Games\nUnbox Video Downloads\nVHS\nVideo Games\nWireless Accessories\nWireless Plans\nHello. Sign in to get personalized recommendations. New customer? Start here.\nBrowse \nBooks, Music & Movies\nBooks\nDVD & VHS\nMagazines & Newspapers\nMusic\nTextbooks\nUnbox Video Downloads\nClothing & Accessories\nApparel & Accessories\nJewelry & Watches\nShoes\nComputer & Office\nComputers & Add-Ons\nOffice Products\nSoftware\nConsumer Electronics\nAudio & Video\nCamera & Photo\nCell Phones & Service\nMusical Instruments\nVideo Games\nAll Consumer Electronics\nFood & Household\nGourmet Food\nGrocery\nPet Supplies\nHealth & Beauty\nBeauty\nHealth & Personal Care\nHome & Garden\nBed & Bath\nFurniture & Décor\nHome Improvement\nKitchen & Housewares\nOutdoor Living\nAll Home & Garden\nKids & Toys\nBaby\nToys & Games\nSports & Fitness\nExercise & Fitness\nSports & Outdoors\nTools & Automotive\nAutomotive\nIndustrial & Scientific\nLawn & Garden Equipment\nTools & Hardware\nBargains\nFriday Sale\nOutlet\nToday's Deals\nGifts & Lists\nBaby Registry\nFree e-Cards\nFresh Flowers & Indoor Plants\nGift Central\nGift Certificates\nShopping List\nWedding Registry\nWish List\nYour Media Library\nAmazon Services \nMake Money\nAdvantage\nAssociates\nCorporate Accounts\nFulfillment by Amazon\nPaid Placements\nSell Your Stuff\nFor the Community\nAmazon Connect\nAmazon Daily\nAmazon Fishbowl\nAmazon Podcasts\nE-Mail Subscriptions\nGiving at Amazon\nFor Developers\nAmazon Web Services\nFor Advertisers\nAdvertise With Us\nPartner Services\nBroadband Services\nFinancial Services\nTravel Services\nItems Customers Tagged as Spiritual Growth\nEvery Young Woman's Battle: Guarding... Paperback by Shannon Ethridge Soul Wisdom: Practical Soul Treasures... Hardcover by Zhi Gang Sha Mere Christianity Paperback by C. S. Lewis\n› View more items customers tagged with \"spiritual growth\" (What's a tag?)\nWhat Do Customers Buy After Viewing This Item?\n82% buy the item you viewed 4% buy this alternative 5% buy this alternative\nGirl, Interrupted Paperback by Susanna Kaysen White Oleander: A Novel Mass Market Paperback by Janet Fitch The Virgin Suicides Paperback by Jeffrey Eugenides\nMore to Explore\nYou looked at You might also consider\nThe Color of Welfare: How Racism... Paperback by Jill Quadagno Welfare Racism: Playing the Race Card... Paperback by Kenneth Neubeck The Dignity of Working Men: Morality... Paperback by Michèle Lamont\n› Find similar items\nRecommended Based on Your Browsing History\nWhy Americans Hate Welfare: Race... Paperback by Martin Gilens\n(Why is this recommended for you?) State of Emergency: The Third World... Hardcover by Patrick J. Buchanan\n(Why is this recommended for you?) In the Name of Love: Ann Rule's Crime... Mass Market Paperback by Ann Rule\n(Why is this recommended for you?)\n› See more in your browsing history\nListmania!\nMy Favorites: A list by Sheri Biggs \"Sheri 'bath product junkie\" \nMY FAVORITE STEPHEN KING BOOKS: A list by Leslie A. Somerville \"Leslie Ann Somerville\" \nBest Books by Ann Rule: A list by Sammy Madison\nCreate a Listmania! list\nOutfit Dad for the High Seas\n› Sailing Hats\n› Polos\n› Sailing Watches\n› Boat Shoes\n› Chinos\n› Sunglasses\nOver 3,500 CDs Under $10 in Blowout Music\n CDs $9.99 and Under\n CDs $8.99 and Under\n CDs $7.99 and Under\n CDs $5.99 and Under\n› All Blowout Music\n Box Sets at Least 30% Off\n More Titles at Least 25% Off\nTop-Selling Hair Care Products at Amazon.com Beauty\nBiosilk Silk Therapy Ouidad Climate Control Heat... L. Erickson USA Silk Charmeuse Super...\n› See more top sellers in Hair Care\nLatest post:\nYesterday at \nRefers to \"mule barn\"\nRocket Boys\nInspired by Werner von Braun and his Cape Canaveral team, 14-year-old Homer Hickam decided in... Read more\n› Find similar items\nUpdated hourly. (What's this?)\n742,270\nAmazon.com pre-orders for\nHarry Potter and the\nDeathly Hallows\nReserve your delivery owl now!\nTop 100 Harry-est Towns\n30% Off Men's Columbia Apparel\nNow through June 8, save 30% on Columbia menswear for Dad from BeallsFlorida.\n› Shop now\nBestsellers in Nonfiction Books\nUpdated hourly\nThe Assault on Reason\n$15.57\nThe Reagan Diaries\n$20.99\nGod Is Not Great: How Religion Poisons Everything\n$14.99\nThe Final Move Beyond Iraq: The Final Solution While the World Sleeps\n$8.99\nThe Black Swan: The Impact of the Highly Improbable\n$16.17\nPlato and a Platypus Walk into a Bar: Understanding Philosophy Through Jokes\n$11.37\nThe Tipping Point: How Little Things Can Make a Big Difference\n$8.97\nFreakonomics [Revised and Expanded]: A Rogue Economist Explores the Hidden Side of Everything\n$16.77\nThree Cups of Tea: One Man's Mission to Promote Peace . . . One School at a Time\n$8.99\nPresidential Courage: Brave Leaders and How They Changed America 1789-1989\n$16.80\n› See all bestsellers in Nonfiction Books\nAmazon.com Business Visa Card\nGet the Amazon.com Business Visa Card instantly and get $30 back. Plus, you get free employee cards and earn up to 3% rewards.\nShop These Stores at Amazon.com\nVisit Our Featured Partners' Web Sites\nWhere's My Stuff?\nTrack your recent orders.\nView or change your orders in Your Account.\n Shipping & Returns\nSee our shipping rates & policies.\nReturn an item (here's our Returns Policy).\n Need Help?\nForgot your password? Click here.\nRedeem or buy a gift certificate.\nVisit our Help department.\nSearch \nAmazon.com\nBooks\nPopular Music\nMusic Downloads\nClassical Music\nDVD\nVideo Downloads\nVHS\nApparel\nGrocery\nToys\nBaby\nComputers\nVideo Games\nElectronics\nCamera & Photo\nSoftware\nTools & Hardware\nOffice Products\nMagazines\nSports & Outdoors\nOutdoor Living\nKitchen\nJewelry & Watches\nBeauty\nGourmet Food\nMusical Instruments\nHealth/Personal Care\nPet Supplies\nTravel\nCell Phones & Service\nOutlet\nAuctions\nEverything Else\nAutomotive\nIndustrial & Scientific\nTop of Page\nDirectory of All Stores\nInternational Sites: Canada | United Kingdom | Germany | Japan | France | China\nHelp | View Cart | Your Account | Sell Items | 1-Click Settings\nInvestor Relations | Press Release | Careers at Amazon | Join Associates | Join Advantage | Join Honor System | Advertise With Us\nConditions of Use | Privacy Notice © 1996-2007, Amazon.com, Inc. or its affiliates",
+      "archiveUrl": "https://web.archive.org/web/20070602125001/http://www.amazon.com/",
+      "timing": {
+        "navigationMs": 3671,
+        "totalMs": 10518,
+        "readiness": {
+          "waitMs": 6788,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 7109,
+          "timedOut": false
+        }
+      },
+      "renderVersion": "render-v2-ready",
+      "image": "/demos/amazon/20070602125001-3dc453181966a810bf2e8660.png",
+      "sha256": "3dc453181966a810bf2e866094e45e53dd239f21a19a7fffc6084e6400c7c1d9"
+    },
+    {
+      "timestamp": "20110501080707",
+      "requestedTimestamp": "20110501080707",
+      "original": "http://www.amazon.com/",
+      "digest": "ZRMM2J3ZBP5JF3CN2AF32GUW5QMBX63V",
+      "title": "Amazon.com: Online Shopping for Electronics, Apparel, Computers, Books, DVDs & more",
+      "text": "A different version of this web site containing similar content optimized for screen readers and mobile devices may be found at the web address: www.amazon.com/access\namazon.com\nHello. Sign in to get personalized recommendations. New customer? Start here.\n25% or more off select gifts for Mom\nSponsored by Nokia\nYour Amazon.com | Today's Deals | Gifts & Wish Lists | Gift Cards Your Digital Items | Your Account | Help\nShop All Departments\n Search \nAll Departments\nAmazon Instant Video\nAppliances\nApps for Android\nArts, Crafts & Sewing\nAutomotive\nBaby\nBeauty\nBooks\nCell Phones & Accessories\nClothing & Accessories\nElectronics\nGrocery & Gourmet Food\nHealth & Personal Care\nHome, Garden & Pets\nIndustrial & Scientific\nJewelry\nKindle Store\nMagazine Subscriptions\nMovies & TV\nMP3 Downloads\nMusic\nMusical Instruments\nOffice Products & Supplies\nShoes\nSoftware\nSports & Outdoors\nTools & Home Improvement\nToys & Games\nVHS\nVideo Games\nWatches\nCart\nWish List\nUnlimited Instant Videos\nPrime Instant Videos\nLearn More About Amazon Prime\nAmazon Instant Video Store\nYour Video Library\nWatch On Your TV\nMP3s & Cloud Player\n15 million songs, play anywhere\nMP3 Music Store\nCloud Player for Web\nCloud Player for Android\nAmazon MP3 for Mobile\nAmazon Cloud Drive\n5 GB of free storage\nYour Cloud Drive\nLearn More About Cloud Drive\nKindle\nKindle (Wi-Fi)\nKindle 3G (Free 3G + Wi-Fi)\nKindle DX\nFree Kindle Reading Apps\nAccessories\neBooks\nNewspapers\nMagazines\nKindle Store\nManage Your Kindle\nAppstore for Android\nGet Pool Break Pro for free today\nApps\nGames\nFree Amazon Apps\nDigital Games & Software\nGame Downloads\nSoftware Downloads\nYour Games & Software Library\nAudible Audiobooks\nAudible Audiobooks & More\nBestsellers\nNew & Notable\nListener Favorites\nBooks\nBooks\nKindle eBooks\nTextbooks\nAudiobooks\nMagazines\nMovies, Music & Games\nMovies & TV\nBlu-ray\nAmazon Instant Video\nMusic\nMP3 Downloads\nMusical Instruments\nVideo Games\nGame Downloads\nElectronics & Computers\nTV & Video\nHome Audio & Theater\nCamera, Photo & Video\nCell Phones & Accessories\nVideo Games\nMP3 Players & Accessories\nCar Electronics & GPS\nAppliances\nMusical Instruments\nLaptops, Tablets & Netbooks\nDesktops & Servers\nComputer Accessories\nComputer Parts & Components\nSoftware\nPC Games\nPrinters & Ink\nOffice & School Supplies\nHome, Garden & Tools\nKitchen & Dining\nFurniture & Décor\nBedding & Bath\nAppliances\nPatio, Lawn & Garden\nHome Improvement\nPower & Hand Tools\nLamps & Light Fixtures\nKitchen & Bath Fixtures\nHardware\nBuilding Supplies\nArts, Crafts & Sewing\nPet Supplies\nGrocery, Health & Beauty\nGrocery & Gourmet Food\nNatural & Organic\nHealth & Personal Care\nBeauty\nToys, Kids & Baby\nToys & Games\nBaby\nClothing (Kids & Baby)\nVideo Games for Kids\nClothing, Shoes & Jewelry\nClothing\nShoes\nHandbags & Accessories\nLuggage\nJewelry\nWatches\nSports & Outdoors\nExercise & Fitness\nOutdoor Recreation\nAthletic & Outdoor Clothing\nTeam Sports\nBikes & Scooters\nGolf\nBoating & Water Sports\nFan Shop\nAll Sports & Outdoors\nAutomotive & Industrial\nAutomotive Parts & Accessories\nAutomotive Tools & Equipment\nCar Electronics & GPS\nWheels & Tires\nMotorcycle & ATV\nIndustrial & Scientific\nMore Items to Consider\nYou viewed\nOrigins of Architectural Pleasure\n›Grant Hildebrand\nHardcover\n$50.00\nCustomers who viewed this also viewed\nEnvironmental Psychology for Design\n›David Alan Kopec\nHardcover\n$104.50 $88.64\nThe Poetics of Space\n›Gaston Bachelard, Maria Jolas, M. Jolas\nPaperback\n$16.00 $10.88\nExperiencing Architecture\nSteen Eiler Rasmussen\nPaperback\n$22.00 $14.83\n›View or edit your browsing history\nHot Watch Brands, Cool Everyday Prices\nSave Up to 40%\nCitizen\nInvicta\nSeiko\n›See all\nLuxury Watches\nCartier\nOmega\nTAG Heuer\n›See more\nSports Watches\nCasio\nTimex\nPuma\n›See all\nRelated to Items You've Viewed\nYou viewed\nDeep Listeners: Music, Emotion, and...\n›Judith O. Becker\nPaperback\n$29.95 $23.13\nCustomers who viewed this also viewed\nMusic and Altered States...\nDavid Aldridge, Jörg Fachner\nPaperback\n$36.95 $30.78\nThe Singing Neanderthals: The Origins...\n›Steven Mithen\nPaperback\n$19.00 $13.52\nMusic, The Brain, And Ecstasy: How...\n›Robert Jourdain\nPaperback\n$14.99 $9.99\n›View or edit your browsing history\nWhat Other Customers Are Looking At Right Now\nKindle Wireless Reading Device, Wi-Fi...\nAmazon\n$139.00\nPortal 2\nValve\nPlayStation 3\n$59.99 $34.99\nASUS Eee Pad Transformer TF101-A1...\n$399.99\nKindle DX Wireless Reading Device...\nAmazon\n$379.00\nAutomotive Safety Bestsellers\nSwiss Tech UKCSB-1 Utili-Key 6-in-1...\n$12.99 $8.31\nLifeHammer Orange Original Emergency...\n$14.95\nMedique 40061 First Aid Kit, 61-Piece\n$13.32\nLife Hammer Original Emergency Hammer...\nLifeHammer\n$34.95 $28.95\n›See all bestsellers in Automotive Safety\nScoop Up an Ice Cream Ball in Every Color\nBlue\nRed\nGreen\nOrange\n›See the Ice Cream Ball\nMother's Day Gift Ideas in Books\nMy Passion for Design\n›Barbra Streisand\nHardcover\n$60.00 $30.01\nBlood, Bones & Butter: The...\n›Gabrielle Hamilton\nHardcover\n$26.00 $15.25\nMartha Stewart's New Pies and Tarts...\n›Martha Stewart\nPaperback\n$24.99 $15.30\nThe Land of Painted Caves: A Novel\n›Jean M. Auel\nHardcover\n$30.00 $15.30\n›See more featured selections\nYour Recent History (What's this?)\nAfter viewing product detail pages or search results, look here to find an easy way to navigate back to pages you are interested in.\n› View and edit your browsing history\nGet to Know Us\nCareers\nInvestor Relations\nPress Releases\nAmazon and Our Planet\nMake Money with Us\nSell on Amazon\nJoin Associates\nAdvertise Your Products\nSelf-publish with Us\n› See all\nLet Us Help You\nShipping Rates & Policies\nAmazon Prime\nReturns Are Easy\nManage Your Kindle\nHelp\nCanada China France Germany Italy Japan United Kingdom\n AmazonWireless\nCellphones &\nWireless Plans\n Askville\nCommunity\nAnswers\n Audible\nDownload\nAudio Books\n DPReview\nDigital\nPhotography\n Endless\nShoes\n& More\n Fabric\nSewing, Quilting\n& Knitting\n IMDb\nMovies, TV\n& Celebrities\n Shopbop\nDesigner\nFashion Brands\n Small Parts\nIndustrial\nSupplies\n Warehouse Deals\nOpen-Box\nDiscounts\n Woot\nNever Gonna\nGive You Up\n Zappos\nShoes &\nClothing\nConditions of Use Privacy Notice © 1996-2011, Amazon.com, Inc. or its affiliates",
+      "archiveUrl": "https://web.archive.org/web/20110501080707/http://www.amazon.com/",
+      "timing": {
+        "navigationMs": 8340,
+        "totalMs": 16770,
+        "readiness": {
+          "waitMs": 8358,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [
+            "More Items to Consider"
+          ],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 6221,
+          "timedOut": false
+        }
+      },
+      "renderVersion": "render-v2-ready",
+      "image": "/demos/amazon/20110501080707-67cc878fd239a77946036c36.png",
+      "sha256": "67cc878fd239a77946036c367e7d3ae27c1d31d0660c867e8df2c2faf65fad4e"
+    },
+    {
+      "timestamp": "20150301000900",
+      "requestedTimestamp": "20150301000900",
+      "original": "http://www.amazon.com/",
+      "digest": "TD6QXN37TC43DOT4FFWAK6X7H6ZPK3MM",
+      "title": "Amazon.com: Online Shopping for Electronics, Apparel, Computers, Books, DVDs & more",
+      "text": "We have recently updated the screen reader optimized website to include headings, landmarks, and new shopping features to improve your experience. Please follow this link or go to www.amazon.com/access.\nAmazon\nTry Prime\nYour Amazon.com\nToday's Deals\nGift Cards\nSell\nHelp\nShop by\nDepartment\nHello. Sign in\nYour Account\nTry\nPrime\nWish\nList\nCart\nSearch\nAll Departments\nAmazon Instant Video\nAppliances\nApps & Games\nArts, Crafts & Sewing\nAutomotive\nBaby\nBeauty\nBooks\nCDs & Vinyl\nCell Phones & Accessories\nClothing, Shoes & Jewelry\n Women\n Men\n Girls\n Boys\n Baby\nCollectibles & Fine Art\nComputers\nCredit and Payment Cards\nDigital Music\nElectronics\nGift Cards\nGrocery & Gourmet Food\nHealth & Personal Care\nHome & Kitchen\nIndustrial & Scientific\nKindle Store\nLuggage & Travel Gear\nMagazine Subscriptions\nMovies & TV\nMusical Instruments\nOffice Products\nPatio, Lawn & Garden\nPet Supplies\nPrime Pantry\nSoftware\nSports & Outdoors\nTools & Home Improvement\nToys & Games\nVideo Games\nWine\nMost Wished in Video Games\n1\n2\n3\n4\n5\nMore Video Games\nTop-Rated Women's Ski Lodge Styles\n1\n2\n3\n4\n5\nMore Styles\nMovies Included with Prime Membership at No Additional Cost\nSee more\nDigital Cameras Best Sellers\nSee more\nMost Wished For in Video Games\nSee more\nMP3 Players Best Sellers\nSee more\nBest-Selling BLU Phones\nSee more\nWhat Other Customers Are Looking At Right Now\nMost Wished For in Movies & TV\nSee more\nGet to Know Us\nCareers\nInvestor Relations\nPress Releases\nAmazon and Our Planet\nAmazon in the Community\nAmazon Devices\nMake Money with Us\nSell on Amazon\nSell Your Services on Amazon\nSell Your Apps on Amazon\nBecome an Affiliate\nAdvertise Your Products\nSelf-Publish with Us\n›See all\nAmazon Payment Products\nAmazon.com Rewards Visa Card\nAmazon.com Store Card\nAmazon.com Corporate Credit Line\nShop with Points\nCredit Card Marketplace\nAmazon Currency Converter\nLet Us Help You\nYour Account\nShipping Rates & Policies\nAmazon Prime\nReturns & Replacements\nManage Your Content and Devices\nHelp\nAustraliaBrazilCanadaChinaFranceGermanyIndiaItalyJapanMexicoNetherlandsSpainUnited Kingdom\n 6pm\nScore deals\non fashion brands AbeBooks\nRare Books\n& Textbooks ACX\nAudiobook Publishing\nMade Easy AfterSchool.com\nKids’ Sports, Outdoor\n& Dance Gear Alexa\nActionable Analytics\nfor the Web AmazonFresh\nGroceries & More\nRight To Your Door Amazon Local\nGreat Local Deals\nin Your City \n AmazonSupply\nBusiness, Industrial\n& Scientific Supplies Amazon Web Services\nScalable Cloud\nComputing Services Audible\nDownload\nAudio Books BeautyBar.com\nPrestige Beauty\nDelivered Book Depository\nBooks With Free\nDelivery Worldwide Bookworm.com\nBooks For Children\nOf All Ages Casa.com\nKitchen, Storage\n& Everything Home \n ComiXology\nThousands of\nDigital Comics CreateSpace\nIndie Print Publishing\nMade Easy Diapers.com\nEverything\nBut The Baby DPReview\nDigital\nPhotography East Dane\nDesigner Men's\nFashion Fabric\nSewing, Quilting\n& Knitting Goodreads\nBook reviews\n& recommendations \n IMDb\nMovies, TV\n& Celebrities Junglee.com\nShop Online\nin India Kindle Direct Publishing\nIndie Digital Publishing\nMade Easy Look.com\nKids' Clothing\n& Shoes MYHABIT\nPrivate Fashion\nDesigner Sales Shopbop\nDesigner\nFashion Brands Soap.com\nHealth, Beauty &\nHome Essentials \n TenMarks.com\nMath Activities\nfor Kids & Schools Vine.com\nEverything\nto Live Life Green Wag.com\nEverything\nFor Your Pet Warehouse Deals\nOpen-Box\nDiscounts Woot!\nDiscounts and\nShenanigans Yoyo.com\nA Happy Place\nTo Shop For Toys Zappos\nShoes &\nClothing \nConditions of UsePrivacy NoticeInterest-Based Ads© 1996-2015, Amazon.com, Inc. or its affiliates",
+      "archiveUrl": "https://web.archive.org/web/20150301000900/http://www.amazon.com/",
+      "timing": {
+        "navigationMs": 4103,
+        "totalMs": 13749,
+        "readiness": {
+          "waitMs": 9554,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 3610,
+          "timedOut": false
+        }
+      },
+      "renderVersion": "render-v2-ready",
+      "image": "/demos/amazon/20150301000900-39946507842e6c1b5b30b822.png",
+      "sha256": "39946507842e6c1b5b30b822a3166b1e8fcc88ea05826d41575a7a17a3d2c990"
+    },
+    {
+      "timestamp": "20190301001716",
+      "requestedTimestamp": "20190301001716",
+      "original": "https://www.amazon.com/",
+      "digest": "WZG2LZH7RZ254KVU6LT7LT3IBNVMX4BO",
+      "title": "Amazon.com: Online Shopping for Electronics, Apparel, Computers, Books, DVDs & more",
+      "text": "Skip to main content\nFrom The Community\nTry Prime\nAll\nAll Departments\nAlexa Skills\nAmazon Devices\nAmazon Fresh\nAmazon Warehouse\nAppliances\nApps & Games\nArts, Crafts & Sewing\nAutomotive Parts & Accessories\nBaby\nBeauty & Personal Care\nBooks\nCDs & Vinyl\nCell Phones & Accessories\nClothing, Shoes & Jewelry\n Women\n Men\n Girls\n Boys\n Baby\nCollectibles & Fine Art\nComputers\nCourses\nCredit and Payment Cards\nDigital Music\nElectronics\nGarden & Outdoor\nGift Cards\nGrocery & Gourmet Food\nHandmade\nHealth, Household & Baby Care\nHome & Business Services\nHome & Kitchen\nIndustrial & Scientific\nJust for Prime\nKindle Store\nLuggage & Travel Gear\nLuxury Beauty\nMagazine Subscriptions\nMovies & TV\nMusical Instruments\nOffice Products\nPet Supplies\nPrime Pantry\nPrime Video\nSoftware\nSports & Outdoors\nTools & Home Improvement\nToys & Games\nVehicles\nVideo Games\nGo\nSearch\n EN\nHello, Sign in\nAccount & Lists\nOrders\nTry Prime\nCart\nYour Amazon.com\nToday's Deals\nGift Cards\nWhole Foods\nRegistry\nSell\nHelp\nDisability Customer Support\nWelcome to Amazon.com. If you prefer a simplified shopping experience, try the mobile web version of Amazon at www.amazon.com/access. The mobile web version is similar to the mobile app. Stay on Amazon.com for access to all the features of the main Amazon website.\nCool tech gifts\nKitchen\nFitness\nSmart home\nUnder $30\nSee more\nBargain finds\nDevice accessories\nSee more\nWomen’s shoes\nFun flats, hot heels—and everything in between\nShop now\nSign in for the best experience\nSign in securely\nToday's deals under $25\nSee all deals\n$7.64 - $12.74from $7.64 to $12.74\n$11.88\n$13.98\n$7.64 - $12.74from $7.64 to $12.74\n$7.99 - $11.89from $7.99 to $11.89\n$5.09 - $16.14from $5.09 to $16.14\n$19.99\n$29.99\n$14.20\n$19.99\nBeauty & Personal Care best sellers\nPopular items from AmazonBasics\nKitchen & Dining best sellers\nMost wished for in Movies & TV\nSt. Patrick’s Day styles\nSee more\nBooks best sellers\nBack to top\nGet to Know Us\nCareers\nBlog\nAbout Amazon\nPress Center\nInvestor Relations\nAmazon Devices\nMake Money with Us\nSell on Amazon\nSell Under Private Brands\nSell on Amazon Handmade\nSell Your Services on Amazon\nSell on Amazon Business\nSell Your Apps on Amazon\nBecome an Affiliate\nAdvertise Your Products\nSelf-Publish with Us\n›See all\nAmazon Payment Products\nAmazon Rewards Visa Signature Cards\nAmazon.com Store Card\nAmazon Business Card\nAmazon.com Corporate Credit Line\nShop with Points\nCredit Card Marketplace\nReload Your Balance\nAmazon Currency Converter\nLet Us Help You\nYour Account\nYour Orders\nShipping Rates & Policies\nAmazon Prime\nReturns & Replacements\nManage Your Content and Devices\nAmazon Assistant\nHelp\nEnglish United States\nAmazon Music\nStream millions\nof songs Amazon Advertising\nFind, attract, and\nengage customers Amazon Drive\nCloud storage\nfrom Amazon 6pm\nScore deals\non fashion brands AbeBooks\nBooks, art\n& collectibles ACX\nAudiobook Publishing\nMade Easy Alexa\nActionable Analytics\nfor the Web\nAmazon Business\nEverything For\nYour Business AmazonFresh\nGroceries & More\nRight To Your Door AmazonGlobal\nShip Orders\nInternationally Home Services\nHandpicked Pros\nHappiness Guarantee Amazon Inspire\nDigital Educational\nResources Amazon Rapids\nFun stories for\nkids on the go Amazon Restaurants\nFood delivery from\nlocal restaurants\nAmazon Web Services\nScalable Cloud\nComputing Services Audible\nDownload\nAudiobooks Book Depository\nBooks With Free\nDelivery Worldwide Box Office Mojo\nFind Movie\nBox Office Data ComiXology\nThousands of\nDigital Comics CreateSpace\nIndie Print Publishing\nMade Easy DPReview\nDigital\nPhotography\nEast Dane\nDesigner Men's\nFashion Fabric\nSewing, Quilting\n& Knitting Goodreads\nBook reviews\n& recommendations IMDb\nMovies, TV\n& Celebrities IMDbPro\nGet Info Entertainment\nProfessionals Need Junglee.com\nShop Online\nin India Kindle Direct Publishing\nIndie Digital Publishing\nMade Easy\nPrime Now\nFREE 2-hour Delivery\non Everyday Items Amazon Photos\nUnlimited Photo Storage\nFree With Prime Prime Video Direct\nVideo Distribution\nMade Easy Shopbop\nDesigner\nFashion Brands Amazon Warehouse\nGreat Deals on\nQuality Used Products Whole Foods Market\nAmerica’s Healthiest\nGrocery Store Woot!\nDeals and\nShenanigans\nZappos\nShoes &\nClothing Souq.com\nShop Online in\nthe Middle East Subscribe with Amazon\nDiscover & try\nsubscription services PillPack\nPharmacy Simplified Amazon Renewed\nRefurbished products\nwith a warranty Amazon Second Chance\nPass it on, trade it in,\ngive it a second life \nConditions of UsePrivacy NoticeInterest-Based Ads© 1996-2019, Amazon.com, Inc. or its affiliates",
+      "archiveUrl": "https://web.archive.org/web/20190301001716/https://www.amazon.com/",
+      "timing": {
+        "navigationMs": 5154,
+        "totalMs": 11454,
+        "readiness": {
+          "waitMs": 6221,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [
+            "Cool tech gifts",
+            "Bargain finds",
+            "Women’s shoes",
+            "Sign in for the best experience"
+          ],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 4637,
+          "timedOut": false
+        }
+      },
+      "renderVersion": "render-v2-ready",
+      "image": "/demos/amazon/20190301001716-33889ffd36579f50ab54acfc.png",
+      "sha256": "33889ffd36579f50ab54acfcf76ad83825e9e0038097e8e266ccd1d7989ce317"
+    }
+  ],
+  "unavailable": [
+    {
+      "timestamp": "20190201000854",
+      "original": "https://www.amazon.com/",
+      "error": "Archive did not finish revealing and settling visible content before the render deadline (hidden headings: 0, animations: 0, pending assets: 0)"
+    },
+    {
+      "timestamp": "20190101000332",
+      "original": "https://www.amazon.com/",
+      "error": "Archive did not finish revealing and settling visible content before the render deadline (hidden headings: 0, animations: 0, pending assets: 1)"
+    },
+    {
+      "timestamp": "20221201000120",
+      "original": "https://www.amazon.com/",
+      "error": "Archive returned HTTP 429"
+    },
+    {
+      "timestamp": "20261101005820",
+      "original": "https://www.amazon.com/",
+      "error": "Skipped after archive throttled requests.",
+      "skipped": true
+    }
+  ]
+}

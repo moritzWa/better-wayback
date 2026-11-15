@@ -61,13 +61,21 @@ export async function waitForCaptureReady(page, activity, { timeoutMs = 15000 } 
         }
         return true;
       };
+      // Wikipedia intentionally keeps language-group headings in 1px boxes. These
+      // are accessible labels, not unfinished heroes. Never force them visible.
+      const contentElement = el => {
+        if (el.closest('[aria-hidden="true"], [hidden]')) return false;
+        const r = el.getBoundingClientRect(), style = getComputedStyle(el);
+        if (r.width <= 2 || r.height <= 2 || style.clip === 'rect(0px, 0px, 0px, 0px)' || style.clipPath === 'inset(50%)') return false;
+        return Boolean(el.textContent.trim() || el.matches('img,picture,video') || el.querySelector('img,picture,video'));
+      };
       // Wait for real entrance animations. Infinite decorative effects must not stall a capture.
       const finiteAnimations = document.getAnimations().filter(animation => {
         const target = animation.effect?.target;
         const timing = animation.effect?.getComputedTiming();
-        return (animation.playState === 'running' || animation.pending) && Number.isFinite(timing?.endTime) && target instanceof Element && inViewport(target);
+        return (animation.playState === 'running' || animation.pending) && Number.isFinite(timing?.endTime) && target instanceof Element && inViewport(target) && contentElement(target);
       }).length;
-      const headings = [...document.querySelectorAll('h1,h2,[role="heading"]')].filter(inViewport);
+      const headings = [...document.querySelectorAll('h1,h2,[role="heading"]')].filter(el => inViewport(el) && contentElement(el));
       const hiddenHeadings = headings.filter(el => !visible(el)).length;
       const visibleHeadings = headings.filter(visible).map(el => el.textContent.trim());
       const imagesPending = [...document.images].filter(el => inViewport(el) && visible(el) && !el.complete).length;
@@ -76,7 +84,7 @@ export async function waitForCaptureReady(page, activity, { timeoutMs = 15000 } 
       // Framer/Motion and similar libraries animate inline styles with requestAnimationFrame,
       // not Web Animations. Text becoming barely visible is not the end of that reveal.
       const content = new Set();
-      for (const el of [...document.querySelectorAll('h1,h2,h3,p,a,button,img,[role="heading"],span')].filter(inViewport).slice(0, 600)) {
+      for (const el of [...document.querySelectorAll('h1,h2,h3,p,a,button,img,[role="heading"],span')].filter(el => inViewport(el) && contentElement(el)).slice(0, 600)) {
         // Include ancestor fades/masks. Exclude unrelated, continuously moving artwork.
         for (let node = el; node instanceof Element; node = node.parentElement) content.add(node);
       }

@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { archiveRequestAllowed, isolatedContext, launchRendererBrowser, runPool, trackReadiness, waitForCaptureReady } from '../renderer.js';
+import { archiveRequestAllowed, isolatedContext, launchRendererBrowser, renderPage, runPool, trackReadiness, waitForCaptureReady } from '../renderer.js';
 import { fetchCaptures, keyFor, RENDER_VERSION } from '../lib.js';
 
 test('renderer launch explicitly requires the Chromium OS sandbox', async () => {
@@ -31,6 +31,14 @@ test('pool caps at two in-flight renders without losing completion events', asyn
   });
   assert.equal(peak, 2);
   assert.deepEqual(completed.sort(), [1, 2, 3, 4, 5]);
+});
+test('replay outage and throttling never become successful screenshot results', async () => {
+  for (const status of [429, 503]) {
+    let screenshots = 0;
+    const page = { on() {}, off() {}, goto: async () => ({ status: () => status }), screenshot: async () => screenshots++ };
+    await assert.rejects(renderPage(page, { timestamp: '20260101000000', original: 'https://example.com/' }, '/unused.png'), new RegExp(`HTTP ${status}`));
+    assert.equal(screenshots, 0);
+  }
 });
 
 test('CDX cache preserves metadata, expires and never caches upstream failures', async () => {
@@ -64,6 +72,8 @@ test('fully cached worker publishes previews without launching a browser or requ
     const events = stdout.trim().split('\n').map(line => JSON.parse(line));
     assert.deepEqual(events.find(e => e.type === 'index').captures, [capture]);
     assert.equal(events.find(e => e.type === 'capture').cached, true);
+    assert.equal(events.find(e => e.type === 'index').firstTimestamp, capture.timestamp);
+    assert.equal(events.find(e => e.type === 'index').lastTimestamp, capture.timestamp);
     assert.equal(events.at(-1).type, 'done');
     // The uncached earlier date must not hold a later cached preview hostage.
     await writeFile(resolve(cache, `cdx-${keyFor(JSON.stringify([url, '2024', '2024', 'v1']))}.json`), JSON.stringify({ savedAt: Date.now(), rows: [{ ...capture, timestamp: '20240101000000' }, capture], indexTotal: 2, indexCapped: false }));
@@ -110,6 +120,13 @@ test('readiness waits for delayed reveals, ignores infinite decoration, rejects 
     const jsReveal = await waitForCaptureReady(page, activity, { timeoutMs: 4000 });
     assert.ok(jsReveal.waitMs > 1700, 'must wait for inline-style reveal to finish, not just text visibility');
     assert.equal(await page.locator('h1').evaluate(el => getComputedStyle(el).opacity), '1');
+    await page.setContent('<h1>Wikipedia</h1><h2 style="height:1px;visibility:hidden">1,000,000+ articles</h2><h2 style="position:absolute;left:-9999px;opacity:0">Offscreen accessible label</h2><p>The free encyclopedia has visible real content and language links.</p><span aria-hidden="true" id="decoration">Decorative spinner</span>');
+    await page.evaluate(() => { let i = 0; const t = setInterval(() => { const el = document.querySelector('#decoration'); if (!el) return clearInterval(t); el.style.transform = `rotate(${++i}deg)`; }, 16); });
+    const labels = await waitForCaptureReady(page, activity, { timeoutMs: 2000 });
+    assert.equal(labels.hiddenHeadings, 0);
+    assert.equal(await page.locator('h2').first().evaluate(el => getComputedStyle(el).visibility), 'hidden', 'readiness must not reveal intentionally hidden content');
+    await page.setContent('<h1 style="opacity:0">Broken invisible hero</h1><p>Navigation and footer text must not excuse a hidden actual hero heading.</p>');
+    await assert.rejects(waitForCaptureReady(page, activity, { timeoutMs: 800 }), /hidden headings: 1/);
     activity.dispose();
     await context.close();
   } finally { await browser.close(); }

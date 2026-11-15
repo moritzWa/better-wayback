@@ -16,11 +16,25 @@ test('text equality and differences', () => {
   assert.ok(similarity('the website has a new product for everyone', 'the website has a new product for teams') < 0.9);
 });
 test('sampling includes endpoints, stays ordered, and avoids duplicate indices', () => {
-  const rows = Array.from({ length: 100 }, (_, i) => i);
+  const rows = Array.from({ length: 100 }, (_, i) => ({ timestamp: `${1900 + i}0101000000` }));
   const result = selectCaptures(rows, 8);
-  assert.equal(result.length, 8); assert.equal(result[0], 0); assert.equal(result.at(-1), 99);
+  assert.equal(result.length, 8); assert.equal(result[0], rows[0]); assert.equal(result.at(-1), rows[99]);
   assert.equal(new Set(result).size, 8);
-  assert.deepEqual(selectCaptures([1,2], 8), [1,2]);
+  assert.deepEqual(selectCaptures(rows.slice(0, 2), 8), rows.slice(0, 2));
+});
+test('dense recent activity does not crowd early years out of elapsed-time sampling', () => {
+  const rows = ['19960101000000', '20000101000000', '20050101000000', '20100101000000', '20150101000000', '20200101000000', ...Array.from({ length: 100 }, (_, i) => `20260101${String(i).padStart(6, '0')}`)].map(timestamp => ({ timestamp }));
+  const result = selectCaptures(rows, 4);
+  assert.deepEqual(result.map(row => row.timestamp.slice(0, 4)), ['1996', '2005', '2015', '2026']);
+});
+test('blank starting year leaves the CDX query unbounded rather than inventing 1996', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async url => {
+    assert.equal(new URL(url).searchParams.has('from'), false);
+    return { ok: true, json: async () => [['timestamp', 'original', 'digest'], ['20010301000000', 'https://example.com/', 'X']] };
+  };
+  try { assert.equal((await fetchCaptures('https://example.com/', '', '2026'))[0].timestamp, '20010301000000'); }
+  finally { globalThis.fetch = originalFetch; }
 });
 test('groups adjacent duplicates, preserves reversions, excludes failed captures', () => {
   const captures = [

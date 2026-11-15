@@ -1,0 +1,26 @@
+{
+  "url": "https://www.amazon.com/",
+  "unavailable": [
+    {
+      "timestamp": "20190201000854",
+      "original": "https://www.amazon.com/",
+      "error": "Archive did not finish revealing and settling visible content before the render deadline (hidden headings: 0, animations: 0, pending assets: 0)"
+    },
+    {
+      "timestamp": "20190101000332",
+      "original": "https://www.amazon.com/",
+      "error": "Archive did not finish revealing and settling visible content before the render deadline (hidden headings: 0, animations: 0, pending assets: 1)"
+    },
+    {
+      "timestamp": "20221201000120",
+      "original": "https://www.amazon.com/",
+      "error": "Archive returned HTTP 429"
+    },
+    {
+      "timestamp": "20261101005820",
+      "original": "https://www.amazon.com/",
+      "error": "Skipped after archive throttled requests.",
+      "skipped": true
+    }
+  ]
+}

@@ -1,0 +1,137 @@
+{
+  "url": "https://stripe.com/",
+  "from": "2012",
+  "to": "2026",
+  "firstTimestamp": "20120221114405",
+  "lastTimestamp": "20261101002532",
+  "count": 4,
+  "total": 1200,
+  "sampled": 4,
+  "capped": true,
+  "cached": true,
+  "status": "ready",
+  "curated": true,
+  "source": "Internet Archive Wayback Machine",
+  "captures": [
+    {
+      "timestamp": "20120221114405",
+      "requestedTimestamp": "20120221114405",
+      "original": "https://stripe.com/",
+      "digest": "TT2KILD7LB7525VTILU67PTAQBAECJ2S",
+      "title": "Stripe",
+      "text": "Stripe\nSign In\nDocumentation\nHelp & Support\nPayments for developers\nGet Started with Stripe\nWhy you'll love Stripe\nFull-stack payments\nYou don't need a merchant account or gateway. Stripe handles everything, including storing cards, subscriptions, and direct payouts to your bank account.\nTo make it all happen, we work closely with some of the best financial institutions in the world.\nSkip the sensitive stuff\nStripe.js lets you build your own payment forms while still avoiding most PCI requirements.\nCredit cards go directly to Stripe's secure environment, and never hit your servers. Learn more\nAn API that gets out of your way\nIt's so easy, we've embedded a bunch of examples right here. Copy some of these requests into your terminal and check out what happens.\nWith wrappers in Ruby, PHP, Python and more, you can get started in minutes. Learn more\ncurl https://api.stripe.com/v1/charges \\\n -u vtUQeOtUnYr7PGCLQ96Ul4zqpDUO4sOE: \\\n -d amount=400 \\\n -d currency=usd \\\n -d \"description=Charge for site@stripe.com\" \\\n -d \"card[number]=4242424242424242\" \\\n -d \"card[exp_month]=12\" \\\n -d \"card[exp_year]=2012\" \\\n -d \"card[cvc]=123\"\nCreate a new charge\nRetrieve a charge\nRefund a charge\nCreate a new customer\nDelete a customer\nRetrieve an invoice\n using \ncurl\nruby\npython\nphp\njava\nPricing like it should be\n2.9% + 30 cents per successful charge. No setup fees, no monthly fees, no card storage fees, no hidden costs: you only get charged when you earn money.\nEarnings are transferred to your bank account on a 7 day rolling basis. Pricing details\nWe're developers too\nOur team is full of developers and entrepreneurs who have been there and seen the problems in this industry firsthand.\nWe're dedicated to building the best and simplest payment solution for developers. Meet the team\nStart accepting payments instantly. \nGet Started with Stripe\nLegal About Jobs Blog @stripe\n© Stripe, Inc.",
+      "archiveUrl": "https://web.archive.org/web/20120221114405/https://stripe.com/",
+      "timing": {
+        "navigationMs": 4002,
+        "totalMs": 6590,
+        "readiness": {
+          "waitMs": 2475,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [
+            "Stripe",
+            "Payments for developers",
+            "Why you'll love Stripe",
+            "Full-stack payments"
+          ],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 1923,
+          "timedOut": false
+        }
+      },
+      "renderVersion": "render-v2-ready",
+      "image": "/demos/stripe/20120221114405-4784fc62cdc94160d8ccf6ad.png",
+      "sha256": "4784fc62cdc94160d8ccf6ad387866148ca29b19a42b3adebeaa0f04c0f40161"
+    },
+    {
+      "timestamp": "20140501005224",
+      "requestedTimestamp": "20140501005224",
+      "original": "https://stripe.com/",
+      "digest": "IRR55VO6S73VQIDOLUMPFX5YMGFNOZK2",
+      "title": "Stripe",
+      "text": "Stripe\nFeatures Pricing More\nDocumentation Help & Support Sign in\nPrevious\nNext\nWeb and mobile payments, built for developers\nA set of unified APIs and tools that instantly enable businesses to accept and manage online payments.\nLearn more about Stripe\nSign up\n135 new currencies. From Albanian Leks to Euros and Pounds, instantly charge your customers in their local currency. Read more\nFeature-packed payments\nCard storage, subscriptions, and more.\nSee all features\nSimple pricing\nLeave complex fee structures behind.\nLearn more\nNatively web & mobile\nJavaScript & native libraries available.\nView documentation\n© Stripe\n United States Status Blog About us Jobs Privacy & Terms",
+      "archiveUrl": "https://web.archive.org/web/20140501005224/https://stripe.com/",
+      "timing": {
+        "navigationMs": 6251,
+        "totalMs": 11263,
+        "readiness": {
+          "waitMs": 4863,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [
+            "Stripe",
+            "Web and mobile payments, built for developers"
+          ],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 698,
+          "timedOut": false
+        }
+      },
+      "renderVersion": "render-v2-ready",
+      "image": "/demos/stripe/20140501005224-7de8d3cc79b3c37a55ac3bc6.png",
+      "sha256": "7de8d3cc79b3c37a55ac3bc66da0a2a6e35beca07dfc5e2350be5a78794d96c5"
+    },
+    {
+      "timestamp": "20160601080147",
+      "requestedTimestamp": "20160601080147",
+      "original": "https://stripe.com/",
+      "digest": "5BAG5ZJCPVZLPCR7JZJYD4BCT6UYAETQ",
+      "title": "Stripe",
+      "text": "Features Pricing Products\nDocumentation Help & Support Sign in\nPrevious\nNext\nPayments infrastructure for the internet\nWhether you’re building a marketplace, mobile app, online storefront, or subscription service, Stripe has the features you need.\nExplore the Stripe stack\nSign up\nDashboard for iPhone. Download the app to track and manage your payments on the go. Learn more\nFeature-packed payments\nCard storage, subscriptions, and more.\nSee all features\nSimple pricing\nLeave complex fee structures behind.\nLearn more\nNatively web & mobile\nJavaScript & native libraries available.\nView documentation\n© Stripe\n United States Pricing Blog API Status About Jobs Open Source Contact Privacy & Terms",
+      "archiveUrl": "https://web.archive.org/web/20160601080147/https://stripe.com/",
+      "timing": {
+        "navigationMs": 6697,
+        "totalMs": 13444,
+        "readiness": {
+          "waitMs": 6592,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [
+            "",
+            "Payments infrastructure for the internet"
+          ],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 715,
+          "timedOut": false
+        }
+      },
+      "renderVersion": "render-v2-ready",
+      "image": "/demos/stripe/20160601080147-665dd629d6cf5618f7343d9f.png",
+      "sha256": "665dd629d6cf5618f7343d9f2c4357b67769be1ab7d4a08f273b9d44fd0ad7d4"
+    },
+    {
+      "timestamp": "20261101002532",
+      "requestedTimestamp": "20261101002532",
+      "original": "https://stripe.com/",
+      "digest": "NOQD5CJAVO26U2UPYV2XGG5RF5MMPBIK",
+      "title": "Stripe | Financial Infrastructure to Grow Your Revenue",
+      "text": "Products\nSolutions\nDevelopers\nResources\nPricing\nGuide me\nSign in\nSign in\nContact sales\nGlobal GDP running on Stripe: \nFinancial infrastructure to grow your revenue. Accept payments, handle business banking,1 and implement custom revenue models—from your first transaction to your billionth.\nFinancial infrastructure to grow your revenue. Accept payments, handle business banking,1 and implement custom revenue models—from your first transaction to your billionth.\nGet started\nSign up with Google\nFlexible solutions for every business model.\nGrow your business with a comprehensive set of payments and financial tools⁠—⁠designed to work individually or together.\nAccept and optimize payments globally—online and in person\nEnable any billing model\nPro Plan\nBilled monthly\nTokens\n$0.01 per 1,000 units\nUsage meter\nTokens used in the last 30 days\nMonetize through agentic commerce\nCreate a card issuing program\nAccess borderless money movement with stablecoins and crypto\nEmbed payments in your platform\nGet Stripe product recommendations\nEnter your company's URL, or tell us what you sell and how you sell it.\nInput must be 500 characters or fewer.\n0/500\nInput strength:\nBusiness website\nWhat you sell\nHow you charge\nWho you sell to\nBy messaging, you understand how Stripe uses AI and acknowledge our Privacy Policy.\nBuilding the economic infrastructure for AI\nWatch now\nThe backbone of global commerce\n135+\ncurrencies and payment methods supported\n$1.9T\nin payments volume processed in 2025\n99.999%\nhistorical uptime for Stripe services\n200M+\nactive subscriptions managed on Stripe Billing\nPowering businesses of all sizes.\nRun your business on a reliable platform that adapts to your needs.\nTransform your enterprise with agile financial infrastructure\nStripe for enterprises\n50% of Fortune 100 companies have used Stripe to grow their businesses—from expanding internationally to reimagining the customer experience.\nHertz unifies commerce with Stripe.\nRead the story\n160\n countries\n11K+\n locations globally\nProducts used\n Payments, Terminal, Connect, Radar, and Stripe Sigma\nURBN consolidates $5 billion in online and in-store revenue onto Stripe.\nRead the story\n5+\n consumer brands in retailer portfolio\n700+\n store locations\nProducts used\n Payments, Terminal, Connect, Stripe Sigma, Radar, and Link\nInstacart powers online grocery delivery with Stripe.\nRead the story\n600K+\n shoppers\n1.8K\n retail partners across nearly 100K stores\nProducts used\n Payments, Connect, Data Pipeline, and Issuing\nLe Monde improves local and international payments with Stripe.\nRead the story\n100%\n of digital and print payments powered by Stripe\nLess than 3 months\n to implement and go live\nProducts used\n Payments, Stripe Sigma, and Radar\nRealize value faster with dedicated experts\nProfessional services.\nGet tailored guidance from Stripe on implementation, complex integrations, or major migrations.\nView services\nStripe-certified experts.\nWork with a Stripe consulting partner that can integrate and deploy Stripe solutions on your behalf.\nView partners\nSupport plans.\nReceive ongoing assistance and day-to-day support for technical questions with tiered plans based on your needs.\nView plans\nBuild a foundation for your startup that enables faster growth\nStripe for startups\nFrom stablecoin pioneers to 88% of the Forbes AI 50, Stripe helps startups build what’s next on easy-to-integrate financial infrastructure.\nLovable grows into a vibe-coding juggernaut with Stripe.\nRead Lovable’s story\nGamma expands to $100M ARR and 70 million users with Stripe.\nRead Gamma’s story\nRunway protects developer time with no-code solutions from Stripe.\nRead Runway’s story\nSupabase delivers its backend-as-a-service to 150 countries with Stripe.\nRead Supabase’s story\nLinear partners with Stripe to handle billing and payments.\nRead Linear’s story\nElevenLabs grows into a $3B AI audio leader with Stripe.\nWatch the video\nBrowserbase offers usage-based billing for an AI agent browser with Stripe.\nRead Browserbase’s story\nDecagon decreases support costs by 65% with Stripe-integrated agents.\nRead Decagon’s story\nStripe Startups program.\nAccess financial benefits, a focused community, and expert resources to help you grow your business.\nApply now\nStripe Atlas.\nIncorporate and get everything you need to fundraise, bank, and accept payments in two business days.\nStart your company\nMake your SaaS platform a complete financial operating system\nStripe for platforms\nFrom the Fortune 100 to the Forbes Cloud 100, vertical SaaS platforms use Stripe to expand their product offerings with embedded payments and financial services.\nGet to market faster.\nLaunch and scale payments products with lower operational overhead using embedded components and no-code tools.\nRead the guide\nGrow new lines of revenue.\nMonetize platform transactions—including payments, card interchange, and financing fees.\nRead the guide\nManage platform risk.\nStay ahead of global regulations with tools for compliance, credit risk, fraud prevention, and account security.\nRead the guide\nWith Stripe, we have a global technology partner to help our customers—from Canadian yoga studios to British boxing classes—keep growing and evolving in a new wellness world.\nKurtis Moyer, Lead Product Manager of Payments, Mindbody\nRead the story\nWithout Stripe, it would have taken significant time and engineering effort to offer these resources to our customers. The financial infrastructure Stripe offers is incredibly valuable to Jobber, and we look forward to seeing what comes next.\nLaura Collinson, Director of Fintech, Jobber\nRead the story\nStripe makes the subscriptions and payment piece really easy for everyone involved. And that helps us make it easy for writers and other creators to do the work they want to do on Substack and get paid for it.\nSeth McMillan, Engineering Manager, Substack\nRead the story\nStripe offers an enterprise-grade infrastructure that puts our customers on the cutting edge of modern payments technology. The combination of Terminal and Connect is a powerful integrated solution.\nDax Dasilva, Founder and CEO, Lightspeed\nRead the story\nReliable, extensible infrastructure for every stack.\nAdapt Stripe to your business needs with flexible integration options.\nView developer docs\nView Stripe’s GitHub\nConnect to existing systems.\nOrchestrate payments across multiple processors, build custom workflows, and connect to third parties using APIs, partner apps, or prebuilt integrations.\nScale with confidence.\nHandle thousands of transactions per second with consistent speed and reliability, even during peak traffic periods.\n500M+\nAPI requests per day\n10K+\nAPI requests per second\n150K+\ntransactions per minute\nChoose an integration path.\nWith AI-powered support, rich documentation, and built-in debugging tools, you can quickly get started with the best option for your business.\nDon’t code?\nSet up billing, take in-person payments, or share a payment link—right from the Stripe Dashboard, no code required.\nExplore no-code\nUse a pre-integrated platform.\nBrowse our directory of platforms that integrate Stripe with website-building tools.\nSee directory\nBuild your own integration.\nUse our SDKs, APIs, MCP server, and AI developer tools to build and maintain your own integration with Stripe.\nGet started\nWhat’s happening\nSee the latest from Stripe.\nBusinesses on Stripe generated $1.9T in 2025.\nOur annual letter explores the trends defining the internet economy—including steeper growth for newer businesses, faster international expansion, stablecoin progress, agentic commerce, and more.\nRead the letter\n150K+ users have their best day ever on Stripe.\nFrom Black Friday through Cyber Monday 2025, Stripe processed more than $40B for businesses while maintaining a 99.9999% uptime.\nSee the numbers\nTidemark’s vertical and SMB SaaS benchmark report.\nLearn what’s driving growth in vertical SaaS in 2025—going multiproduct, embedding fintech, and integrating AI into the core of their products.\nGet the data\nShopify’s Tobi Lütke sits down with John Collison.\nHear them discuss the choices that shaped Shopify and Stripe, the future of commerce, and their advice for founders.\nWatch video\nNew tools to process payments outside app stores.\nNew regulations mean new opportunities. Read how Stripe can help you process payments outside of the iOS and Android app stores, giving you more control and helping grow your revenue.\nLearn how\nCrypto.com partners with Stripe to enable better crypto payments.\nLearn how the partnership can help you tap into a new global customer base by letting customers pay with their crypto balance directly at checkout.\nView announcement\nMake your products shoppable through AI platforms.\nFind out how the Agentic Commerce Protocol (ACP) allows any business to accept purchases from AI platforms without requiring any major technical changes.\nRead more\nHow leading retailers unify customer experiences and drive growth.\nGet insights into how other brands have unified their online and in-store experiences and optimized their checkouts for a seamless shopping experience.\nGet the report\nItem 1 of 8: Businesses on Stripe generated $1.9T in 2025.\nBook of the week\nEntrepreneurship starts with ideas.\nFor more ideas on economic progress and technological advancement, see our in-house publications:\nStripe Press\nWorks in Progress\nReady to get started?\nCreate an account instantly, or contact us to design a custom package for your business.\nStart now\nContact sales\nSee what you’ll pay\nIntegrated per-transaction pricing with no hidden fees.\nPricing details\nStart building\nGet up and running with Stripe in as little as 10 minutes.\nIntegration options\n1 Stripe Treasury includes various distinct Stripe products. See applicable product terms. Stripe is not a bank. Checking accounts are provided exclusively by Fifth Third Bank, National Association, Member FDIC. Deposits are insured through Fifth Third Bank.\nProducts and pricing\nPricing\nAtlas\nAuthorization Boost\nBilling\nCapital\nCapital for platforms\nCheckout\nClimate\nConnect\nCrypto\nCrypto Onramp\nData Pipeline\nElements\nFinancial Connections\nGlobal Payouts\nIdentity\nInvoicing\nIssuing\nLink\nManaged Payments\nPayment links\nPayment methods\nPayments\nRadar\nRevenue Recognition\nStripe Sigma\nSubscriptions\nTax\nTerminal\nTreasury\nTreasury for platforms\nUsage-based billing\nSolutions\nEnterprises\nStartups\nAgentic commerce\nCrypto\nEcommerce\nEmbedded finance\nFinance automation\nGlobal businesses\nIn-app payments\nMarketplaces\nMoney management\nPlatforms\nSaaS\nAI companies\nCreator economy\nFintech\nGaming\nHospitality, travel, and leisure\nInsurance\nMedia and entertainment\nNonprofits\nProfessional services\nPublic sector\nRetail\nDevelopers\nDocumentation\nAPI reference\nAPI status\nAPI changelog\nLibraries and SDKs\nStripe Projects\nDeveloper blog\nIntegrations and custom solutions\nStripe App Marketplace\nStripe Partner ecosystem\nProfessional services\nResources\nProduct roadmap\nGuides\nCustomer stories\nBlog\nCommunity\nSessions annual conference\nPrivacy and terms\nProhibited and restricted businesses\nLicenses\nSitemap\nCookie settings\nYour privacy choices\nMore resources\nCompany\nAbout\nCareers\nNewsroom\nStripe Press\nContact sales\nSupport\nGet support\nManaged support plans\nCA residents: +1 888 926 2289\nSign in\nUnited States(English)\n© 2026 Stripe, LLC.",
+      "archiveUrl": "https://web.archive.org/web/20261101002532/https://stripe.com/",
+      "timing": {
+        "navigationMs": 3886,
+        "totalMs": 4686,
+        "readiness": {
+          "waitMs": 747,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [
+            "Financial infrastructure to grow your revenue. Accept payments, handle business banking,1 and implement custom revenue models—from your first transaction to your billionth.",
+            "Financial infrastructure to grow your revenue. Accept payments, handle business banking,1 and implement custom revenue models—from your first transaction to your billionth.",
+            "Flexible solutions for every business model."
+          ],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 11385,
+          "timedOut": false
+        }
+      },
+      "renderVersion": "render-v2-ready",
+      "image": "/demos/stripe/20261101002532-ee3dad8e98aa995d5e699712.png",
+      "sha256": "ee3dad8e98aa995d5e69971213178a9f111a8348485016ac22633fb97930c9d9"
+    }
+  ],
+  "unavailable": []
+}

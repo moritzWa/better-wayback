@@ -1,9 +1,11 @@
 import http from 'node:http';
-import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { readFile, mkdir, writeFile, access } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { spawn } from 'node:child_process';
+import { homedir } from 'node:os';
 import { normalizeUrl, keyFor, RENDER_VERSION } from './lib.js';
 import { handleBlogRequest, blogScriptHashes } from './blog.js';
+import { loadDemo, demoAsset } from './demos.js';
 
 const root = resolve('.');
 const port = Number(process.env.PORT || 4317);
@@ -15,6 +17,17 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Referrer-Policy', 'no-referrer');
   const path = new URL(req.url, 'http://localhost').pathname;
   try {
+    if (['GET', 'HEAD'].includes(req.method) && /^\/api\/demos\/(stripe|amazon)$/.test(path)) {
+      const demo = await loadDemo(path.split('/').at(-1), root);
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' });
+      return res.end(req.method === 'HEAD' ? undefined : JSON.stringify(demo));
+    }
+    if (['GET', 'HEAD'].includes(req.method) && path.startsWith('/demos/')) {
+      const asset = await demoAsset(path, root);
+      if (!asset) return json(res, 404, { error: 'Not found' });
+      res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=31536000, immutable' });
+      return res.end(req.method === 'HEAD' ? undefined : asset);
+    }
     if (req.method === 'GET' || req.method === 'HEAD') {
       const blog = handleBlogRequest(path);
       if (blog) {
@@ -34,8 +47,8 @@ const server = http.createServer(async (req, res) => {
       try { input = JSON.parse(body); } catch { return json(res, 400, { error: 'Invalid JSON' }); }
       let url;
       try { url = normalizeUrl(String(input.url || '')); } catch (e) { return json(res, 400, { error: e.message }); }
-      const from = String(input.from || '1996'), to = String(input.to || new Date().getFullYear());
-      if (!/^\d{4}$/.test(from) || !/^\d{4}$/.test(to) || from > to || +from < 1996 || +to > new Date().getFullYear()) return json(res, 400, { error: 'Enter a valid year range from 1996 to today.' });
+      const from = String(input.from || ''), to = String(input.to || new Date().getFullYear());
+      if ((from && (!/^\d{4}$/.test(from) || from > to || +from < 1996)) || !/^\d{4}$/.test(to) || +to < 1996 || +to > new Date().getFullYear()) return json(res, 400, { error: 'Enter a valid year range from 1996 to today.' });
       const count = [8, 16, 24].includes(Number(input.count)) ? Number(input.count) : 8;
       const id = keyFor(JSON.stringify([url, from, to, count, RENDER_VERSION]));
       if (jobs.has(id)) return json(res, 200, { id, url });
@@ -58,8 +71,9 @@ const server = http.createServer(async (req, res) => {
           job.listeners.clear();
         }
       };
-      const guard = resolve(process.env.HOME, '.claude/scripts/heavy-job.py');
-      const command = process.env.BETTER_WAYBACK_NO_QUEUE === '1' ? [process.execPath, [resolve(root, 'worker.js'), url, from, to, String(count)]] : ['python3', [guard, '--wait', '--', process.execPath, resolve(root, 'worker.js'), url, from, to, String(count)]];
+      const guard = resolve(process.env.HOME || homedir(), '.claude/scripts/heavy-job.py');
+      const hasGuard = await access(guard).then(() => true, () => false);
+      const command = process.env.BETTER_WAYBACK_NO_QUEUE === '1' || !hasGuard ? [process.execPath, [resolve(root, 'worker.js'), url, from, to, String(count)]] : ['python3', [guard, '--wait', '--', process.execPath, resolve(root, 'worker.js'), url, from, to, String(count)]];
       const child = spawn(command[0], command[1], { cwd: root, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
       children.add(child);
       add({ type: 'status', message: 'Queued for rendering…' });

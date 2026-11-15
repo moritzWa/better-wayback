@@ -12,7 +12,7 @@ try {
   emit({ type: 'status', message: 'Finding archived captures…' });
   const rows = await fetchCaptures(url, from, to, { cacheDir: cache });
   const selected = selectCaptures(rows, Number(countArg));
-  emit({ type: 'index', total: rows.indexTotal, capped: rows.indexCapped, monthly: rows.indexCapped, sampled: selected.length, captures: selected });
+  emit({ type: 'index', total: rows.indexTotal, capped: rows.indexCapped, monthly: rows.indexCapped, sampled: selected.length, captures: selected, firstTimestamp: rows[0]?.timestamp, lastTimestamp: rows.at(-1)?.timestamp });
   if (!selected.length) throw new Error('No successful captures found for this URL and date range. Try a wider range or the www version.');
   let completed = 0;
   const uncached = [];
@@ -28,7 +28,13 @@ try {
     } catch {}
     uncached.push({ capture, key });
   }
-  if (uncached.length) browser = await launchRendererBrowser();
+  if (uncached.length) {
+    try { browser = await launchRendererBrowser(); }
+    catch (error) {
+      for (const { capture } of uncached) emit({ type: 'capture', capture: { ...capture, error: `Renderer unavailable: ${error.message}` }, completed: ++completed });
+      throw error;
+    }
+  }
   let throttled = false;
   // Two pages at most, each in a fresh isolated context. No burst of dozens of IA replays.
   await runPool(uncached, 2, async ({ capture, key }) => {

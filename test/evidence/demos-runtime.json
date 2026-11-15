@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-14",
+  "command": "RENDERER_BROWSER_TESTS=1 node --test test/lib.test.js test/renderer.test.js test/renderer-api.test.js test/server-portability.test.js test/demos.test.js",
+  "testsPassed": 22,
+  "testsSkipped": 0,
+  "durationMs": 7604.93,
+  "runtimeRestrictions": ["External fetch forbidden", "Child process spawn forbidden", "No browser installation available"],
+  "demos": [
+    { "name": "stripe", "captures": 4, "firstTimestamp": "20120221114405", "lastTimestamp": "20261101002532", "apiMs": 23.24, "allPngMs": 37.15, "pngBytes": 2185597, "externalRequests": 0, "workers": 0 },
+    { "name": "amazon", "captures": 6, "firstTimestamp": "19990828014913", "lastTimestamp": "20190301001716", "apiMs": 2.52, "allPngMs": 16.02, "pngBytes": 2456853, "externalRequests": 0, "workers": 0 }
+  ],
+  "wikipedia": {
+    "timestamp": "20261101003100",
+    "before": "Valid Wikipedia replay rejected for two intentionally hidden 1px language-group headings",
+    "afterTotalMs": 1255,
+    "afterReadinessMs": 634,
+    "hiddenLabelsRemainHidden": true,
+    "realHiddenHeroRegressionStillRejected": true
+  },
+  "archiveThrottle": { "site": "amazon", "timestamp": "20221201000120", "status": 429, "action": "Stopped all archive requests; packaged six completed real screenshots and retained failure details" }
+}
