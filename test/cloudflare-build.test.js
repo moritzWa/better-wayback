@@ -19,6 +19,9 @@ test('static build contains real offline demos, indexed blog HTML, support asset
   const headers = await readFile(new URL('_headers', root), 'utf8');
   for (const hash of blogScriptHashes) assert.ok(headers.includes(hash));
   assert.ok(headers.includes('https://challenges.cloudflare.com'));
+  const policies = headers.split('\n').filter(line => line.trim().startsWith('Content-Security-Policy:'));
+  assert.equal(policies.length, 2);
+  for (const policy of policies) assert.ok(policy.includes("connect-src 'self' https://challenges.cloudflare.com;"));
   assert.ok(!headers.includes('unsafe-inline'));
   assert.ok((await readFile(new URL('robots.txt', root), 'utf8')).includes('visualwayback.com/sitemap.xml'));
 });
