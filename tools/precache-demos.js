@@ -4,7 +4,7 @@
 import { access, copyFile, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
-import { fetchCaptures, selectCaptures, keyFor, RENDER_VERSION, writeJsonAtomic } from '../lib.js';
+import { fetchCaptures, selectCaptures, keyFor, RENDER_VERSION, writeJsonAtomic, isArchiveErrorPage } from '../lib.js';
 import { launchRendererBrowser, renderCapture } from '../renderer.js';
 
 const name = process.argv[2];
@@ -24,7 +24,7 @@ try {
     for (const file of await readdir(cache)) {
       if (!/^[a-f0-9]{24}\.json$/.test(file)) continue;
       const saved = JSON.parse(await readFile(resolve(cache, file), 'utf8'));
-      if (saved.original && new URL(saved.original).hostname.replace(/^www\./, '') === `${name}.com` && saved.renderVersion === RENDER_VERSION && saved.image && !saved.error && saved.text && !rows.some(row => row.timestamp === saved.timestamp)) rows.push(saved);
+      if (saved.original && new URL(saved.original).hostname.replace(/^www\./, '') === `${name}.com` && saved.renderVersion === RENDER_VERSION && saved.image && !saved.error && saved.text && !isArchiveErrorPage(saved.title, saved.text) && !rows.some(row => row.timestamp === saved.timestamp)) rows.push(saved);
     }
     rows.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
     const indexFrom = name === 'stripe' ? '2012' : '';
@@ -46,7 +46,7 @@ try {
       try {
         try {
           saved = JSON.parse(await readFile(resolve(cache, key + '.json'), 'utf8'));
-          if (saved.renderVersion !== RENDER_VERSION || saved.error || !saved.text) throw new Error('Stale capture');
+          if (saved.renderVersion !== RENDER_VERSION || saved.error || !saved.text || isArchiveErrorPage(saved.title, saved.text)) throw new Error('Stale capture');
           await access(resolve(cache, key + '.png'));
         } catch {
           if (cachedOnly) throw new Error('Cached screenshot unavailable');

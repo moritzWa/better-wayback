@@ -1,0 +1,149 @@
+{
+  "url": "https://www.nvidia.com/",
+  "from": "2007",
+  "to": "2025",
+  "firstTimestamp": "20070101232936",
+  "lastTimestamp": "20250101074126",
+  "count": 3,
+  "total": 12,
+  "sampled": 3,
+  "capped": false,
+  "cached": true,
+  "status": "ready",
+  "curated": true,
+  "source": "Internet Archive Wayback Machine",
+  "indexNote": "Curated from year-specific CDX queries and historical homepage paths, not the complete capture index.",
+  "captures": [
+    {
+      "timestamp": "20070101232936",
+      "original": "http://www.nvidia.com:80/page/home.html",
+      "digest": "DU3PSW3FFUCIR2ARJ6UNXEGC3ODVZCCT",
+      "requestedTimestamp": "20070101232936",
+      "text": "Latest RSS Headlines: \nNVIDIA Reports Operating Results For The Third Quarter Of Fiscal Year 2007\nDell Precision M90 Mobile Workstation\nFeaturing NVIDIA Quadro FX 3500M!\nNVIDIA CUDA Technology\nA unified solution for data-intensive computing\nWindows Vista\nCan your PC handle it?\nGet Your Holiday Gifts Now!\nFree shipping, special offers and more\nSweepstakes!\nEnter for a chance to win a free Motorola V3XX\n$100,000 in Prizes!\n365 Winners! Are you next?\nBuild. Buy. Sell.\nVisit the new NVIDIA SLI Marketplace today!\nWorld in Conflict\nDX10 gaming has arrived!\nGelato Zone\nA new site for the rendering community\nAdobe and NVIDIA\nAdobe Reader 8 Gets a Boost!\nNVIDIA Success Story\nImproving the lives of burn victims\nNVIDIA PartnerForce Program\nJoin our Reseller community\nNVIDIA\nMost Respected Public Fabless Semiconductor Company\nAll Products \nForceWare Windows XP/Media Center Edition\nVersion: 97.02\nRelease Date: November 8, 2006\nnForce 680i SLI - Windows XP (32-Bit)\nVersion: 9.53\nRelease Date: November 8, 2006\nWindows Vista x86 RC2\nVersion: 96.85\nRelease Date: October 17, 2006\nAll Drivers\n The ASUS G1 Gaming Notebook\nBuy now and receive a matching carrying bag and gaming mouse!\n NVIDIA Edition Computer Case\nFree shipping through January 5, 2007!\nGeForce | nForce | GeForce Go | Quadro | GoForce\nDevelopers | Channel Partners | Investor Relations | Employment\nCopyright © 2006 NVIDIA Corporation | Legal Info | Privacy Policy | RSS Feeds",
+      "title": "NVIDIA Home",
+      "archiveUrl": "https://web.archive.org/web/20070101232936/http://www.nvidia.com:80/page/home.html",
+      "timing": {
+        "navigationMs": 4212,
+        "totalMs": 8094,
+        "readiness": {
+          "waitMs": 3728,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 1481,
+          "timedOut": false
+        }
+      },
+      "image": "/demos/nvidia/20070101232936-0a0cca15ae9477d7387f784a.png",
+      "renderVersion": "render-v2-ready",
+      "sha256": "0a0cca15ae9477d7387f784a7b6e57ca9bc5cea761f439d91360e691fa5215be"
+    },
+    {
+      "timestamp": "20130211005742",
+      "original": "http://www.nvidia.com/page/home.html",
+      "digest": "4NVYXMGONKRLUL5YDS6P7WARLUNFH42K",
+      "requestedTimestamp": "20130208013553",
+      "text": "USA - United States\nDRIVERS\nPRODUCTS\nCOMMUNITIES\nSUPPORT\nSHOP\nABOUT NVIDIA\nNVIDIA NEWS:\nGet the latest NVIDIA headlines here\nEnjoy\nProject Shield\nHow it was built, a behind-the-scenes look.\nIs your PC ready for Call of Duty: Black Ops II?\nCheck Now.\nCool Stuff!\nWallpapers, demos and more ....\nCreate\nRaising the bar for business graphics\nNVIDIA NVS 510\nGPU-Accelerated Cloud Computing\nAmazing graphics. Any device. Anywhere.\nNVIDIA Stories on TV\nUnexpected applications of GPUs.\nExplore\nAccelerated Computing at GTC 2013.\nFor computational researchers and developers.\nOpen, Simple, Portable.\nAccelerate legacy codes.\nWhat is CUDA?\nLearn about this pervasive parallel computing platform.\nShop\nChoose. Compare. Buy.\nNVIDIA Graphic Solutions.\n3D Vision 2 Wireless Glasses Kit\nFor use with any 3D Vision Ready Display.\nGeekbox Ego Maniacal promotion\nFree upgrade from GeForce GTX 680 to GTX 690!\nSolutions: 3DTV Play | 3D PCs | Optimus | Graphics Cards | High Performance Computing | Visualization | CUDA | Tegra Android App | Cool Stuff\nCorporate: Events | Affiliate Program | Developers | Channel Partners | Careers | RSS Feeds | Newsletter | Contact Us\nCopyright © 2013 NVIDIA Corporation Legal Info | Privacy Policy",
+      "title": "World Leader in Visual Computing Technologies | NVIDIA",
+      "archiveUrl": "https://web.archive.org/web/20130211005742/http://www.nvidia.com/page/home.html",
+      "timing": {
+        "navigationMs": 14614,
+        "totalMs": 16642,
+        "readiness": {
+          "waitMs": 1326,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [
+            "NVIDIA NEWS:",
+            "Enjoy",
+            "Create",
+            "Explore",
+            "Shop"
+          ],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 1265,
+          "timedOut": false
+        }
+      },
+      "image": "/demos/nvidia/20130211005742-f5ccea72eeec3dde15f8b961.png",
+      "sha256": "f5ccea72eeec3dde15f8b9617e522690703b7b79a9afd65885f9a9c8461269c2",
+      "renderVersion": "render-v2-ready"
+    },
+    {
+      "timestamp": "20250101074126",
+      "original": "https://www.nvidia.com/en-us/",
+      "digest": "NCJQBARHJLLIOBYCGLMHHY5A3YHGEMBV",
+      "requestedTimestamp": "20250101074126",
+      "text": "Skip to main content\nProducts Solutions Industries For You\nShop\nDrivers\nSupport\nSign In\nEdge Computing\nJetson Orin Nano Super Developer Kit\nThe most affordable generative AI supercomputer.\nLearn More\nEdge Computing\nJetson Orin Nano Super Developer Kit\nKeynote\nNVIDIA CEO Jensen Huang to Open CES\nNVIDIA GTC\nWhat’s Next in AI Starts Here\nArtificial Intelligence\nNVIDIA and AWS Accelerate Enterprise Inference\nSimulation\nNVIDIA Advances Physical AI with Accelerated Robotics Simulation on AWS\nData Center\nNVIDIA and Microsoft Unveil New Product Integrations at Ignite 2024\nGTC 2025 Registration is Now Open\nJoin thousands of developers, innovators, and business leaders on March 17–21 to experience how AI and accelerated computing are helping humanity solve our most complex challenges. Register With Early-Bird Pricing \nArtificial Intelligence\nAI is powering change in every industry. From generative AI and speech recognition to medical imaging and improved supply chain management, AI is providing enterprises the compute power, tools, and algorithms their teams need to do their life's work.\nQuick Links\nGenerative AI | Blog\nAI at Your Service: Avatars Offer Interactive Customer Experiences\nDiscover how digital humans can enhance customer experiences, employee knowledge, and outcomes.\nGenerative AI | Blog\nNew NeMo Retriever Microservices for Multilingual Generative AI\nRead how DataStax helps Wikimedia achieve 10x data processing speedup to serve their global content database to billions of users.\nArtificial Intelligence | Blog\nFine-Tune SLMs to Optimize Code Review Accuracy\nFine-tune small language models with knowledge distillation for higher accuracy, reduced costs, and faster performance.\nGenerative AI | Blog\nBuild Smarter AI Virtual Assistants for Customer Service\nUse an NVIDIA AI Blueprint to transform customer service across every industry.\nGenerative AI | Webinar\nEnhance Generative AI Model Accuracy With Quality Data Processing\nBuild data processing pipelines to create high-quality multimodal datasets for training and customization.\nArtificial Intelligence | Announcement\nNVIDIA and Partners Scale Japan’s AI Workforce\nNVIDIA NIMTM, now on Amazon Services, speeds time to market, maintains security of gen AI, improves TCO.\nGenerative AI | Blog\nNVIDIA at AWS re:Invent 2024\nJoin NVIDIA at AWS at re:Invent to learn about the latest breakthroughs in generative AI.\nGenerative AI | Blog\nEfficiency Meets Personalization: AI Agents Boost Customer Service\nSee how AI agents can improve efficiency and customer satisfaction and scale customer support.\nArtificial Intelligence | Blog\nEnhance Workflows With a Custom Slackbot LLM Agent\nOptimize productivity and communication with a custom Slackbot built on NVIDIA NIM and LangChain.\nArtificial Intelligence | Blog\nAI Decoded: AnythingLLM\nHow RTX AI PCs unlock AI agents that autonomously solve complex, multi-step problems with generative AI.\nDesign and Simulation\nNVIDIA RTXTM and NVIDIA OmniverseTM deliver the performance to help professionals, creators, developers, and students worldwide enhance creative workflows and build, operate, and connect metaverse applications.\nQuick Links\nFourier\nSimulation | Blog\nOpenUSD and SDG for Advanced Robot Learning\nTools like NVIDIA Isaac SimTM enhance synthetic data generation, improving AI model performance and accelerating robotics development.\nSimulation | Blog\nGenerative AI-Enabled Content Creation With OpenUSD\nNVIDIA OmniverseTM devs are enabling brands to deliver personalized, high-quality visuals at scale.\nData Center | Blog\nNVIDIA and Microsoft Debut New Product Integrations\nNew integrations at Microsoft Ignite advance full-stack AI development on Microsoft platforms.\nSimulation | Blog\nFoxconn Expands Blackwell Testing and Production With New Factories\nFoxconn uses digital twins, industrial AI built on NVIDIA OmniverseTM to launch facilities rapidly.\nSimulation | Course\nAccelerate Your 3D Development With OpenUSD\nFree DLI training—kickstart your OpenUSD journey with new Learn OpenUSD courses.\nWPP, The Coca-Cola Company\nSimulation | Announcement\nThe Coca-Cola Company and WPP Build Generative AI Content Engine With NVIDIA NIM and Omniverse\nWorld marketing leader WPP is enabling the beverage giant to accelerate iteration on creative campaigns at a global scale with USD Search and USD Code NVIDIA NIMTM microservices.\nSimulation | Blog\nNVIDIA Introduces fVDB to Build Bigger Digital Models of the World\nfVDB builds AI operators on top of OpenVDB to enable reality-scale, AI-ready digital twins.\nSyncTwin GmbH\nSimulation | Blog\nDemocratizing Industrial Digital Twins With Gen AI and OpenUSD\nSyncTwin’s application enables teams to optimize industrial efficiency while enhancing sustainability across manufacturing processes.\nSIGGRAPH Event | Event\nFireside Chat with NVIDIA CEO Jensen Huang\nDon’t miss this SIGGRAPH 2024 discussion with Jensen Huang and WIRED Senior Writer, Lauren Goode.\nFoxconn\nSimulation | Blog\nFoxconn Trains Robots, Streamlines Assembly With NVIDIA AI\nThe world’s largest electronics manufacturer is gearing up to make one of NVIDIA’s most complex products, so it’s turning to a digital twin powered by the NVIDIA Omniverse and Isaac platforms.\nHigh-Performance Computing\nHigh-performance computing (HPC) is the ability to process data and perform complex calculations at high speeds. HPC is one of the most essential tools fueling the advancement of computational science.\nQuick Links\nHPC | Announcement\nEarth-2 Announces New NIM Microservices\nLeverage AI-accelerated models to simulate real-world outcomes for climate and weather.\nSimulation | Blog\nRevolutionize AI-Driven Material Discovery Using NVIDIA ALCHEMI\nNVIDIA ALCHEMI introduces the first accelerated materials discovery NIM.\nHPC | Event\nTune In to the NVIDIA SC24 Special Address\nThe NVIDIA SC24 address has started. Join now to hear an in-depth overview of our innovations.\nHPC | Event\nAcceleratings Quantum Computing Centers Worldwide With CUDA-Q\nSupercomputers are incorporating NVIDIA Grace Hopper and CUDA-Q to advance quantum research.\nHPC | Announcement\nNVIDIA Joins Key Contributors in a National AI Research Resource Pilot\nThe U.S. National Science Foundation has launched the National Artificial Intelligence Research Resource pilot, with NVIDIA as a major contributor.\nHPC | Announcement\nNVIDIA Announces Earth-2 for Weather Prediction\nEarth-2 provides a path to simulate and visualize the global atmosphere at unprecedented speed and scale.\nHPC | Announcement\nAnnouncing New System for Accelerated Quantum-Classical Computing\nNVIDIA and Quantum Machines debut DGXTM Quantum-integrated architecture using the open-source CUDA® Quantum software platform.\nHPC | Resource\nThe NVIDIA Framework for HPC\nA new ebook shares best practices for system design, current trends, and expert insights.\nHPC | Announcement\nSolving HPC Problems at the Edge\nNVIDIA ClaraTM Holoscan, BlueField® DPUs, and MetroX®-3 enable streaming processing at the edge.\nHPC | Announcement\nBringing Digital Twin Simulation to HPC Data Center Operators\nNVIDIA OmniverseTM lets designers, builders, and operators use the power of virtual worlds.\nGaming and Creating\nNVIDIA GeForce RTXTM powers the world’s fastest GPUs and the ultimate platform for gamers and creators. Enjoy beautiful ray tracing, AI-powered DLSS, and much more in games and applications, on your desktop, laptop, in the cloud, or in your living room.\nQuick Links\nGames | News\nGeForce at CES 2025\nCelebrate 25 Years of GeForce! Join the GeForce LAN, win prizes, relive PC gaming greats, and watch our NVIDIA CES 2025 keynote.\nGames | News\nGeForce RTX 40 Series Graphics Cards\nDelivering a quantum leap in performance and AI-powered graphics.\nGames | News\nGeForce RTX 40 Series Laptops\nLearn more about the world’s fastest laptops for gamers and creators.\nGames | News\nRTX. It's On.\nFull ray tracing and NVIDIA DLSS 3 available now.\nGames | News\nNVIDIA App\nThe essential companion for gamers and creators officially releases featuring a unified GPU control center, a redesigned in-game overlay, performance monitoring overlays, and game enhancing filters.\nGames | Hardware\nUpgrade Your Sleigh\nCelebrate the season with the ultimate upgrade. GeForce RTX 40 Series graphics cards, laptops, desktops, and G-SYNC displays that enable the best gaming, creating and AI experiences.\nCloud Gaming | Blog\nGFN Thursday\nSee what’s streaming this week on GeForce NOW.\nGames | News\nGeForce LAN 50\nPlay GeForce LAN Missions.\nGet in-game Rewards.\nGames | News\nNVIDIA RTX Remix\nThe ultimate modding platform is now open source.\nCreatives | News\nIn the NVIDIA Studio\nNew AI PCs powered by NVIDIA and GeForce RTX unleash content creation, gaming, entertainment, and more.\nAutomotive\nFrom developing autonomous vehicles on NVIDIA DRIVE® to creating factory digital twins and retail experiences with NVIDIA Omniverse, our automotive solutions offer the performance and scalability to design, visualize, simulate, and create all types of future transportation.\nQuick Links\nAutomotive | Blog\nVolvo Cars EX90 Built on NVIDIA Accelerated Computing and AI\nVolvo Cars is using NVIDIA DGXTM for advanced AI Training and adopting DRIVE ThorTM for future models.\nAutomotive | Blog\nNVIDIA Wins Autonomous Grand Challenge at CVPR\nThe End-to-End Driving at Scale award showcases the use of generative AI for self-driving models.\nAutomotive | Announcement\nGlobal Auto Partners Showcase the Future of AI\nLeading automotive partners are adopting NVIDIA DRIVE® for their next-generation vehicles.\nAutomotive | Announcement\nNVIDIA DRIVE Thor Powers the Future of Transportation\nLeading companies across the transportation industry count on NVIDIA DRIVETM Thor to advance their next-generation vehicles.\nForetellix\nAutomotive | Announcement\nNVIDIA Supercharges Autonomous System Development With Omniverse Cloud APIs\nThe new APIs deliver large-scale, high-fidelity, and physically based sensor simulations to accelerate autonomous vehicle development.\nAutomotive | Blog\nAutomotive on Full Display at GTC 2024\nFrom EV makers adopting NVIDIA DRIVETM Thor to OmniverseTM Cloud APIs for simulation, come learn about the latest automotive announcements at GTC 2024.\nBYD\nAutomotive | Blog\nNVIDIA Technologies to Transform In-Vehicle Experiences\nLearn how generative AI developers are building intelligent AI assistants using NVIDIA’s edge-to-cloud technology.\nAutomotive | Blog\nNVIDIA Automotive Partners Digitalize the Industry\nNVIDIA partners are fusing the physical and digital worlds to redefine the automotive industry.\nAutomotive | Blog\nNVIDIA DRIVE Partners Showcase Innovations in Autonomous Vehicles\nExplore unique perspectives from industry leaders on how AI is shaping the future of transportation.\nAutomotive | Blog\nAutomotive-Configurator Developers Adopt NVIDIA Omniverse\nWPP, Zerolight, Ford, and Lotus are embracing the interactive 3D platform.\nRobotics and Edge AI\nThe NVIDIA JetsonTM and IsaacTM platforms provide end-to-end solutions to develop and deploy AI-powered autonomous machines and edge computing applications across manufacturing, logistics, healthcare, smart cities, and retail.\nQuick Links\nEdge Computing | Brochure\nThe Most Affordable Generative AI Supercomputer\nThe NVIDIA Jetson OrinTM Nano Super Developer Kit is redefining gen AI for small edge devices.\nFourier\nSimulation | Blog\nOpenUSD and SDG for Advanced Robot Learning\nTools like NVIDIA Isaac SimTM enhance synthetic data generation, improving AI model performance and accelerating robotics development.\nRobotics | Blog\nNVIDIA Advances Robot Learning With AI and Simulation Tools\nNew robot learning workflows and AI world model development tools can help robotics developers accelerate their AI-enabled robot and humanoid projects.\nRobotics | Blog\nHugging Face, NVIDIA Accelerate Open-Source AI Robotics Research\nHugging Face’s LeRobot frameworks and NVIDIA technologies enable researchers to transform industries.\nRobotics | Blog\nNVIDIA Project GR00T Accelerates Humanoid Sight and Skills\nDiscover the latest workflows for creating intelligent, adaptive, and capable humanoid robots.\nRobotics | Blog\nPowering the Next Wave of AI Robotics\nNVIDIA has built three powerful computers and accelerated development platforms to help enable developers to create physical AI.\nRobotics | Blog\nIndian Robotics Companies Are Using NVIDIA Technologies to Drive Global Innovation\nInnovators across India are using NVIDIA’s world-class AI and robotics platforms, to transform industries, from e-commerce to smart cities.\nRobotics | Tutorial\nBeginner’s Guide to ROS 2 Workflows With Isaac Sim\nSimulate and validate your robot stack by using your ROS 2 packages with NVIDIA IsaacTM Sim.\nRobotics | Blog\nCalibrate Sensors With MSA and Isaac Perceptor\nEasily calibrate various sensors for your robotics project using Main Street Autonomy’s Calibration Anywhere solution, integrated with NVIDIA IsaacTM Perceptor for ultimate precision.\nRobotics | Announcement\nNVIDIA Brings Gen AI and Simulation Tools to Accelerate ROS Developers\nDiscover the new updates to accelerate the development of AI-powered robot arms and autonomous mobile robots\nData Center and Cloud Computing\nFrom the cloud to the office to the data center to the edge, NVIDIA provides solutions that deliver breakthrough performance on enterprise AI and HPC workloads at any scale, driving business decisions in real time and resulting in faster time to value.\nQuick Links\nData Center | Blog\nAI Innovations at Microsoft Ignite\nNew integrations at Microsoft Ignite advance full-stack AI development on Microsoft platforms.\nData Center | Blog\nNVIDIA Blackwell Excels in Latest MLPerf Submission\nThe NVIDIA Blackwell platform delivered next-level performance across all MLPerf Training tests.\nNetworking | Announcement\nNVIDIA Ethernet Networking Accelerates xAI Supercomputer\nxAI’s Colossus supercomputer achieves massive scale with the NVIDIA Spectrum-X networking platform.\nData Center | Blog\nIndia Tech Leaders Build AI Factories for Economic Transformation\nAccelerated data center capacity ramps up with the addition of thousands of NVIDIA Hopper GPUs.\nData Center | Blog\nLenovo NeptuneTM Water Cooling Efficiently Powers NVIDIA Blackwell\nThese latest Lenovo ThinkSystem innovations will help bring the NVIDIA GB200 to enterprises.\nData Center | Blog\nIntroducing Lenovo Hybrid AI Advantage With NVIDIA\nTurn data and intelligence into business outcomes faster and more efficiently.\nData Center | Blog\nNVIDIA and Google Cloud Accelerate AI Inference\nNVIDIA and Google Cloud bring NVIDIA NIM on GKE to provide secure, reliable, and high-performance inferencing at scale.\nData Center | Announcement\nNVIDIA and Oracle to Accelerate AI and Data Processing\nOracle announced the first zettascale OCI Supercluster accelerated by the NVIDIA Blackwell platform, allowing customers to train and deploy next-generation AI models at scale.\nVideo Streaming | Announcement\nNVIDIA Holoscan for Media\nSoftware-defined, AI-enabled platform for live media.\nData Center | Blog\nNVIDIA Blackwell Sets New Standard in MLPerf Debut\nIn a new AI benchmark, Blackwell delivered up to 4X more performance on Llama 2 70B.\nAbout NVIDIA\nNVIDIA pioneered accelerated computing to tackle challenges no one else can solve. Our work in AI and digital twins is transforming the world's largest industries and profoundly impacting society.\nQuick Links\nKeynote | Event\nNVIDIA CEO Jensen Huang to Open CES\nTune in to the CES 2025 opening keynote by NVIDIA CEO Jensen Huang live from Las Vegas on January 6 at p.m. PT.\nNVIDIA GTC | Event\nWhat’s Next in AI Starts Here\nJoin us in person on March 17–21, 2025 in San Jose, CA. Registration is now open.\nSpecial Event | Event\nJensen Huang and Mark Zuckerberg on AI Breakthroughs\nNVIDIA and Meta CEOs discuss how researchers and creators use generative AI to build virtual worlds.\nCorporate | Blog\nOur Story\nNVIDIA is the result of the decades-long pursuit of a vision and the life’s work of our employees. Discover our company’s story.\nAccuray\nCompany | About\nLearn the NVIDIA Story\nOur work is truly unique. Part science. Part art. Every breakthrough helps shape what’s next.\nArtificial Intelligence | Blog\nSustainable Strides: AI and Accelerated Computing Drive Energy Efficiency\nLearn how companies, from finance to manufacturing and beyond, are on the way to sustainable AI with NVIDIA technologies.\nArtificial Intelligence | Blog\nSelf-Paced Career Development Courses in AI and Data Science\nIndustry experts share advice on starting a career in AI with technical training and certifications.\nRobotics | Blog\nHigh School Student Develops Robot Guide Dogs With NVIDIA Jetson\nSelin Alara Ornek is using machine learning and the NVIDIA JetsonTM platform for edge AI and robotics to create robot guide dogs for the visually impaired.\nNVIDIA Life | Blog\nThis NVIDIA Scientist and Engineer Techs Medicine to the Next Level\nDiscover how Camir Ricketts, NVIDIA research scientist and engineer, drives innovation and turns his experiments into impact.\nAI | Blog\nMāori Speech AI Model Helps Preserve and Promote Indigenous Language\nTe Hiku Media’s uses NVIDIA NeMo toolkit for speech recognition.\nCompany Information\nAbout Us\nCompany Overview\nInvestors\nVenture Capital (NVentures)\nNVIDIA Foundation\nResearch\nCorporate Sustainability\nTechnologies\nCareers\nNews and Events\nNewsroom\nCompany Blog\nTechnical Blog\nWebinars\nStay Informed\nEvents Calendar\nGTC AI Conference\nNVIDIA On-Demand\nPopular Links\nDevelopers\nPartners\nExecutive Insights\nStartups and VCs\nNVIDIA Connect for ISVs\nDocumentation\nTechnical Training\nTraining for IT Professionals\nProfessional Services for Data Science\nSign Up for NVIDIA News\nSubscribe\nFollow NVIDIA\nUnited States\nPrivacy Policy Manage My Privacy Do Not Sell or Share My Data Terms of Service Accessibility Corporate Policies Product Security Contact\nCopyright © 2024 NVIDIA Corporation",
+      "title": "World Leader in Artificial Intelligence Computing | NVIDIA",
+      "archiveUrl": "https://web.archive.org/web/20250101074126/https://www.nvidia.com/en-us/",
+      "timing": {
+        "navigationMs": 8643,
+        "totalMs": 13300,
+        "readiness": {
+          "waitMs": 4137,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [
+            "Edge Computing",
+            "Jetson Orin Nano Super Developer Kit"
+          ],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 18094,
+          "timedOut": false
+        }
+      },
+      "image": "/demos/nvidia/20250101074126-a13638c68e0c45993e8f7e1a.png",
+      "renderVersion": "render-v2-ready",
+      "sha256": "a13638c68e0c45993e8f7e1abb69ac4b19f8adeaade5cbdb4ededf778be45768"
+    }
+  ],
+  "unavailable": [
+    {
+      "timestamp": "19990117012545",
+      "original": "http://nvidia.com:80/",
+      "digest": "2BWBMBWV6JM4QMZJHDBAJGLUXEPDSEOR",
+      "error": "Incomplete or unavailable archive replay"
+    },
+    {
+      "timestamp": "19990208005623",
+      "original": "http://nvidia.com:80/",
+      "digest": "OXIOUGDEUG4PAGSCD7BSAXVBSPQMJWOY",
+      "error": "Archive did not finish revealing and settling visible content before the render deadline (hidden headings: 0, animations: 0, pending assets: 2)"
+    },
+    {
+      "timestamp": "20160102125044",
+      "original": "http://www.nvidia.com:80/page/home.html",
+      "digest": "KUIFRCTWQLDEUFB2BNGYPGBI2BPIS7FG",
+      "error": "Archive did not finish revealing and settling visible content before the render deadline (hidden headings: 0, animations: 0, pending assets: 4)"
+    },
+    {
+      "timestamp": "20160201121124",
+      "original": "http://www.nvidia.com/page/home.html",
+      "digest": "SIB23JCQR7YQL6I6B4UYXF7EKPQ4ILX3",
+      "error": "Archive did not finish revealing and settling visible content before the render deadline (hidden headings: 0, animations: 0, pending assets: 3)"
+    },
+    {
+      "timestamp": "20120101224339",
+      "original": "http://www.nvidia.com:80/page/home.html",
+      "digest": "FU53F6GP6CLZAT7OPICINTJHTGLSULJD",
+      "error": "Archive did not finish revealing and settling visible content before the render deadline (hidden headings: 0, animations: 0, pending assets: 4)"
+    },
+    {
+      "timestamp": "20120203171118",
+      "original": "http://www.nvidia.com/page/home.html",
+      "digest": "533DNE2PG7VIRBFL5QRFW25FKX2N3AMD",
+      "error": "Archive did not finish revealing and settling visible content before the render deadline (hidden headings: 0, animations: 0, pending assets: 2)"
+    },
+    {
+      "timestamp": "20130102220719",
+      "original": "http://www.nvidia.com/page/home.html",
+      "digest": "GYFJSGMMDRKXLVXX6GWAQWJQ7ZP5SGO7",
+      "error": "Archive did not finish revealing and settling visible content before the render deadline (hidden headings: 0, animations: 0, pending assets: 2)"
+    }
+  ]
+}

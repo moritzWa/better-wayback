@@ -1,0 +1,21 @@
+{
+  "url": "https://openai.com/",
+  "unavailable": [
+    {
+      "timestamp": "20250101055627",
+      "original": "https://openai.com/",
+      "error": "Rejected an archived client-side error/interstitial, not a usable website preview."
+    },
+    {
+      "timestamp": "20240101003624",
+      "original": "https://openai.com/",
+      "digest": "CJDTLCQH5HBEM2MKXP2GYZSUY3TTRH5K",
+      "error": "Archive replay is an error/interstitial page, not a usable website capture."
+    },
+    {
+      "timestamp": "20240201002902",
+      "original": "https://openai.com/",
+      "error": "Rejected an archived client-side error/interstitial, not a usable website preview."
+    }
+  ]
+}

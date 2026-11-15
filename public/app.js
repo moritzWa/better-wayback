@@ -1,10 +1,12 @@
 import { groupCaptures, similarity, comparableText } from '/group.js';
 import { livePreview, refreshPreviews, resetPreviews } from '/previews.js';
+import { exampleForSite } from '/examples.js';
 
 const $ = id => document.getElementById(id);
 let captures = [], changesOnly = true, total = 0, sampled = 0, capped = false, running = false, stream;
 let requested = [], indexed = false, generation = 0;
 let resumeTimer;
+let indexLabel;
 const entries = new Map();
 const captureKey = capture => `${capture.requestedTimestamp || capture.timestamp}:${capture.original}`;
 const captureOrder = capture => capture.requestedTimestamp || capture.timestamp;
@@ -19,7 +21,7 @@ function render() {
   const failed = captures.filter(c => c.error).length;
   const knownGroups = groups.filter(c => comparableText(c, c)).length;
   const unCompared = captures.filter(c => !c.error && !comparableText(c, c)).length;
-  $('stats').textContent = indexed ? `${capped ? '1,200+ indexed' : `${total.toLocaleString()} indexed`} · ${captures.length}/${sampled} sampled · ${knownGroups} text versions${unCompared ? ` · ${unCompared} not compared` : ''}${running ? ` · ${Math.max(0, sampled - captures.length)} pending` : ''}${failed ? ` · ${failed} unavailable` : ''}` : 'Finding archived captures…';
+  $('stats').textContent = indexed ? `${indexLabel || (capped ? '1,200+ indexed' : `${total.toLocaleString()} indexed`)} · ${captures.length}/${sampled} sampled · ${knownGroups} text versions${unCompared ? ` · ${unCompared} not compared` : ''}${running ? ` · ${Math.max(0, sampled - captures.length)} pending` : ''}${failed ? ` · ${failed} unavailable` : ''}` : 'Finding archived captures…';
   $('sensitivity-value').textContent = $('sensitivity').value + '%';
   $('empty-state').hidden = running || visible.length > 0;
   let previous, position = 0;
@@ -167,6 +169,7 @@ function begin() {
   clearTimeout(resumeTimer);
   resetPreviews();
   generation++; captures = []; requested = []; indexed = false; entries.clear(); $('timeline').replaceChildren(); total = 0; sampled = 0; capped = false; running = true; stream?.close();
+  indexLabel = null;
   $('search-button').disabled = true; $('results').hidden = false; $('explainer').hidden = true; $('error').hidden = true; $('progress').hidden = false; $('progress-fill').style.width = '0%'; $('status').textContent = 'Finding archived captures…';
   $('from').placeholder = 'Earliest'; $('to').placeholder = 'Latest';
   $('sampling-note').textContent = 'A sampled history, not every change. Dates show when a version was archived, not when it launched.';
@@ -193,7 +196,7 @@ async function search(recordHistory = true) {
     const raw = $('url').value.trim();
     const url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
     const host = url.hostname.replace(/^www\./, '');
-    if (['stripe.com', 'amazon.com'].includes(host) && url.pathname === '/' && !url.search && !url.port && !url.username && !url.password) preset = host;
+    if (exampleForSite(raw)) preset = host;
   } catch {}
   if (preset && !$('from').value && !$('to').value && $('count').value === '8') { await loadDemo(preset); return; }
   const current = begin();
@@ -209,16 +212,20 @@ async function loadDemo(site) {
   $('url').value = site;
   const current = begin();
   try {
-    const response = await fetch(`/api/demos/${site.startsWith('amazon') ? 'amazon' : 'stripe'}`);
+    const example = exampleForSite(site);
+    if (!example) throw new Error('Unknown cached example.');
+    const response = await fetch(`/api/demos/${example.id}`);
     const data = await response.json(); if (current !== generation) return;
     if (!response.ok || !data.captures?.length) throw new Error(data.error || 'Cached previews are not available yet. Change the dates or sample size in Settings to request a fresh history.');
     indexed = true; total = data.total; sampled = data.sampled; capped = data.capped; captures = data.captures;
+    indexLabel = data.curated ? 'Curated example' : null;
     $('sampling-note').textContent = 'Cached example. A selection of archived previews, not every capture or change. Dates show when a page was archived, not when it launched.';
     $('site-title').textContent = data.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
     const first = data.firstTimestamp || captures[0].timestamp, last = data.lastTimestamp || captures.at(-1).timestamp;
     $('from').placeholder = first.slice(0, 4); $('to').placeholder = last.slice(0, 4);
     const unavailable = Array.isArray(data.unavailable) ? data.unavailable.length : Number(data.unavailable || 0);
-    if (unavailable) { $('error').textContent = `Partial cached history: ${unavailable} preview attempts were unavailable. Showing the successful captures.`; $('error').hidden = false; }
+    if (unavailable && data.indexNote && data.curated) $('sampling-note').textContent += ` ${unavailable} other replay attempts were unavailable during curation; the successful captures are shown.`;
+    else if (unavailable) { $('error').textContent = `Partial cached history: ${unavailable} preview attempts were unavailable. Showing the successful captures.`; $('error').hidden = false; }
     finish();
   } catch (error) { if (current === generation) onEvent({ type: 'error', message: error.message }); }
 }

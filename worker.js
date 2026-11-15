@@ -1,6 +1,6 @@
 import { access, mkdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { fetchCaptures, keyFor, selectCaptures, RENDER_VERSION, writeJsonAtomic } from './lib.js';
+import { fetchCaptures, keyFor, selectCaptures, RENDER_VERSION, writeJsonAtomic, isArchiveErrorPage } from './lib.js';
 import { launchRendererBrowser, renderCapture, runPool } from './renderer.js';
 
 const [url, from, to, countArg] = process.argv.slice(2);
@@ -21,7 +21,7 @@ try {
     const key = keyFor(capture.timestamp + capture.original + ':' + RENDER_VERSION);
     try {
       const saved = JSON.parse(await readFile(resolve(cache, key + '.json'), 'utf8'));
-      if (saved.renderVersion !== RENDER_VERSION || saved.error || !saved.text || saved.image !== `/cache/${key}.png`) throw new Error('Stale preview');
+      if (saved.renderVersion !== RENDER_VERSION || saved.error || !saved.text || isArchiveErrorPage(saved.title, saved.text) || saved.image !== `/cache/${key}.png`) throw new Error('Stale preview');
       await access(resolve(cache, key + '.png'));
       emit({ type: 'capture', capture: saved, completed: ++completed, cached: true });
       continue;

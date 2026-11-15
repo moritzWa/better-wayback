@@ -1,4 +1,4 @@
-import { normalizeUrl, keyFor, selectCaptures, replayUrl, RENDER_VERSION, USER_AGENT } from '../lib.js';
+import { normalizeUrl, keyFor, selectCaptures, replayUrl, RENDER_VERSION, USER_AGENT, isArchiveErrorPage } from '../lib.js';
 import { quota } from './quota.js';
 import { HTML_VERSION, MAX_HTML, iframeUrl, archiveHtmlAllowed } from './html.js';
 
@@ -31,7 +31,7 @@ async function cached(env, capture, ignoreFailures = false) {
   if (!env.CACHE) return null;
   const key = captureKey(capture);
   const saved = await env.CACHE.get(`capture:${key}`, 'json');
-  if (saved && saved.renderVersion === RENDER_VERSION && !saved.error && saved.text && saved.image === `/cache/${key}.png`) {
+  if (saved && saved.renderVersion === RENDER_VERSION && !saved.error && saved.text && !isArchiveErrorPage(saved.title, saved.text) && saved.image === `/cache/${key}.png`) {
     // Publish only complete pairs, even after a failed or partially propagated KV write.
     const image = await env.CACHE.get(`image:${key}`, 'stream');
     if (image) {
@@ -148,6 +148,7 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
               if (abort.signal.aborted) return;
               const actualTimestamp = url.match(/\/web\/(\d{14})/)?.[1] || item.capture.timestamp;
               metadata = { ...await extractHtml(html), timestamp: actualTimestamp, archiveUrl: replayUrl(actualTimestamp, item.capture.original), htmlVersion: HTML_VERSION, textSource: 'html', textPending: false, timing: { htmlMs: Date.now() - started } };
+              if (isArchiveErrorPage(metadata.title, metadata.text)) throw new Error('Archived page is an error/interstitial, not usable comparison text.');
               if (/Your IP address has reached|Rate limit exceeded|Wayback Machine has not archived that URL|This URL has been excluded/i.test(metadata.text)) throw new Error('Archive replay is unavailable.');
               if (new TextEncoder().encode(JSON.stringify(metadata)).byteLength > MAX_JSON) metadata = { htmlVersion: HTML_VERSION, textSource: 'html', textPending: false, text: '', comparisonUnavailable: true, textError: 'HTML text exceeds the comparison limit.' };
             } catch (error) {

@@ -1,6 +1,7 @@
 import { cp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { handleBlogRequest, blogSitemapEntries, blogScriptHashes } from '../blog.js';
+import { demoNames } from '../demos.js';
 
 const root = resolve('.cache/cloudflare-assets');
 const put = async (path, body) => { const file = resolve(root, path.replace(/^\//, '')); await mkdir(dirname(file), { recursive: true }); await writeFile(file, body); };
@@ -9,7 +10,7 @@ await rm(root, { recursive: true, force: true });
 await mkdir(root, { recursive: true });
 await cp('public', root, { recursive: true });
 await cp('group.js', resolve(root, 'group.js'));
-for (const name of ['stripe', 'amazon']) await put(`/api/demos/${name}`, await readFile(`demos/${name}.json`));
+for (const name of demoNames) await put(`/api/demos/${name}`, await readFile(`demos/${name}.json`));
 const blogPaths = ['/robots.txt', '/sitemap.xml', '/blog/style.css', ...blogSitemapEntries.map(entry => entry.path)];
 for (const path of blogPaths) {
   const page = handleBlogRequest(path);
@@ -35,4 +36,4 @@ replaceOnce("await page.screenshot({ path: screenshotPath, animations: 'allow', 
 replaceOnce('return { ...capture, timestamp: actualTimestamp', 'return { ...capture, png, timestamp: actualTimestamp');
 await mkdir('.cache/cloudflare-runtime', { recursive: true });
 await writeFile('.cache/cloudflare-runtime/renderer.js', renderer);
-console.log(`Built static assets, ${blogSitemapEntries.length} blog routes, two offline demos and shared renderer.`);
+console.log(`Built static assets, ${blogSitemapEntries.length} blog routes, ${demoNames.length} offline demos and shared renderer.`);

@@ -1,0 +1,47 @@
+{
+  "url": "https://www.nvidia.com/",
+  "unavailable": [
+    {
+      "timestamp": "19990117012545",
+      "original": "http://nvidia.com:80/",
+      "digest": "2BWBMBWV6JM4QMZJHDBAJGLUXEPDSEOR",
+      "error": "Incomplete or unavailable archive replay"
+    },
+    {
+      "timestamp": "19990208005623",
+      "original": "http://nvidia.com:80/",
+      "digest": "OXIOUGDEUG4PAGSCD7BSAXVBSPQMJWOY",
+      "error": "Archive did not finish revealing and settling visible content before the render deadline (hidden headings: 0, animations: 0, pending assets: 2)"
+    },
+    {
+      "timestamp": "20160102125044",
+      "original": "http://www.nvidia.com:80/page/home.html",
+      "digest": "KUIFRCTWQLDEUFB2BNGYPGBI2BPIS7FG",
+      "error": "Archive did not finish revealing and settling visible content before the render deadline (hidden headings: 0, animations: 0, pending assets: 4)"
+    },
+    {
+      "timestamp": "20160201121124",
+      "original": "http://www.nvidia.com/page/home.html",
+      "digest": "SIB23JCQR7YQL6I6B4UYXF7EKPQ4ILX3",
+      "error": "Archive did not finish revealing and settling visible content before the render deadline (hidden headings: 0, animations: 0, pending assets: 3)"
+    },
+    {
+      "timestamp": "20120101224339",
+      "original": "http://www.nvidia.com:80/page/home.html",
+      "digest": "FU53F6GP6CLZAT7OPICINTJHTGLSULJD",
+      "error": "Archive did not finish revealing and settling visible content before the render deadline (hidden headings: 0, animations: 0, pending assets: 4)"
+    },
+    {
+      "timestamp": "20120203171118",
+      "original": "http://www.nvidia.com/page/home.html",
+      "digest": "533DNE2PG7VIRBFL5QRFW25FKX2N3AMD",
+      "error": "Archive did not finish revealing and settling visible content before the render deadline (hidden headings: 0, animations: 0, pending assets: 2)"
+    },
+    {
+      "timestamp": "20130102220719",
+      "original": "http://www.nvidia.com/page/home.html",
+      "digest": "GYFJSGMMDRKXLVXX6GWAQWJQ7ZP5SGO7",
+      "error": "Archive did not finish revealing and settling visible content before the render deadline (hidden headings: 0, animations: 0, pending assets: 2)"
+    }
+  ]
+}

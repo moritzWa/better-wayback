@@ -1,5 +1,5 @@
 import { chromium } from 'playwright';
-import { cleanText, replayUrl, USER_AGENT } from './lib.js';
+import { cleanText, replayUrl, USER_AGENT, isArchiveErrorPage } from './lib.js';
 
 // Contexts isolate browser state, not host processes. Require Chromium's OS sandbox too.
 export function launchRendererBrowser(browserType = chromium) {
@@ -128,6 +128,7 @@ export async function renderPage(page, capture, screenshotPath, { readinessTimeo
     if (text.length < 60 || /Wayback Machine has not archived that URL|This URL has been excluded|The Wayback Machine has not archived/i.test(text)) throw new Error('Incomplete or unavailable archive replay');
     const actualTimestamp = page.url().match(/\/web\/(\d{14})/)?.[1] || capture.timestamp;
     const title = (await page.title()).replace(/\s*[-|]\s*Wayback Machine$/, '');
+    if (isArchiveErrorPage(title, text)) throw new Error('Archive replay is an error/interstitial page, not a usable capture');
     // Keep animations intact: cancelling a CSS reveal can restore its invisible base style.
     await page.screenshot({ path: screenshotPath, animations: 'allow', timeout: 10000 });
     return { ...capture, timestamp: actualTimestamp, requestedTimestamp: capture.timestamp, text, title, archiveUrl: replayUrl(actualTimestamp, capture.original), timing: { navigationMs, totalMs: Date.now() - started, readiness } };

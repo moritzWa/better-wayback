@@ -3,18 +3,20 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { blogSitemapEntries, blogScriptHashes, handleBlogRequest } from '../blog.js';
 import { archiveRequestAllowed, waitForCaptureReady } from '../renderer.js';
+import { demoNames, loadDemo } from '../demos.js';
 
 test('static build contains real offline demos, indexed blog HTML, support assets and security headers', async () => {
   await import('../tools/build-cloudflare.js');
   const root = new URL('../.cache/cloudflare-assets/', import.meta.url);
-  for (const [name, count] of [['stripe', 4], ['amazon', 6]]) {
+  for (const name of demoNames) {
     const manifest = JSON.parse(await readFile(new URL(`api/demos/${name}`, root), 'utf8'));
-    assert.equal(manifest.captures.length, count);
+    assert.equal(manifest.captures.length, (await loadDemo(name)).captures.length);
     for (const capture of manifest.captures) {
       const png = await readFile(new URL(capture.image.slice(1), root));
       assert.equal(png.subarray(1, 4).toString(), 'PNG');
     }
   }
+  assert.ok((await readFile(new URL('examples.js', root), 'utf8')).includes('anthropic.com'));
   for (const { path } of blogSitemapEntries) assert.equal(await readFile(new URL(`${path.slice(1)}index.html`, root), 'utf8'), handleBlogRequest(path).body);
   const headers = await readFile(new URL('_headers', root), 'utf8');
   for (const hash of blogScriptHashes) assert.ok(headers.includes(hash));

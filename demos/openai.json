@@ -1,0 +1,181 @@
+{
+  "url": "https://openai.com/",
+  "from": "2016",
+  "to": "2025",
+  "firstTimestamp": "20160504224904",
+  "lastTimestamp": "20250201023703",
+  "count": 5,
+  "total": 12,
+  "sampled": 5,
+  "capped": false,
+  "cached": true,
+  "status": "ready",
+  "curated": true,
+  "source": "Internet Archive Wayback Machine",
+  "indexNote": "Curated from year-specific CDX queries and historical homepage paths, not the complete capture index.",
+  "captures": [
+    {
+      "timestamp": "20160504224904",
+      "original": "https://openai.com/",
+      "digest": "4BYBW7SECWFBNWXCAJZEWHZ7VYAQ3E5C",
+      "requestedTimestamp": "20160503002945",
+      "text": "About Blog\nOpenAI Gym Beta\nby Greg Brockman and John Schulman\nApril 27, 2016\nWe're releasing the public beta of OpenAI Gym, a toolkit for developing and comparing reinforcement learning (RL) algorithms. It consists of a growing suite of environments (from simulated robots to Atari games), and a site for comparing and reproducing results. OpenAI Gym is compatible with algorithms written in any framework, such as Tensorflow and Theano. The environments are written in Python, but we'll soon make them easy to use from any language.\nWe originally built OpenAI Gym as a tool to accelerate our own RL research. We hope it will be just as useful for the broader community.\nGetting started\nIf you'd like to dive in right away, you can work through our tutorial. You can also help out while learning by reproducing a result.\nWhy RL?\nReinforcement learning (RL) is the subfield of machine learning concerned with decision making and motor control. It studies how an agent can learn how to achieve goals in a complex, uncertain environment. It's exciting for two reasons:\nRL is very general, encompassing all problems that involve making a sequence of decisions: for example, controlling a robot's motors so that it's able to run and jump, making business decisions like pricing and inventory management, or playing video games and board games. RL can even be applied to supervised learning problems with sequential or structured outputs.\nRL algorithms have started to achieve good results in many difficult environments. RL has a long history, but until recent advances in deep learning, it required lots of problem-specific engineering. DeepMind's Atari results, BRETT from Pieter Abbeel's group, and AlphaGo all used deep RL algorithms which did not make too many assumptions about their environment, and thus can be applied in other settings.\nHowever, RL research is also slowed down by two factors:\nThe need for better benchmarks. In supervised learning, progress has been driven by large labeled datasets like ImageNet. In RL, the closest equivalent would be a large and diverse collection of environments. However, the existing open-source collections of RL environments don't have enough variety, and they are often difficult to even set up and use.\nLack of standardization of environments used in publications. Subtle differences in the problem definition, such as the reward function or the set of actions, can drastically alter a task's difficulty. This issue makes it difficult to reproduce published research and compare results from different papers.\nOpenAI Gym is an attempt to fix both problems.\nThe Environments\nOpenAI Gym provides a diverse suite of environments that range from easy to difficult and involve many different kinds of data. We're starting out with the following collections:\nClassic control and toy text: complete small-scale tasks, mostly from the RL literature. They're here to get you started.\nAlgorithmic: perform computations such as adding multi-digit numbers and reversing sequences. One might object that these tasks are easy for a computer. The challenge is to learn these algorithms purely from examples. These tasks have the nice property that it's easy to vary the difficulty by varying the sequence length.\nAtari: play classic Atari games. We've integrated the Arcade Learning Environment (which has had a big impact on reinforcement learning research) in an easy-to-install form.\nBoard games: play Go on 9x9 and 19x19 boards. Two-player games are fundamentally different than the other settings we've included, because there is an adversary playing against you. In our initial release, there is a fixed opponent provided by Pachi, and we may add other opponents later (patches welcome!). We'll also likely expand OpenAI Gym to have first-class support for multi-player games.\n2D and 3D robots: control a robot in simulation. These tasks use the MuJoCo physics engine, which was designed for fast and accurate robot simulation. Included are some environments from a recent benchmark by UC Berkeley researchers (who incidentally will be joining us this summer). MuJoCo is proprietary software, but offers free trial licenses.\nOver time, we plan to greatly expand this collection of environments. Contributions from the community are more than welcome.\nEach environment has a version number (such as Hopper-v0). If we need to change an environment, we'll bump the version number, defining an entirely new task. This ensures that results on a particular environment are always comparable.\nEvaluations\nWe've made it easy to upload results to OpenAI Gym. However, we've opted not to create traditional leaderboards. What matters for research isn't your score (it's possible to overfit or hand-craft solutions to particular tasks), but instead the generality of your technique.\nWe're starting out by maintaing a curated list of contributions that say something interesting about algorithmic capabilities. Long-term, we want this curation to be a community effort rather than something owned by us. We'll necessarily have to figure out the details over time, and we'd would love your help in doing so.\nWe want OpenAI Gym to be a community effort from the beginning. We've starting working with partners to put together resources around OpenAI Gym:\nNVIDIA: technical Q&A with John.\nNervana: implementation of a DQN OpenAI Gym agent.\nAmazon Web Services (AWS): $250 credit vouchers for select OpenAI Gym users. If you have an evaluation demonstrating the promise of your algorithm and are resource-constrained from scaling it up, ping us for a voucher. (While supplies last!)\nDuring the public beta, we're looking for feedback on how to make this into an even better tool for research. If you'd like to help, you can try your hand at improving the state-of-the-art on each environment, reproducing other people's results, or even implementing your own environments. Also please join us in the community chat!",
+      "title": "OpenAI Gym Beta | OpenAI Blog",
+      "archiveUrl": "https://web.archive.org/web/20160504224904/https://openai.com/",
+      "timing": {
+        "navigationMs": 5499,
+        "totalMs": 6450,
+        "readiness": {
+          "waitMs": 785,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [
+            "OpenAI Gym Beta",
+            "Getting started",
+            "Why RL?"
+          ],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 5960,
+          "timedOut": false
+        }
+      },
+      "image": "/demos/openai/20160504224904-5279b1ed98c4b758ca368cb1.png",
+      "sha256": "5279b1ed98c4b758ca368cb12bee95b7cdd34bf90df91b1a7ec4a271a917ef94",
+      "renderVersion": "render-v2-ready"
+    },
+    {
+      "timestamp": "20190107133421",
+      "original": "https://openai.com/",
+      "digest": "3DU3NVFILF5S3XXPDXE77L6CDRDUBZFP",
+      "requestedTimestamp": "20190107133421",
+      "text": "RESEARCH\nSYSTEMS\nABOUT\nBLOG\nDiscovering and enacting the path to safe artificial general intelligence.\nRESEARCH\nSYSTEMS\nHow AI\nTraining Scales\nNO. 16\nDEC 14\n2018\nVIEW RESEARCH\nMORE POSTS\nQuantifying Generalization in Reinforcement Learning\nDEC 6, 2018\nSpinning Up in Deep RL\nNOV 8, 2018\nLearning Concepts with Energy Functions\nNOV 7, 2018\nReinforcement Learning with Prediction-Based Rewards\nOCT 31, 2018\nLearning Complex Goals with Iterated Amplification\nOCT 22, 2018\nRESEARCH\nSYSTEMS\nABOUT\nBLOG\nPRESS\nJOBS\nTwitter Facebook",
+      "title": "OpenAI",
+      "archiveUrl": "https://web.archive.org/web/20190107133421/https://openai.com/",
+      "timing": {
+        "navigationMs": 2446,
+        "totalMs": 4647,
+        "readiness": {
+          "waitMs": 2003,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [
+            "",
+            "Discovering and enacting the path to safe artificial general intelligence.",
+            "How AITraining Scales"
+          ],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 524,
+          "timedOut": false
+        }
+      },
+      "image": "/demos/openai/20190107133421-47cb2e6608d8a3d44cb88d8e.png",
+      "sha256": "47cb2e6608d8a3d44cb88d8e677c35fc8532cf707c5eb0bb8088dd5424b661f3",
+      "renderVersion": "render-v2-ready"
+    },
+    {
+      "timestamp": "20220101141152",
+      "original": "https://openai.com/",
+      "digest": "ULWT4U7XL4NOKVSS6VDJLZRU7IM53KJD",
+      "requestedTimestamp": "20220101141152",
+      "text": "API\nResearch\nBlog\nAbout\nGPT-3 access without the wait.\nWe’ve made improvements to our API and safety features\nso developers can get started right away.\nLEARN MOREGET STARTED\nLatest\nWebGPT: Improving the factual accuracy\nof language models through web browsing\nDecember 16, 2021 — Research\nCustomizing GPT-3 for Your Application\nDecember 14, 2021 — API, Announcements\nOpenAI Residency\nNovember 30, 2021 — Announcements, Residency\nVIEW ALL POSTS\nFeatured\nOpenAI Codex\nStartup Fund\nMultimodal Neurons\nDALL·E\nCLIP\nImage GPT\nGPT-3\nAPI\nOverview\nPricing\nExamples\nDocs\nTerms & Policies\nStatus\nLog in\nBlog\nIndex\nResearch\nAnnouncements\nEvents\nMilestones\nInformation\nAbout\nResearch\nPublications\nCharter\nTimeline\nNewsroom\nJobs\nOpenAI © 2015–2021 Privacy Policy Terms of Use\ntwitter youtube github soundcloud linkedin facebook",
+      "title": "OpenAI",
+      "archiveUrl": "https://web.archive.org/web/20220101141152/https://openai.com/",
+      "timing": {
+        "navigationMs": 15128,
+        "totalMs": 16535,
+        "readiness": {
+          "waitMs": 1078,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [
+            "GPT-3 access without the wait."
+          ],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 818,
+          "timedOut": false
+        }
+      },
+      "image": "/demos/openai/20220101141152-255c82dd608c81d6c2f2d3f5.png",
+      "sha256": "255c82dd608c81d6c2f2d3f59cb7c1e66de89636291eb1b43494a99f0fdf8157",
+      "renderVersion": "render-v2-ready"
+    },
+    {
+      "timestamp": "20230101012158",
+      "original": "https://openai.com/",
+      "digest": "BVGVFQFL7EBE4C3JYTNXDX6KNKR5D7C6",
+      "requestedTimestamp": "20230101012158",
+      "text": "Introducing ChatGPT research release\nTry Learn more\nAPI\nRESEARCH\nBLOG\nABOUT\nJoin us in shaping the future of technology.\nWATCH VIDEOVIEW CAREERS\nFEATURED\nChatGPT\nDALL·E 2\nWhisper\nAlignment\nStartup Fund\nAPI\nOverview\nPricing\nExamples\nDocs\nTerms & Policies\nStatus\nLog in\nBLOG\nIndex\nResearch\nAnnouncements\nEvents\nMilestones\nINFORMATION\nAbout Us\nOur Charter\nOur Research\nPublications\nNewsroom\nCareers\nOpenAI © 2015–2022 Privacy Policy Terms of Use\ntwitter\nyoutube\ngithub\nsoundcloud\nlinkedin\nfacebook",
+      "title": "OpenAI",
+      "archiveUrl": "https://web.archive.org/web/20230101012158/https://openai.com/",
+      "timing": {
+        "navigationMs": 8000,
+        "totalMs": 10327,
+        "readiness": {
+          "waitMs": 2174,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [
+            "Join us in shaping the future of technology."
+          ],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 504,
+          "timedOut": false
+        }
+      },
+      "image": "/demos/openai/20230101012158-cd3f684ad3fda8ce6efaaa71.png",
+      "sha256": "cd3f684ad3fda8ce6efaaa71c3a27c66da205b5dfcf04a1eeb427c5d4aec4b80",
+      "renderVersion": "render-v2-ready"
+    },
+    {
+      "timestamp": "20250201023703",
+      "original": "https://openai.com/",
+      "digest": "5CTFCTIYZ7R3FD6ATBEQ4DNZBN4HCIK4",
+      "requestedTimestamp": "20250201023703",
+      "text": "Skip to main content\nResearch\nProducts\nSafety\nCompany\nOpen AI | Creating safe AGI that benefits all of humanity.\nComputer-Using Agent\nA universal interface for AI to interact with the digital world.\nLearn more\n(opens in a new window)\nAsk ChatGPT anything\nChat with AI\nAsk ChatGPT anything\nQuiz me on vocabulary\nPlan a surf trip to Costa Rica in August\nExplica por qué el maíz palomitas explota\nTeach me Mahjong for beginners\nExplain this code\nWas mach ich in Berlin wenn es regnet?\nDraw me a treasure map for Emil's birthday\nRédigez une note de remerciement\nRecommend an easy potluck dish\nハーフマラソンのトレーニングを手伝ってください\nHelp me improve this job description\nWrite a Python script\nDraw a picture of a mini aussie as a diver\nSummarize this pdf for\nTranslate this recipe into Greek\nRank dog breeds for a small apartment\n楽しいディナーパーティーの計画を手伝ってください\nExplain paradiddles for me\nQuais são as chances de Portugal na Euro 2024?\nCompare business strategies for transitioning from budget to luxury\nTeach me to negotiate\nSugiere actividades divertidas para una familia que visita San Francisco.\nPlan an itinerary for teens in Hong Kong\nDesign a database schema\nRecommend an easy potluck dish\nHelp me build a budget\nKritisiere meine Kurzgeschichte\nFind gentle lower back stretches\nMake this recipe vegetarian\nExpliquez le trading d'options comme si j'avais 5 ans\nHelp me pick a halloween costume\nWrite a polite rejection email\nGenerate fantasy football team names\nElabore um calendário de conteúdo para redes sociais\nExplique a turbulência em aviões\nBrainstorm domain names\nExplain nostalgia to a kindergartener\n面接の質問を一緒に考えてください\nSummarize my meeting notes\nExplique a turbulência em aviões\nPlan a college tour\nWrite a SQL Query\nHelp me with gift ideas for my dad\nRédigez un email pour un devis de réparation\nTroubleshoot my printer set-up\nWrite a thank-you note\nHelp me debug this code\nCrea un entrenamiento de movilidad\nBrainstorm podcast episode ideas\nReview my argument for a debate\nSuggérez des lieux pour une séance photo à Marseille\nDraft a checklist for a dog-sitter\nRank e-bikes for daily commuting\nQuiz me on vocabulary\n12 Days of OpenAI\nSee the announcements\nSora\nSora\nSora\nBring your imagination to life from text, image, or video.\nBring your imagination to life from text, image, or video.\nBring your imagination to life from text, image, or video.\nLearn more\nOpenAI o1\nA new series of AI models designed to spend more time thinking before they respond.\nLearn more\nProducts\nProduct\nIntroducing Operator\nSora\nSora is here\nChatGPT\nIntroducing ChatGPT Pro\nChatGPT\nIntroducing ChatGPT search\nChatGPT\nChatGPT\nChatGPT\nIntroducing canvas, a new way to write and code with ChatGPT.\nIntroducing canvas, a new way to write and code with ChatGPT.\nIntroducing canvas, a new way to write and code with ChatGPT.\nChatGPT on your desktop\nChatGPT on your desktop\nChatGPT on your desktop\nChat about email, screenshots, files, and anything on your screen\nChat about email, screenshots, files, and anything on your screen\nChat about email, screenshots, files, and anything on your screen\nFor Everyone\nFor Everyone\nFor Everyone\nLet your imagination run wild\nLet your imagination run wild\nLet your imagination run wild\nFor Teams\nFor Teams\nFor Teams\nA superassistant for every member of your team\nA superassistant for every member of your team\nA superassistant for every member of your team\nFor Enterprises\nFor Enterprises\nFor Enterprises\nEmpower your entire workforce with enterprise-grade AI\nEmpower your entire workforce with enterprise-grade AI\nEmpower your entire workforce with enterprise-grade AI\nFor Enterprises\nFor Enterprises\nFor Enterprises\nNew compliance and administrative tools for ChatGPT Enterprise\nNew compliance and administrative tools for ChatGPT Enterprise\nNew compliance and administrative tools for ChatGPT Enterprise\nFor Education\nFor Education\nFor Education\nBring AI to campus at scale\nBring AI to campus at scale\nBring AI to campus at scale\nChatGPT\nChatGPT\nChatGPT\nImprovements to data analysis in ChatGPT\nImprovements to data analysis in ChatGPT\nImprovements to data analysis in ChatGPT\nChatGPT\nChatGPT can now see, hear, and speak\nChatGPT\nChatGPT\nChatGPT\nIntroducing the GPT Store\nIntroducing the GPT Store\nIntroducing the GPT Store\nResearch\nResearch\nJan 31, 2025\nIntroducing OpenAI o3-mini\nSafety & Alignment\nJan 31, 2025\no3-mini System Card\nResearch\nJan 23, 2025\nComputer-Using Agent\nSafety & Alignment\nJan 23, 2025\nOperator System Card\nSafety & Alignment\nDec 20, 2024\nDeliberative alignment\nSafety & Alignment\nDec 9, 2024\nSora System Card\nResearch\nDec 5, 2024\nResearch\nDec 5, 2024\nResearch\nDec 5, 2024\no1 System Card\no1 System Card\no1 System Card\nResearch\nSep 12, 2024\nResearch\nSep 12, 2024\nResearch\nSep 12, 2024\nLearning to Reason with LLMs\nLearning to Reason with LLMs\nLearning to Reason with LLMs\nSafety & Alignment\nAug 8, 2024\nGPT-4o System Card\nResearch\nJul 18, 2024\nGPT-4o mini: advancing cost-efficient intelligence\nResearch\nJul 24, 2024\nResearch\nJul 24, 2024\nResearch\nJul 24, 2024\nImproving Model Safety Behavior with Rule-Based Rewards\nImproving Model Safety Behavior with Rule-Based Rewards\nImproving Model Safety Behavior with Rule-Based Rewards\nResearch\nJul 17, 2024\nProver-Verifier Games improve legibility of language model outputs\nGPT-4o\nMay 13, 2024\nGPT-4o\nMay 13, 2024\nGPT-4o\nMay 13, 2024\nHello GPT-4o\nHello GPT-4o\nHello GPT-4o\nSora\nSora\nSora\nVideo generation models as world simulators\nVideo generation models as world simulators\nVideo generation models as world simulators\nSafety & Alignment\nSafety & Alignment\nSafety & Alignment\nBuilding an early warning system for LLM-aided biological threat creation\nBuilding an early warning system for LLM-aided biological threat creation\nBuilding an early warning system for LLM-aided biological threat creation\nSafety & Alignment\nSafety & Alignment\nSafety & Alignment\nPractices for Governing Agentic AI Systems\nPractices for Governing Agentic AI Systems\nPractices for Governing Agentic AI Systems\nGPT-4\nGPT-4\nGPT-4\nThe latest milestone in OpenAI’s effort in scaling up deep learning\nThe latest milestone in OpenAI’s effort in scaling up deep learning\nThe latest milestone in OpenAI’s effort in scaling up deep learning\nGPT-4\nGPT-4V enables users to instruct GPT-4 to analyze image inputs\nFor Business\nOpenAI for Business\nOpenAI for Business\nOpenAI for Business\nExplore AI solutions for companies of all sizes\nExplore AI solutions for companies of all sizes\nExplore AI solutions for companies of all sizes\nChatGPT Enterprise\nEmpower your entire workforce with Enterprise-grade AI\nChatGPT Team\nChatGPT Team\nChatGPT Team\nA superassistant for every member of your team\nA superassistant for every member of your team\nA superassistant for every member of your team\nAPI Platform\nAPI Platform\nAPI Platform\nIntegrate models into products, tools, or operations\nIntegrate models into products, tools, or operations\nIntegrate models into products, tools, or operations\nTalk with our team\nDiscuss custom solutions for your company\nProduct\nProduct\nProduct\nNew compliance and administrative tools for ChatGPT Enterprise\nNew compliance and administrative tools for ChatGPT Enterprise\nNew compliance and administrative tools for ChatGPT Enterprise\nChatGPT\nChatGPT can now see, hear, and speak\nFor Developers\nProduct\nDec 17, 2024\nOpenAI o1 and new tools for developers\nProduct\nOct 1, 2024\nProduct\nOct 1, 2024\nProduct\nOct 1, 2024\nIntroducing the Realtime API\nIntroducing the Realtime API\nIntroducing the Realtime API\nProduct\nOct 1, 2024\nIntroducing vision to the fine-tuning API\nProduct\nOct 1, 2024\nPrompt Caching in the API\nProduct\nOct 1, 2024\nModel Distillation in the API\nResearch\nSep 12, 2024\nResearch\nSep 12, 2024\nResearch\nSep 12, 2024\nOpenAI o1-mini\nOpenAI o1-mini\nOpenAI o1-mini\nProduct\nAug 6, 2024\nProduct\nAug 6, 2024\nProduct\nAug 6, 2024\nIntroducing Structured Outputs in the API\nIntroducing Structured Outputs in the API\nIntroducing Structured Outputs in the API\nAPI\nStart building with a simple API call\nQuickstart\nGet up and running with our API\n(opens in a new window)\nGuides\nGuides\nGuides\nExplore and experiment with our models in real-time\nExplore and experiment with our models in real-time\nExplore and experiment with our models in real-time\n(opens in a new window)\nPlayground\nPlayground\nPlayground\nLet your imagination run wild \nLet your imagination run wild \nLet your imagination run wild \n(opens in a new window)\nCookbook\nExplore what’s possible with the Cookbook\n(opens in a new window)\nStories\nStory\nDelivering high-performance customer support\nStory\nBuilding agent + human collaboration with GPT-4o\nStory\nStory\nStory\nMinnesota’s Enterprise Translation Office uses ChatGPT to bridge language gaps\nMinnesota’s Enterprise Translation Office uses ChatGPT to bridge language gaps\nMinnesota’s Enterprise Translation Office uses ChatGPT to bridge language gaps\nStory\nIntroducing Verdi, an AI dev platform powered by GPT-4o\nStory\nGenmab launches “AI Everywhere”\nStory\nUsing GPT-4 to improve teaching and learning in Brazil\nStory\nUsing GPT-4 to deliver a new customer service standard\nStory\nImproving ecommerce data quality\nNews\nProduct\nIntroducing Operator\nSora\nSora is here\nProduct\nIntroducing ChatGPT search\nProduct\nProduct\nProduct\nIntroducing canvas, a new way to write and code with ChatGPT.\nIntroducing canvas, a new way to write and code with ChatGPT.\nIntroducing canvas, a new way to write and code with ChatGPT.\nSearchGPT Prototype\nSearchGPT is a prototype of new AI search features\nCompany\nJun 10, 2024\nCompany\nJun 10, 2024\nCompany\nJun 10, 2024\nOpenAI and Apple announce partnership\nOpenAI and Apple announce partnership\nOpenAI and Apple announce partnership\nCompany\nMay 8, 2024\nCompany\nMay 8, 2024\nCompany\nMay 8, 2024\nIntroducing the Model Spec\nIntroducing the Model Spec\nIntroducing the Model Spec\nAnnouncement\nMar 13, 2024\nAnnouncement\nMar 13, 2024\nAnnouncement\nMar 13, 2024\nLe Monde and Prisa Media to bring French and Spanish news content to ChatGPT\nLe Monde and Prisa Media to bring French and Spanish news content to ChatGPT\nLe Monde and Prisa Media to bring French and Spanish news content to ChatGPT\nNews\nMar 25, 2024\nNews\nMar 25, 2024\nNews\nMar 25, 2024\nSora: First impressions\nSora: First impressions\nSora: First impressions\nProduct\nApr 4, 2024\nProduct\nApr 4, 2024\nProduct\nApr 4, 2024\nImprovements to the fine-tuning API and expanding our custom models program\nImprovements to the fine-tuning API and expanding our custom models program\nImprovements to the fine-tuning API and expanding our custom models program\nCompany\nMar 8, 2024\nCompany\nMar 8, 2024\nCompany\nMar 8, 2024\nOpenAI announces new members to board of directors\nOpenAI announces new members to board of directors\nOpenAI announces new members to board of directors\nResearch\nMar 29, 2024\nNavigating the challenges and opportunities of synthetic voices\nCompany\nJan 16, 2024\nCompany\nJan 16, 2024\nCompany\nJan 16, 2024\nDemocratic inputs to AI grant program: lessons learned and implementation plans\nDemocratic inputs to AI grant program: lessons learned and implementation plans\nDemocratic inputs to AI grant program: lessons learned and implementation plans\nInstant answers. Greater productivity. Endless inspiration.\nTry ChatGPT\n(opens in a new window)\nOur research\nOverview\nIndex\nLatest advancements\nOpenAI o1\nOpenAI o1-mini\nGPT-4\nGPT-4o mini\nDALL·E 3\nSora\nChatGPT\nFor Everyone\nFor Teams\nFor Enterprises\nChatGPT login\n(opens in a new window)\nDownload\nAPI\nPlatform overview\nPricing\nDocumentation\n(opens in a new window)\nAPI login\n(opens in a new window)\nExplore more\nOpenAI for business\nStories\nSafety overview\nSafety overview\nCompany\nAbout us\nNews\nOur Charter\nSecurity\nResidency\nCareers\nTerms & policies\nTerms of use\nPrivacy policy\nBrand guidelines\nOther policies\nOpenAI © 2015–2025\n(opens in a new window)\n(opens in a new window)\n(opens in a new window)\n(opens in a new window)\n(opens in a new window)\n(opens in a new window)\n(opens in a new window)",
+      "title": "OpenAI",
+      "archiveUrl": "https://web.archive.org/web/20250201023703/https://openai.com/",
+      "timing": {
+        "navigationMs": 6032,
+        "totalMs": 22174,
+        "readiness": {
+          "waitMs": 15671,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [
+            "Computer-Using Agent",
+            "Products"
+          ],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 12040,
+          "timedOut": false
+        }
+      },
+      "image": "/demos/openai/20250201023703-8a7bd01a66981b095a1fb6ea.png",
+      "sha256": "8a7bd01a66981b095a1fb6ead7488518213a7700f2163db7df739ff7ecf51b52",
+      "renderVersion": "render-v2-ready"
+    }
+  ],
+  "unavailable": [
+    {
+      "timestamp": "20250101055627",
+      "original": "https://openai.com/",
+      "error": "Rejected an archived client-side error/interstitial, not a usable website preview."
+    },
+    {
+      "timestamp": "20240101003624",
+      "original": "https://openai.com/",
+      "digest": "CJDTLCQH5HBEM2MKXP2GYZSUY3TTRH5K",
+      "error": "Archive replay is an error/interstitial page, not a usable website capture."
+    },
+    {
+      "timestamp": "20240201002902",
+      "original": "https://openai.com/",
+      "error": "Rejected an archived client-side error/interstitial, not a usable website preview."
+    }
+  ]
+}

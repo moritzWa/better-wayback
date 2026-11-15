@@ -7,19 +7,22 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { demoNames, loadDemo, demoAsset } from '../demos.js';
+import { examples, exampleForSite } from '../public/examples.js';
 
 test('packaged demos contain only genuine successful, integrity-checked archive screenshots', async () => {
   for (const name of demoNames) {
     const demo = await loadDemo(name);
     assert.equal(demo.status, 'ready');
-    assert.ok(demo.captures.length >= 4);
+    assert.ok(demo.captures.length >= (['stripe', 'amazon'].includes(name) ? 4 : 3));
     assert.equal(demo.firstTimestamp, demo.captures[0].timestamp);
     assert.equal(demo.lastTimestamp, demo.captures.at(-1).timestamp);
-    assert.ok(+demo.to - +demo.from >= 8, 'history must span meaningful years');
+    const minimumSpan = { stripe: 8, amazon: 8, openai: 6, anthropic: 2, nvidia: 15 }[name];
+    assert.ok(+demo.to - +demo.from >= minimumSpan, 'history must span meaningful years for this company');
     assert.equal(demo.count, demo.captures.length);
     const seen = new Set();
     for (const capture of demo.captures) {
       assert.equal(capture.error, undefined);
+      assert.doesNotMatch(capture.title + '\n' + capture.text.slice(0, 300), /^404(?:\s|$)|application error:|client-side exception has occurred|just a moment/i);
       assert.ok(capture.text.length > 60);
       assert.match(capture.archiveUrl, new RegExp(`/web/${capture.timestamp}/`));
       assert.equal(new URL(capture.original).hostname.replace(/^www\./, ''), `${name}.com`);
@@ -33,6 +36,15 @@ test('packaged demos contain only genuine successful, integrity-checked archive 
   assert.equal(await loadDemo('wikipedia'), null);
   assert.equal(await demoAsset('/demos/stripe/../../package.json'), null);
   assert.equal(await demoAsset('/demos/stripe/20000101000000-aaaaaaaaaaaaaaaaaaaaaaaa.png'), null);
+});
+
+test('all advertised examples have safe matching homepage presets and reject custom paths', () => {
+  for (const example of examples) {
+    assert.equal(exampleForSite(example.host)?.id, example.id);
+    assert.equal(exampleForSite(`https://www.${example.host}/`)?.id, example.id);
+    for (const input of [`https://${example.host}/pricing`, `https://${example.host}/?q=test`, `https://name@${example.host}/`, `https://${example.host}:444/`]) assert.equal(exampleForSite(input), null);
+  }
+  assert.equal(exampleForSite('https://wikipedia.org/'), null);
 });
 
 test('demo API and every PNG work instantly with network and browser processes forbidden', async () => {

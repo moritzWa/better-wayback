@@ -5,7 +5,7 @@ import { spawn } from 'node:child_process';
 import { homedir } from 'node:os';
 import { normalizeUrl, keyFor, RENDER_VERSION } from './lib.js';
 import { handleBlogRequest, blogScriptHashes } from './blog.js';
-import { loadDemo, demoAsset } from './demos.js';
+import { loadDemo, demoAsset, demoNames } from './demos.js';
 import { handleSupportRequest } from './support.mjs';
 
 // Bounded, expiring development-only substitute for Cloudflare CACHE.
@@ -43,7 +43,7 @@ const server = http.createServer(async (req, res) => {
       const support = await handleSupportRequest(request, { ...process.env, CACHE: supportCache });
       if (support) { res.writeHead(support.status, Object.fromEntries(support.headers)); return res.end(Buffer.from(await support.arrayBuffer())); }
     }
-    if (['GET', 'HEAD'].includes(req.method) && /^\/api\/demos\/(stripe|amazon)$/.test(path)) {
+    if (['GET', 'HEAD'].includes(req.method) && /^\/api\/demos\/[a-z]+$/.test(path) && demoNames.includes(path.split('/').at(-1))) {
       const demo = await loadDemo(path.split('/').at(-1), root);
       res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' });
       return res.end(req.method === 'HEAD' ? undefined : JSON.stringify(demo));
@@ -135,7 +135,7 @@ const server = http.createServer(async (req, res) => {
       res.on('finish', () => clearInterval(heartbeat));
       return;
     }
-    const files = { '/': ['public/index.html', 'text/html'], '/previews.js': ['public/previews.js', 'text/javascript'], '/support.js': ['public/support.js', 'text/javascript'], '/app.js': ['public/app.js', 'text/javascript'], '/style.css': ['public/style.css', 'text/css'], '/group.js': ['group.js', 'text/javascript'] };
+    const files = { '/': ['public/index.html', 'text/html'], '/examples.js': ['public/examples.js', 'text/javascript'], '/previews.js': ['public/previews.js', 'text/javascript'], '/support.js': ['public/support.js', 'text/javascript'], '/app.js': ['public/app.js', 'text/javascript'], '/style.css': ['public/style.css', 'text/css'], '/group.js': ['group.js', 'text/javascript'] };
     const file = files[path] || (/^\/cache\/[a-f0-9]{24}\.png$/.test(path) ? [`.cache/${path.split('/').at(-1)}`, 'image/png'] : null);
     if (!['GET', 'HEAD'].includes(req.method) || !file) return json(res, 404, { error: 'Not found' });
     const data = await readFile(resolve(root, file[0]));

@@ -41,6 +41,22 @@ test('replay outage and throttling never become successful screenshot results', 
   }
 });
 
+test('HTTP 200 application crashes and branded 404 pages are rejected before screenshots', { skip: process.env.RENDERER_BROWSER_TESTS !== '1' }, async () => {
+  const browser = await launchRendererBrowser();
+  try {
+    const context = await isolatedContext(browser);
+    for (const [title, text] of [['', 'Application error: a client-side exception has occurred (see the browser console for more information).'], ['404 Error', 'This is not a historical homepage. A long branded error page must not count as a successful screenshot.']]) {
+      const page = await context.newPage();
+      await page.route('https://web.archive.org/**', route => route.fulfill({ contentType: 'text/html', body: `<title>${title}</title><h1>${text}</h1>` }));
+      let screenshots = 0; page.screenshot = async () => { screenshots++; };
+      await assert.rejects(renderPage(page, { timestamp: '20250101000000', original: 'https://example.com/' }, '/unused.png'), /error\/interstitial/);
+      assert.equal(screenshots, 0);
+      await page.close();
+    }
+    await context.close();
+  } finally { await browser.close(); }
+});
+
 test('CDX cache preserves metadata, expires and never caches upstream failures', async () => {
   const cacheDir = await mkdtemp(resolve(tmpdir(), 'wayback-cdx-'));
   const originalFetch = globalThis.fetch;

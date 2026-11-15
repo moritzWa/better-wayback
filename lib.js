@@ -6,6 +6,9 @@ export { cleanText, similarity, groupCaptures } from './group.js';
 // Shared by screenshot AND completed-job keys. Old black previews cannot leak through either cache.
 export const RENDER_VERSION = 'render-v2-ready';
 export const USER_AGENT = 'VisualWayback/0.1 (research prototype; gpt-6.1-sol)';
+export function isArchiveErrorPage(title = '', text = '') {
+  return /^(?:404(?: error| not found)?|access denied|just a moment[.!…]*)$/i.test(title.trim()) || /application error:\s*a (?:client|server)-side exception has occurred/i.test(text.slice(0, 500));
+}
 const captureTime = timestamp => Date.UTC(+timestamp.slice(0, 4), +timestamp.slice(4, 6) - 1, +timestamp.slice(6, 8), +timestamp.slice(8, 10), +timestamp.slice(10, 12), +timestamp.slice(12, 14));
 // Sample elapsed time, not row offsets: bursts of captures must not consume the timeline.
 export function selectCaptures(rows, count = 8) {

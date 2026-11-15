@@ -26,9 +26,9 @@ npm start
 
 Open http://localhost:4317. Rendering uses the optional local resource queue when installed; otherwise it runs directly. At most two archived pages render concurrently.
 
-The homepage opens a packaged Stripe example immediately. Stripe and Amazon examples use checked-in screenshot and text data, not a live browser or an Internet Archive request. Custom searches still query and render the archive.
+The homepage opens a packaged Stripe example immediately. Stripe, OpenAI, Anthropic, Nvidia and Amazon examples use checked-in screenshot and text data, not a live browser or an Internet Archive request. Custom searches still query and render the archive.
 
-The examples are curated, not complete histories: four Stripe captures from 2012–2026 and six Amazon captures from 1999–2019. Unavailable rendering attempts are disclosed. Archived assets may be incomplete even in successful captures.
+The examples are curated, not complete histories: four Stripe captures from 2012–2026, five OpenAI captures from 2016–2025, four Anthropic captures from 2021–2025, three Nvidia captures from 2007–2025, and six Amazon captures from 1999–2019. Historical homepage paths and redirects can differ from today's root URL. Unavailable rendering attempts are disclosed. Archived assets may be incomplete even in successful captures. Application-crash and 404 pages are rejected rather than packaged as previews.
 
 ## What works
 
@@ -86,6 +86,8 @@ node tools/precache-demos.js amazon --cached-only
 ```
 
 Omit `--cached-only` to capture missing previews from the Internet Archive. Network refreshes use sandboxed Chromium, run one archived page at a time and stop on upstream throttling. If you use a local heavy-job queue, run the refresh through that queue. Example manifests live in `demos/`, and screenshot files in `public/demos/`. Runtime example requests only read those packaged files.
+
+For OpenAI, Anthropic and Nvidia, `node tools/precache-ai-demos.js` drives a dedicated muted Linux browser via `AI_DEMO_CDP` (default `http://localhost:19832`). Run through the heavy-job queue. Year-specific CDX candidates are cached in `.cache/ai-demo-candidates`, or supplied using `AI_DEMO_CANDIDATES_DIR`. `AI_DEMO_NAME=openai,nvidia` selects sites; `--retry` permits retrying recorded failures. It reuses genuine cached results, follows the historical Nvidia homepage paths, preserves attempts separately, and never replaces a manifest with fewer than three successful captures. Do not point it at an authenticated/shared browser. Shut down that dedicated browser and port forward afterward.
 
 Future article briefs are in [the editorial plan](docs/editorial-plan.md).
 
