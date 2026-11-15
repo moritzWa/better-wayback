@@ -39,7 +39,9 @@ test('articles are substantive, dated, sourced and fully static', () => {
     assert.ok(article.blocks.filter(block => block.type === 'p').map(block => block.text).join(' ').split(/\s+/).length > 1500);
     assert.ok(article.sources.length >= 8);
     assert.ok(article.published <= new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }));
-    assert.equal(article.modified, article.published);
+    assert.match(article.modified, /^\d{4}-\d{2}-\d{2}$/);
+    assert.ok(article.modified >= article.published);
+    assert.ok(article.modified <= new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }));
     assert.doesNotMatch(body, /\u2014|<style|style=|<iframe|<script src=/);
     assert.equal(handleBlogRequest(path.slice(0, -1)).body, body);
     for (const source of article.sources) {

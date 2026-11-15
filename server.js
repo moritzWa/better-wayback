@@ -135,11 +135,11 @@ const server = http.createServer(async (req, res) => {
       res.on('finish', () => clearInterval(heartbeat));
       return;
     }
-    const files = { '/': ['public/index.html', 'text/html'], '/support.js': ['public/support.js', 'text/javascript'], '/app.js': ['public/app.js', 'text/javascript'], '/style.css': ['public/style.css', 'text/css'], '/group.js': ['group.js', 'text/javascript'] };
+    const files = { '/': ['public/index.html', 'text/html'], '/previews.js': ['public/previews.js', 'text/javascript'], '/support.js': ['public/support.js', 'text/javascript'], '/app.js': ['public/app.js', 'text/javascript'], '/style.css': ['public/style.css', 'text/css'], '/group.js': ['group.js', 'text/javascript'] };
     const file = files[path] || (/^\/cache\/[a-f0-9]{24}\.png$/.test(path) ? [`.cache/${path.split('/').at(-1)}`, 'image/png'] : null);
     if (!['GET', 'HEAD'].includes(req.method) || !file) return json(res, 404, { error: 'Not found' });
     const data = await readFile(resolve(root, file[0]));
-    res.writeHead(200, { 'Content-Type': file[1], 'Content-Security-Policy': "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self' https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; base-uri 'none'" });
+    res.writeHead(200, { 'Content-Type': file[1], 'Content-Security-Policy': "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self' https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com https://web.archive.org; base-uri 'none'" });
     res.end(req.method === 'HEAD' ? undefined : data);
   } catch (error) { json(res, error.code === 'ENOENT' ? 404 : 500, { error: error.message }); }
 });

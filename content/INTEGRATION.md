@@ -49,7 +49,7 @@ Canonical/OG/schema/sitemap origin: `https://visualwayback.com`. The domain was 
 
 The local clock was checked on November 14, 2026 in America/New_York before setting article dates. Both articles were prepared that day. The visible methodology and source notes disclose documentation-based research, the publisher's interest in Visual Wayback and limits on verification. No interviews were conducted for these articles.
 
-Visual Wayback claims deliberately stop at a sampled interface to the Internet Archive, rendered-text grouping and screenshot previews. They do not promise independent archival coverage, visual-diff detection, continuous monitoring or every-change discovery. The prototype has no account/billing system; no hosted price is invented.
+Visual Wayback claims deliberately stop at a sampled interface to the Internet Archive, HTML-text comparison with direct live replays, and cached screenshot/rendered-text examples. Product copy was updated November 15, 2026. It discloses JavaScript-only text limits and does not group different text sources together. It does not promise independent archival coverage, visual-diff detection, continuous monitoring or every-change discovery. The prototype has no account/billing system; no hosted price is invented.
 
 ## Checks
 

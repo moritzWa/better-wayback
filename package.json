@@ -8,6 +8,7 @@
     "start": "node server.js",
     "test": "node --test test/*.test.js",
     "test:ui": "node test/ui.js",
+    "test:html-ui": "node test/html-ui.js",
     "build:cloudflare": "node tools/build-cloudflare.js",
     "test:cloudflare": "node --test test/cloudflare*.test.js",
     "check:cloudflare": "npm run build:cloudflare && wrangler deploy --dry-run --outdir .cache/cloudflare-bundle"

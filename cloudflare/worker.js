@@ -2,10 +2,12 @@ import { launch } from '@cloudflare/playwright';
 import { isolatedContext, renderPage } from '../.cache/cloudflare-runtime/renderer.js';
 import { handleSupportRequest } from '../support.mjs';
 import { createRuntime } from './runtime.js';
+import { extractHtml } from './html.js';
 export { QuotaCoordinator } from './quota.js';
 
 const handle = createRuntime({
   launch,
+  extractHtml,
   async render(browser, capture) {
     // The shared readiness implementation preserves Harvey reveals and Wikipedia's
     // intentionally hidden accessibility labels. No local browser launch or disk I/O.

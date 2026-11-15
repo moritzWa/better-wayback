@@ -8,7 +8,7 @@
   <title>Visual Wayback · A visual history of a webpage</title>
   <link rel="canonical" href="https://visualwayback.com/">
   <meta property="og:title" content="Visual Wayback · A visual history of a webpage">
-  <meta property="og:description" content="Screenshot previews and text comparisons for your webpage's archived history.">
+  <meta property="og:description" content="Live archive previews, cached screenshots and text comparisons for your webpage's history.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://visualwayback.com/">
   <link rel="stylesheet" href="/style.css">
@@ -28,7 +28,7 @@
         <details class="settings" id="settings"><summary>Settings</summary><div class="settings-panel">
           <div class="search-options"><div><label for="from">From</label><input id="from" type="number" min="1996" placeholder="Earliest"><span class="option-dash">to</span><label class="sr-only" for="to">To</label><input id="to" type="number" min="1996" placeholder="Latest"></div><div><label for="count">Sample</label><select id="count"><option value="8">8 captures · quick look</option><option value="16">16 captures</option><option value="24">24 captures · deeper look</option></select></div></div>
           <label class="sensitivity" for="sensitivity">Group similar text <input id="sensitivity" type="range" min="75" max="100" value="94"><output id="sensitivity-value" for="sensitivity">94%</output></label>
-          <p>Leave dates blank to use the full archived history. Grouping compares text, not appearance.</p>
+          <p>Leave dates blank to use the full archived history. Grouping compares text, not appearance. New previews load directly from the archive; HTML comparisons can miss JavaScript-only content.</p>
         </div></details>
       </form>
       <div class="try-links"><span>Try a page</span><button type="button" data-site="stripe.com">Stripe</button><button type="button" data-site="amazon.com">Amazon</button></div>
@@ -42,7 +42,7 @@
       <div id="timeline"></div>
       <div id="empty-state" class="empty-state" hidden>No readable captures yet. Try a wider date range or another URL.</div>
     </section>
-    <section id="explainer" class="explainer"><div class="explainer-label eyebrow">How it works</div><div class="features"><div><h3>Sample the archive</h3><p>We look up captures from the Wayback Machine across your date range. This is a sampled history, not every change.</p></div><div><h3>Group similar text</h3><p>Captures with similar rendered text are grouped together. Use the slider to adjust how closely they must match.</p></div><div><h3>Compare versions</h3><p>Browse previews, compare text with the previous version, or open a capture in the Wayback Machine.</p></div><div><h3>Know the limits</h3><p>Archived pages can be incomplete. Dates show when a page was captured, not when a change first went live.</p></div></div></section>
+    <section id="explainer" class="explainer"><div class="explainer-label eyebrow">How it works</div><div class="features"><div><h3>Sample the archive</h3><p>We look up captures from the Wayback Machine across your date range. This is a sampled history, not every change.</p></div><div><h3>Group similar text</h3><p>New searches compare text extracted from archived HTML. Cached examples use rendered text. Different sources are never grouped together.</p></div><div><h3>Compare versions</h3><p>Browse live replays or cached screenshots, compare text with the previous version, or open a capture in the Wayback Machine.</p></div><div><h3>Know the limits</h3><p>Archived pages can be incomplete, and HTML can miss JavaScript-only text. Dates show when a page was captured, not when a change first went live.</p></div></div></section>
   </main>
   <aside class="support-banner" data-support aria-label="Support this project"><button type="button" data-support-open aria-expanded="false" aria-controls="support-panel">Support this project</button><span>Help keep Visual Wayback free.</span><div id="support-panel" data-support-panel hidden><p role="status" aria-live="polite"></p><div data-support-widget></div><button type="button" data-support-cancel>Cancel</button></div><noscript>Enable JavaScript to reveal the support email.</noscript></aside>
    <footer class="footer"><span>Not affiliated with the Internet Archive.</span><div class="footer-links"><a href="https://moritzw.com/">Built by Moritz Wallawitsch</a><a href="https://github.com/moritzWa/better-wayback">GitHub</a><a href="https://archive.org/donate" target="_blank" rel="noopener">Support the archive ↗</a></div></footer>

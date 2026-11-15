@@ -42,7 +42,7 @@ try {
   await page.reload();
   await page.waitForFunction(() => window.testStreams.length === 1);
   assert.equal(requests.length, 2);
-  assert.deepEqual(requests.at(-1), { url: 'rogo.ai', from: '2020', to: '2024', count: '16' });
+  assert.deepEqual(requests.at(-1), { url: 'rogo.ai', from: '2020', to: '2024', count: '16', previewMode: 'html' });
   await page.goBack();
   await page.waitForFunction(() => document.querySelector('#url').value === 'stripe.com' && !document.querySelector('#search-button').disabled);
   assert.equal(new URL(page.url()).search, '');

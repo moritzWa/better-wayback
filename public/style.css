@@ -91,6 +91,12 @@
 .wayback-ui .browser-url { margin-left: 8px; color: var(--gray); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wayback-ui .preview-link { display: block; background: var(--code-bg); }
 .wayback-ui .preview-link img { display: block; width: 100%; height: auto; aspect-ratio: 1280 / 800; object-fit: cover; object-position: top; }
+/* Flush children inherit the card's 10px outer clip; no competing inner radius. */
+.wayback-ui .live-stage { position: relative; width: 100%; aspect-ratio: 1280 / 800; overflow: hidden; background: var(--code-bg); }
+.wayback-ui .live-frame { position: absolute; inset: 0; width: 1280px; height: 800px; border: 0; transform-origin: top left; pointer-events: none; }
+.wayback-ui .live-open-overlay { position: absolute; inset: 0; display: block; }
+.wayback-ui .live-status { padding: 8px 14px; margin: 0; font-size: 11px; color: var(--gray); background: var(--code-bg); }
+.wayback-ui .text-status { margin: 0; padding: 0 14px 12px; font-size: 11px; color: var(--gray); }
 .wayback-ui .card-bottom { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 10px 20px; padding: 12px 14px; min-height: 43px; font-size: 12px; }
 .wayback-ui .entry-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wayback-ui .card-actions { display: flex; gap: 18px; white-space: nowrap; }

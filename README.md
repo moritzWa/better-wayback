@@ -1,12 +1,14 @@
 # Visual Wayback
 
-A visual Wayback Machine timeline that folds consecutive captures with similar rendered text. Independent prototype, not affiliated with the Internet Archive.
+A visual Wayback Machine timeline that folds consecutive captures with similar text. Independent prototype, not affiliated with the Internet Archive.
 
 ## Public hosting
 
-The public site runs on Cloudflare Workers Free. Static pages, the blog and packaged examples do not launch a browser. New screenshots use the account's free Browser Run allowance. The app stops new renders when its daily budget runs out; it does not upgrade the plan or charge visitors.
+The public site runs on Cloudflare Workers Free. New searches fetch and compare archived HTML on the server while the visitor's browser renders direct Wayback replays. Existing genuine screenshot caches and the packaged examples remain available. Normal public searches no longer launch a server browser or use the Browser Run quota. The app never upgrades the plan or charges visitors.
 
-The edge runtime reuses one browser for up to eight sequential captures per connected request, streaming each result as it arrives. It only waits for a launch cooldown between batches, not between screenshots. It caches previews for seven days. Live timelines can be incomplete when the archive is unavailable or the free quota is exhausted. The local Node server below has different concurrency and disk-cache limits.
+The edge runtime publishes preview links before HTML comparisons finish. It reads at most two archived HTML pages concurrently, eight per connected request, with one-second continuation between batches. HTML metadata is cached separately for seven days. At most two live iframe documents are active near the viewport; scrolling away or starting another search unloads them. Live timelines can be incomplete when the archive is unavailable or the free cache quota is exhausted.
+
+Grouping never treats missing, truncated or pending text as unchanged. HTML and rendered-text sources are not compared to each other. JavaScript-only text can be missing from HTML, and identical responsive text blocks are deduplicated. Preview status reports iframe navigation, not a guarantee that every archived asset rendered correctly.
 
 Submitted searches update the address bar, for example `/?url=rogo.ai`. Links preserve date/sample settings, reload the same search, and work with Back/Forward. Typing alone does not start archive jobs.
 
@@ -14,7 +16,7 @@ Deployment, quotas and verification are documented in [the Cloudflare deployment
 
 ## Run
 
-Requires Node 22+ and Chromium for Playwright.
+Requires Node 22+ and Chromium for Playwright. This local server retains the original screenshot workflow; the public Cloudflare runtime uses the HTML-first path described above.
 
 ```sh
 npm install
@@ -39,7 +41,7 @@ The examples are curated, not complete histories: four Stripe captures from 2012
 - Changes-only/all-sampled views and before/after text comparison.
 - Mobile layout, explicit partial-history warnings, and failed captures visible in both timeline views.
 - Pending capture skeletons and unavailable cards remain visible while a search runs, including in the grouped view. Grouping, sample count and automatic date bounds live in Settings.
-- Archived browser traffic is restricted to HTTPS web.archive.org, with WebSockets blocked. Chromium's OS sandbox is explicitly enabled, with separate browser contexts. No live-site fallback; archived HTML is never embedded into the application origin.
+- The optional server screenshot renderer restricts traffic to HTTPS web.archive.org and blocks WebSockets, with Chromium's OS sandbox and separate contexts. Live client iframes are cross-origin and sandboxed, with no forms, popups, downloads or top navigation. The app never uses srcdoc or serves archived scripts on its own origin. The archive's own policy governs iframe subresource traffic; it is not the server renderer's stricter network sandbox.
 - Minimal design matching agent-view.app, plus a static blog with researched alternatives and history articles, source notes, metadata, JSON-LD, sitemap and robots routes.
 
 ## Limits
@@ -71,6 +73,7 @@ For the full suite including renderer browser checks and blog module checks:
 ```sh
 RENDERER_BROWSER_TESTS=1 BETTER_WAYBACK_TEST_URL=http://localhost:4317 node --test test/api.test.js test/blog.test.js test/lib.test.js test/renderer.test.js test/renderer-api.test.js content/blog.test.js
 node test/site.js
+node test/html-ui.js
 ```
 
 The site test checks real HTTP blog routing, metadata, JSON-LD, CSP, HEAD responses, sitemap, missing articles and responsive layouts. Article source checking and access restrictions are documented in `content/RESEARCH.md`.

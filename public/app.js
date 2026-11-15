@@ -1,4 +1,5 @@
-import { groupCaptures, similarity } from '/group.js';
+import { groupCaptures, similarity, comparableText } from '/group.js';
+import { livePreview, refreshPreviews, resetPreviews } from '/previews.js';
 
 const $ = id => document.getElementById(id);
 let captures = [], changesOnly = true, total = 0, sampled = 0, capped = false, running = false, stream;
@@ -16,7 +17,9 @@ function render() {
   const visible = running ? [...captures, ...pending.map(c => ({ ...c, pending: true }))] : changesOnly ? [...groups, ...captures.filter(c => c.error)] : captures.map(c => ({ ...c, count: 1 }));
   visible.sort((a, b) => (captureOrder(a) || '').localeCompare(captureOrder(b) || '') || (a.slot || 0) - (b.slot || 0));
   const failed = captures.filter(c => c.error).length;
-  $('stats').textContent = indexed ? `${capped ? '1,200+ indexed' : `${total.toLocaleString()} indexed`} · ${captures.length}/${sampled} sampled · ${groups.length} text versions${running ? ` · ${Math.max(0, sampled - captures.length)} pending` : ''}${failed ? ` · ${failed} unavailable` : ''}` : 'Finding archived captures…';
+  const knownGroups = groups.filter(c => comparableText(c, c)).length;
+  const unCompared = captures.filter(c => !c.error && !comparableText(c, c)).length;
+  $('stats').textContent = indexed ? `${capped ? '1,200+ indexed' : `${total.toLocaleString()} indexed`} · ${captures.length}/${sampled} sampled · ${knownGroups} text versions${unCompared ? ` · ${unCompared} not compared` : ''}${running ? ` · ${Math.max(0, sampled - captures.length)} pending` : ''}${failed ? ` · ${failed} unavailable` : ''}` : 'Finding archived captures…';
   $('sensitivity-value').textContent = $('sensitivity').value + '%';
   $('empty-state').hidden = running || visible.length > 0;
   let previous, position = 0;
@@ -32,13 +35,14 @@ function render() {
     }
     const meta = el('div', 'entry-meta');
     meta.append(el('div', 'entry-date', capture.timestamp ? capture.timestamp.slice(0, 4) : 'Finding capture'), el('div', 'entry-month', capture.timestamp ? date(capture.timestamp) : `Sample ${capture.slot + 1}`));
-    const difference = previous && !capture.error && !capture.pending ? Math.round((1 - similarity(previous.text, capture.text)) * 100) : null;
-    meta.append(el('div', 'entry-badge', capture.pending ? 'PENDING' : capture.error ? 'UNAVAILABLE' : difference === null ? 'FIRST SEEN' : `${difference}% TEXT DIFFERENCE`));
+    const difference = comparableText(previous, capture) && !capture.error && !capture.pending ? Math.round((1 - similarity(previous.text, capture.text)) * 100) : null;
+    const noDifference = !previous ? 'FIRST SEEN' : (previous.textSource || 'rendered') !== (capture.textSource || 'rendered') ? 'DIFFERENT TEXT SOURCES' : 'NO PREVIOUS TEXT';
+    meta.append(el('div', 'entry-badge', capture.pending ? 'PENDING' : capture.error ? 'UNAVAILABLE' : capture.textPending ? 'READING HTML' : capture.comparisonUnavailable || capture.textTruncated ? 'TEXT UNAVAILABLE' : difference === null ? noDifference : `${difference}% TEXT DIFFERENCE`));
     if (capture.count > 1) meta.append(el('div', 'entry-count', `${capture.count} similar sampled captures\nthrough ${date(capture.lastTimestamp)}`));
     // Only rebuild a preview when its own data changes, never for another SSE result.
-    const signature = JSON.stringify([capture.pending, capture.image, capture.error, capture.title, capture.archiveUrl, capture.original, capture.timestamp]);
+    const signature = JSON.stringify([capture.pending, capture.image, capture.previewUrl, capture.error, capture.original]);
     let card = entry.querySelector('.entry-card');
-    if (!card || entry.dataset.signature !== signature) {
+    if (!card || entry.dataset.signature !== signature || card.querySelector('[data-preview-disposed]')) {
       card = el('div', 'entry-card');
       const chrome = el('div', 'browser-chrome');
       chrome.append(el('i'), el('i'), el('i'), el('span', 'browser-url', capture.original.replace(/^https?:\/\//, '')));
@@ -55,8 +59,10 @@ function render() {
       }
       else {
         entry.removeAttribute('aria-busy');
-        const link = el('a', 'preview-link'); link.href = capture.archiveUrl; link.target = '_blank'; link.rel = 'noopener';
-        const image = el('img'); image.src = capture.image; image.alt = `${capture.title || capture.original}, archived ${date(capture.timestamp)}`; image.loading = 'lazy'; link.append(image); card.append(link);
+        if (capture.image) {
+          const link = el('a', 'preview-link'); link.href = capture.archiveUrl; link.target = '_blank'; link.rel = 'noopener';
+          const image = el('img'); image.src = capture.image; image.alt = `${capture.title || capture.original}, archived ${date(capture.timestamp)}`; image.loading = 'lazy'; link.append(image); card.append(link);
+        } else card.append(livePreview(capture, `${capture.title || capture.original}, archived ${date(capture.timestamp)}`));
         const bottom = el('div', 'card-bottom'); bottom.append(el('span', 'entry-title', capture.title || 'Archived page'));
         const actions = el('div', 'card-actions');
         const button = el('button', 'compare-button', 'Compare text'); button.type = 'button'; actions.append(button);
@@ -65,10 +71,17 @@ function render() {
       entry.replaceChildren(meta, card);
       entry.dataset.signature = signature;
     } else entry.querySelector('.entry-meta').replaceWith(meta);
+    const title = card.querySelector('.entry-title'); if (title) title.textContent = capture.title || 'Archived page';
+    for (const link of card.querySelectorAll('.card-actions a, .preview-link')) link.href = capture.archiveUrl;
+    let textStatus = card.querySelector('.text-status');
+    if (capture.comparisonUnavailable && !capture.textPending && !capture.error) {
+      if (!textStatus) { textStatus = el('p', 'text-status'); card.append(textStatus); }
+      textStatus.textContent = capture.textError || (capture.textTruncated ? 'HTML text is too long for a complete comparison.' : 'Little or no text in the archived HTML. JavaScript may supply the visible content.');
+    } else textStatus?.remove();
     const button = card.querySelector('.compare-button');
     if (button) {
       const before = previous;
-      button.hidden = !before;
+      button.hidden = !comparableText(before, capture);
       button.onclick = () => compare(before, capture);
     }
     if (!capture.error && !capture.pending) previous = capture;
@@ -78,8 +91,10 @@ function render() {
     position++;
   }
   for (const entry of [...$('timeline').children]) if (!visibleKeys.has(entry.dataset.capture)) entry.remove();
+  refreshPreviews();
 }
 function compare(before, after) {
+  document.querySelector('.compare-note').textContent = before.textSource === 'html' ? 'Compares text extracted from archived HTML, not rendered pixels. JavaScript-only text can be missing; responsive duplicates are removed.' : 'Text lines are compared, not image pixels. Reflowed text can appear as an edit.';
   $('compare-title').textContent = `${date(before.timestamp)} → ${date(after.timestamp)}`;
   const container = el('div', 'diff-columns');
   const lines = [before.text.split('\n'), after.text.split('\n')];
@@ -95,6 +110,7 @@ function finish() {
   clearTimeout(resumeTimer);
   // A truncated stream must not quietly erase unfinished samples.
   for (const capture of requested) if (!captures.some(result => captureKey(result) === captureKey(capture))) captures.push({ ...capture, error: 'No preview returned for this capture. Try again to load it.' });
+  for (const capture of captures) if (capture.textPending) { capture.textPending = false; capture.comparisonUnavailable = !capture.text?.trim(); capture.textError = 'HTML lookup did not finish. Preview remains available.'; }
   running = false; $('search-button').disabled = false; $('progress').hidden = true; render();
   const failed = captures.filter(c => c.error).length;
   if (failed && $('error').hidden) { $('error').textContent = `Partial results: ${failed} of ${sampled} sampled captures could not be loaded. Available previews are shown below.`; $('error').hidden = false; }
@@ -107,7 +123,7 @@ function onEvent(event) {
     if (event.firstTimestamp) $('from').placeholder = event.firstTimestamp.slice(0, 4);
     if (event.lastTimestamp) $('to').placeholder = event.lastTimestamp.slice(0, 4);
     $('status').textContent = `Loading ${sampled} archived previews…`;
-    $('sampling-note').textContent = `A sampled history, not every change.${event.monthly ? ' Dense history: samples are drawn from one candidate per month across the date range.' : ''} Dates show when a version was archived, not when it launched.`; render();
+    $('sampling-note').textContent = `A sampled history, not every change.${event.monthly ? ' Dense history: samples are drawn from one candidate per month across the date range.' : ''}${event.textSource === 'html' ? ' New previews load directly from the Internet Archive. Grouping compares archived HTML text, which can miss JavaScript-only content.' : ''} Dates show when a version was archived, not when it launched.`; render();
   }
   if (event.type === 'capture') {
     const index = captures.findIndex(c => captureKey(c) === captureKey(event.capture));
@@ -133,7 +149,7 @@ function connectStream(path, current, attempts = 0) {
       connection.close();
       if (attempts >= 24) { onEvent({ type: 'error', message: 'Rendering paused after repeated retries. Available previews are kept. Search again later.' }); return; }
       // Free-tier rendering advances one capture per connection. Never reconnect in a busy loop.
-      const seconds = Math.max(coolingDown ? 1 : 20, Math.min(3600, Number(event.retryAfter) || 90));
+      const seconds = Math.max(coolingDown || event.source === 'html' ? 1 : 20, Math.min(3600, Number(event.retryAfter) || 90));
       $('status').textContent = `${captures.length} of ${sampled} previews returned. Continuing in ${Math.ceil(seconds)} seconds…`;
       clearTimeout(resumeTimer);
       resumeTimer = setTimeout(() => connectStream(path, current, attempts + 1), seconds * 1000);
@@ -149,6 +165,7 @@ function connectStream(path, current, attempts = 0) {
 }
 function begin() {
   clearTimeout(resumeTimer);
+  resetPreviews();
   generation++; captures = []; requested = []; indexed = false; entries.clear(); $('timeline').replaceChildren(); total = 0; sampled = 0; capped = false; running = true; stream?.close();
   $('search-button').disabled = true; $('results').hidden = false; $('explainer').hidden = true; $('error').hidden = true; $('progress').hidden = false; $('progress-fill').style.width = '0%'; $('status').textContent = 'Finding archived captures…';
   $('from').placeholder = 'Earliest'; $('to').placeholder = 'Latest';
@@ -181,7 +198,7 @@ async function search(recordHistory = true) {
   if (preset && !$('from').value && !$('to').value && $('count').value === '8') { await loadDemo(preset); return; }
   const current = begin();
   try {
-    const response = await fetch('/api/jobs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: $('url').value, from: $('from').value, to: $('to').value, count: $('count').value }) });
+    const response = await fetch('/api/jobs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: $('url').value, from: $('from').value, to: $('to').value, count: $('count').value, previewMode: 'html' }) });
     const data = await response.json(); if (current !== generation) return; if (!response.ok) throw new Error(data.error);
     $('site-title').textContent = data.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
     connectStream(`/api/jobs/${data.id}/events`, current);
@@ -214,7 +231,8 @@ $('close-dialog').onclick = () => $('compare-dialog').close();
 $('compare-dialog').onclick = event => { if (event.target === $('compare-dialog')) $('compare-dialog').close(); };
 const currentYear = new Date().getFullYear();
 for (const id of ['from', 'to']) $(id).max = currentYear;
-window.addEventListener('pagehide', () => { clearTimeout(resumeTimer); stream?.close(); });
+window.addEventListener('pagehide', () => { clearTimeout(resumeTimer); stream?.close(); resetPreviews(); });
+window.addEventListener('pageshow', event => { if (event.persisted) restoreSearch(); });
 function restoreSearch() {
   const params = new URLSearchParams(location.search);
   $('url').value = params.get('url') || 'stripe.com';

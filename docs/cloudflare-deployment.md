@@ -2,6 +2,20 @@
 
 Visual Wayback uses Workers Free with static assets, a Browser Run binding, one KV namespace and a SQLite Durable Object. There is no R2 dependency, paid plan, scheduled capture job or always-on server.
 
+## Current HTML-first mode
+
+`PREVIEW_MODE=html` is the public default. `ENABLE_RENDERING=false` disables new server screenshots. The retained Browser Run binding is for the optional legacy screenshot mode, not normal searches. Cached PNGs keep their existing keys and remain usable.
+
+The server streams direct replay links immediately, then extracts text using native HTMLRewriter. It does not execute archived scripts. Each request reads up to eight HTML documents, two concurrently, with a shared 12-second deadline per document including redirects and body download. HTML bodies are capped at 1 MiB; normalized text at 12,000 characters. Redirects remain on timestamped HTTPS web.archive.org replay URLs. Native parser output is cached under `html:html-v1:` keys for seven days; failed lookups expire after five minutes. Screenshot failure markers never block this path.
+
+The client sends `previewMode: "html"` when creating jobs. Old screenshot-only clients receive a reload instruction before any new job work, rather than receiving iframe metadata they cannot display. Existing Node screenshot endpoints accept the additional field and retain their local behavior.
+
+Every new HTML lookup reserves one atomic cache write before contacting the archive. No browser reservation or launch cooldown is used. Further batches resume after one second. If an HTML lookup fails or the write budget is exhausted, already indexed iframe previews stay available and their missing comparison text is labeled. Known cached jobs can still open previews; new job creation also requires the shared free write budget.
+
+The browser scales each iframe's 1280 by 800 desktop viewport into the existing preview card. Only the two closest nearby frames stay loaded. Other frames have no src; grouping, scrolling away, pagehide or a new search unloads them. Iframes are sandboxed with only scripts and same-origin enabled, remain on the Archive origin, hide their internal interaction behind an Open archive link, and deny autoplay, camera, microphone, geolocation and payment. Parent CSP allows Archive frames but does not allow their scripts on the app origin. Cross-origin restrictions prevent us from asserting that a load event means a visually complete replay.
+
+HTML comparison strips scripts/styles/templates and explicitly hidden content, preserves text boundaries and deduplicates exact repeated lines. Missing, pending or truncated text remains separate in grouped views. Cached rendered text may be used when HTML extraction fails; different source types are never compared or grouped together. The local Node server remains the original screenshot development path.
+
 ## Resources
 
 - Worker: `visual-wayback`, personal Cloudflare account.
@@ -31,7 +45,7 @@ Set `SUPPORT_EMAIL` and `TURNSTILE_SECRET_KEY` with `wrangler secret put`. `TURN
 
 ## Free limits
 
-Cloudflare publishes 10 browser minutes per day on Workers Free, shared across the account. Static examples do not consume this allowance. The app caps its own budget at 540 seconds. A launch reserves 90 seconds for the first capture and 25 seconds for each additional capture, up to eight. The coordinator shrinks batches to the remaining time/write budget. A confirmed browser closure refunds the unused time, retaining elapsed seconds plus a two-second margin. Failed or unconfirmed closures keep the full reservation. Atomic reservations and single-use refund tokens prevent concurrent requests from overspending that budget. Platform limits can still reject requests earlier if other applications use the same account.
+Cloudflare publishes 10 browser minutes per day on Workers Free, shared across the account. HTML-first searches and static examples do not consume this allowance. For optional legacy screenshots, the app caps its budget at 540 seconds. A launch reserves 90 seconds for the first capture and 25 seconds for each additional capture, up to eight. The coordinator shrinks batches to the remaining time/write budget. A confirmed browser closure refunds the unused time, retaining elapsed seconds plus a two-second margin. Failed or unconfirmed closures keep the full reservation. Atomic reservations and single-use refund tokens prevent concurrent requests from overspending that budget. Platform limits can still reject requests earlier if other applications use the same account.
 
 `RENDER_BATCH_SIZE=8` reuses a browser across sequential captures, with a fresh isolated context for each. Each capture still has a 25-second deadline. The whole connected request has a deadline of 25 seconds times its reserved capture count. A timed-out capture closes the browser; later captures resume in a new request. There is no 20-second launch pause within a batch. No work depends on `waitUntil` or a disconnected client.
 

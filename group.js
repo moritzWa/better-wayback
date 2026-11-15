@@ -16,17 +16,20 @@ export function selectCaptures(rows, count = 12) {
   if (rows.length <= count) return rows;
   return Array.from({ length: count }, (_, i) => rows[Math.round(i * (rows.length - 1) / (count - 1))]);
 }
+export function comparableText(a, b) {
+  return Boolean(a && b && !a.textPending && !b.textPending && !a.comparisonUnavailable && !b.comparisonUnavailable && !a.textTruncated && !b.textTruncated && a.text?.trim() && b.text?.trim() && (a.textSource || 'rendered') === (b.textSource || 'rendered'));
+}
 export function groupCaptures(captures, threshold = 0.94) {
   const groups = [];
   for (const capture of captures) {
     if (capture.error) continue;
     const previous = groups.at(-1);
     // Compare to the group's first capture so gradual edits don't disappear forever.
-    if (previous && similarity(previous.text, capture.text) >= threshold) {
+    if (comparableText(previous, capture) && similarity(previous.text, capture.text) >= threshold) {
       previous.count++;
       previous.lastTimestamp = capture.timestamp;
     } else {
-      groups.push({ ...capture, count: 1, lastTimestamp: capture.timestamp, change: previous ? Math.round((1 - similarity(previous.text, capture.text)) * 100) : null });
+      groups.push({ ...capture, count: 1, lastTimestamp: capture.timestamp, change: comparableText(previous, capture) ? Math.round((1 - similarity(previous.text, capture.text)) * 100) : null });
     }
   }
   return groups;

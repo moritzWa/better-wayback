@@ -1,5 +1,6 @@
 import { normalizeUrl, keyFor, selectCaptures, replayUrl, RENDER_VERSION, USER_AGENT } from '../lib.js';
 import { quota } from './quota.js';
+import { HTML_VERSION, MAX_HTML, iframeUrl, archiveHtmlAllowed } from './html.js';
 
 export const MAX_IMAGE = 2 * 1024 * 1024;
 const MAX_JSON = 65536;
@@ -26,7 +27,7 @@ async function boundedText(response, limit) {
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
   return new TextDecoder().decode(bytes);
 }
-async function cached(env, capture) {
+async function cached(env, capture, ignoreFailures = false) {
   if (!env.CACHE) return null;
   const key = captureKey(capture);
   const saved = await env.CACHE.get(`capture:${key}`, 'json');
@@ -39,20 +40,22 @@ async function cached(env, capture) {
       return saved;
     }
   }
+  if (ignoreFailures) return null;
   const failed = await env.CACHE.get(`failure:${key}`, 'json');
   return failed?.renderVersion === RENDER_VERSION && failed.error && !failed.image && failed.failureExpiresAt > Date.now() ? failed : null;
 }
 
-export function createRuntime({ launch, render, fetchArchive = fetch }) {
+export function createRuntime({ launch, render, extractHtml, fetchArchive = fetch }) {
   async function createJob(request, env) {
     if (request.headers.get('origin') && request.headers.get('origin') !== new URL(request.url).origin) return json(403, { error: 'Cross-origin requests are not allowed.' });
     let input, url;
     try { input = JSON.parse(await boundedText(request, 4096)); url = normalizeUrl(String(input.url || '')); }
     catch (error) { return json(400, { error: error.message }); }
+    if (env.PREVIEW_MODE === 'html' && input.previewMode !== 'html') return json(409, { error: 'Visual Wayback has updated its previews. Reload this page and search again.' });
     const from = String(input.from || ''), to = String(input.to || new Date().getUTCFullYear());
     if ((from && (!/^\d{4}$/.test(from) || +from < 1996 || from > to)) || !/^\d{4}$/.test(to) || +to < 1996 || +to > new Date().getUTCFullYear()) return json(400, { error: 'Enter a valid year range from 1996 to today.' });
     const count = [8, 16, 24].includes(Number(input.count)) ? Number(input.count) : 8;
-    const id = keyFor(JSON.stringify([url, from, to, count, RENDER_VERSION]));
+    const id = keyFor(JSON.stringify([url, from, to, count, RENDER_VERSION, ...(env.PREVIEW_MODE === 'html' ? [HTML_VERSION] : [])]));
     if (!env.CACHE) return json(503, { error: 'Archive cache is not configured. Packaged examples still work.' });
     if (await env.CACHE.get(`job:${id}`)) return json(200, { id, url });
     const allowance = await quota(env, 'job');
@@ -81,6 +84,89 @@ export function createRuntime({ launch, render, fetchArchive = fetch }) {
       await env.CACHE.put(`job:${id}`, encoded, { expirationTtl: 86400 });
       return json(202, { id, url });
     } catch (error) { return json(502, { error: error.message, retryAfter: 60 }); }
+  }
+
+  async function htmlEvents(request, env, id) {
+    const job = await env.CACHE?.get(`job:${id}`, 'json');
+    if (!job) return json(404, { error: 'Timeline expired. Search again; cached previews are kept.' });
+    const abort = new AbortController();
+    const onAbort = () => abort.abort();
+    request.signal.addEventListener('abort', onAbort, { once: true });
+    if (request.signal.aborted) abort.abort();
+    let stopped = false;
+    const stream = new ReadableStream({
+      async start(controller) {
+        const emit = event => { if (!stopped && !abort.signal.aborted) controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(event)}\n\n`)); };
+        const compose = (capture, png, html) => {
+          if (html?.comparisonUnavailable && png) return { ...png, preview: 'image', previewUrl: iframeUrl(capture), textSource: 'rendered', textPending: false, textError: 'HTML comparison unavailable; using cached screenshot text.' };
+          return { ...capture, requestedTimestamp: capture.timestamp, archiveUrl: replayUrl(capture.timestamp, capture.original), preview: 'iframe', previewUrl: iframeUrl(capture), text: '', textSource: 'html', comparisonUnavailable: true, ...html, ...(png ? { title: png.title || html?.title, image: png.image, preview: 'image' } : {}) };
+        };
+        const htmlKey = capture => `html:${HTML_VERSION}:${captureKey(capture)}`;
+        let completed = 0;
+        try {
+          emit({ ...job.index, textSource: 'html', previewMode: 'html' });
+          const items = await Promise.all(job.captures.map(async capture => {
+            const [png, saved] = await Promise.all([cached(env, capture, true), env.CACHE.get(htmlKey(capture), 'json')]);
+            const html = saved?.htmlVersion === HTML_VERSION && typeof saved.text === 'string' && (!saved.failureExpiresAt || saved.failureExpiresAt > Date.now()) ? saved : null;
+            emit({ type: 'capture', capture: html ? compose(capture, png, html) : { ...compose(capture, png), ...(png ? { text: png.text, textSource: 'rendered', comparisonUnavailable: false } : {}), textPending: true }, cached: Boolean(png || html), completed: ++completed });
+            return { capture, png, html };
+          }));
+          const missing = items.filter(item => !item.html);
+          if (!missing.length) { emit({ type: 'done' }); return; }
+          if (!extractHtml) { emit({ type: 'error', message: 'HTML comparison is unavailable. Direct archive previews remain accessible.' }); return; }
+          emit({ type: 'status', message: 'Reading archived HTML for text comparisons. Live previews load separately…' });
+          let next = 0, terminal;
+          // Bound upstream traffic and the per-request external subrequest count.
+          const batch = missing.slice(0, 8);
+          const read = async item => {
+            const allowance = await quota(env, 'write');
+            if (!allowance.ok) { terminal = allowance; return; }
+            let metadata, ttl = TTL;
+            try {
+              const started = Date.now();
+              const signal = AbortSignal.any([abort.signal, AbortSignal.timeout(12000)]);
+              let url = iframeUrl(item.capture), response;
+              for (let redirect = 0; redirect < 4; redirect++) {
+                if (!archiveHtmlAllowed(url)) throw new Error('Non-archive replay redirect rejected.');
+                response = await fetchArchive(url, { redirect: 'manual', signal, headers: { 'User-Agent': USER_AGENT } });
+                if (response.status < 300 || response.status >= 400) break;
+                const location = response.headers.get('location');
+                await response.body?.cancel();
+                if (!location || redirect === 3) throw new Error('Archive replay redirected too many times.');
+                url = new URL(location, url).href;
+              }
+              if (!response.ok) { const error = new Error(`Wayback returned ${response.status}.`); error.status = response.status; throw error; }
+              if (!/text\/html|application\/xhtml\+xml/i.test(response.headers.get('content-type') || '')) throw new Error('Archived content is not an HTML page.');
+              const html = await boundedText(response, MAX_HTML);
+              if (abort.signal.aborted) return;
+              const actualTimestamp = url.match(/\/web\/(\d{14})/)?.[1] || item.capture.timestamp;
+              metadata = { ...await extractHtml(html), timestamp: actualTimestamp, archiveUrl: replayUrl(actualTimestamp, item.capture.original), htmlVersion: HTML_VERSION, textSource: 'html', textPending: false, timing: { htmlMs: Date.now() - started } };
+              if (/Your IP address has reached|Rate limit exceeded|Wayback Machine has not archived that URL|This URL has been excluded/i.test(metadata.text)) throw new Error('Archive replay is unavailable.');
+              if (new TextEncoder().encode(JSON.stringify(metadata)).byteLength > MAX_JSON) metadata = { htmlVersion: HTML_VERSION, textSource: 'html', textPending: false, text: '', comparisonUnavailable: true, textError: 'HTML text exceeds the comparison limit.' };
+            } catch (error) {
+              if (abort.signal.aborted) return;
+              if (error.status === 429 || error.status === 503 || /rate limit/i.test(error.message)) { terminal = { error: 'The Internet Archive is throttling text lookups. Live previews remain accessible.', retryAfter: 90 }; return; }
+              ttl = 300;
+              metadata = { htmlVersion: HTML_VERSION, textSource: 'html', textPending: false, text: '', comparisonUnavailable: true, textError: String(error.message).slice(0, 500), failureExpiresAt: Date.now() + ttl * 1000 };
+            }
+            if (abort.signal.aborted || terminal) return;
+            await env.CACHE.put(htmlKey(item.capture), JSON.stringify(metadata), { expirationTtl: ttl });
+            emit({ type: 'capture', capture: compose(item.capture, item.png, metadata), cached: false, completed });
+          };
+          await Promise.all(Array.from({ length: 2 }, async () => {
+            while (next < batch.length && !terminal && !abort.signal.aborted) await read(batch[next++]);
+          }));
+          if (terminal) emit({ type: 'error', message: terminal.error, retryAfter: terminal.retryAfter });
+          else emit(missing.length > batch.length ? { type: 'continue', source: 'html', retryAfter: 1 } : { type: 'done' });
+        } catch { emit({ type: 'error', message: 'HTML comparison stopped. Live archive previews remain accessible.' }); }
+        finally {
+          stopped = true; request.signal.removeEventListener('abort', onAbort);
+          try { controller.close(); } catch {}
+        }
+      },
+      cancel() { stopped = true; abort.abort(); },
+    });
+    return new Response(stream, { headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
   }
 
   async function events(request, env, id) {
@@ -207,7 +293,7 @@ export function createRuntime({ launch, render, fetchArchive = fetch }) {
     const path = new URL(request.url).pathname;
     if (request.method === 'POST' && path === '/api/jobs') return createJob(request, env);
     const eventMatch = path.match(/^\/api\/jobs\/([a-f0-9]{24})\/events$/);
-    if (request.method === 'GET' && eventMatch) return events(request, env, eventMatch[1]);
+    if (request.method === 'GET' && eventMatch) return env.PREVIEW_MODE === 'html' ? htmlEvents(request, env, eventMatch[1]) : events(request, env, eventMatch[1]);
     const image = path.match(/^\/cache\/([a-f0-9]{24})\.png$/);
     if (['GET', 'HEAD'].includes(request.method) && image) {
       const data = await env.CACHE?.get(`image:${image[1]}`, 'arrayBuffer');
