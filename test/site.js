@@ -50,7 +50,10 @@ try {
   await page.getByRole('button', { name: 'All sampled', exact: true }).click();
   assert.equal(await page.locator('.timeline-entry img').count(), amazon.captures.length);
   for (const image of await page.locator('.timeline-entry img').all()) { await image.scrollIntoViewIfNeeded(); await image.evaluate(n => n.decode()); }
-  if (amazon.unavailable.length) assert.match(await page.locator('#error').innerText(), /Partial cached history/);
+  if (amazon.unavailable.length) {
+    assert.match(await page.locator('#error').innerText(), /preview attempts were unavailable/);
+    assert.doesNotMatch(await page.locator('#error').innerText(), /Explore history to retry/);
+  }
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);

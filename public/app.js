@@ -152,14 +152,14 @@ async function loadDemo(site) {
   try {
     const response = await fetch(`/api/demos/${site.startsWith('amazon') ? 'amazon' : 'stripe'}`);
     const data = await response.json(); if (current !== generation) return;
-    if (!response.ok || !data.captures?.length) throw new Error(data.error || 'Cached previews are not available yet. Explore history to load captures from the archive.');
+    if (!response.ok || !data.captures?.length) throw new Error(data.error || 'Cached previews are not available yet. Change the dates or sample size in Settings to request a fresh history.');
     indexed = true; total = data.total; sampled = data.sampled; capped = data.capped; captures = data.captures;
     $('sampling-note').textContent = 'Cached example. A selection of archived previews, not every capture or change. Dates show when a page was archived, not when it launched.';
     $('site-title').textContent = data.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
     const first = data.firstTimestamp || captures[0].timestamp, last = data.lastTimestamp || captures.at(-1).timestamp;
     $('from').placeholder = first.slice(0, 4); $('to').placeholder = last.slice(0, 4);
     const unavailable = Array.isArray(data.unavailable) ? data.unavailable.length : Number(data.unavailable || 0);
-    if (unavailable) { $('error').textContent = `Partial cached history: ${unavailable} sampled captures are unavailable. Explore history to retry.`; $('error').hidden = false; }
+    if (unavailable) { $('error').textContent = `Partial cached history: ${unavailable} preview attempts were unavailable. Showing the successful captures.`; $('error').hidden = false; }
     finish();
   } catch (error) { if (current === generation) onEvent({ type: 'error', message: error.message }); }
 }
