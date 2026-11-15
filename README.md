@@ -44,6 +44,8 @@ python3 ~/.claude/scripts/heavy-job.py --wait -- npm run test:ui
 
 UI tests use clearly marked deterministic fixtures via network interception. Real capture rendering is checked separately against Internet Archive, not represented by the test fixture screenshots.
 
+Optional real-network end-to-end check (with server running): `python3 ~/.claude/scripts/heavy-job.py --wait -- node test/live.js`. This checks Stripe's 2012–2026 history, real screenshots, text comparison, and mobile overflow. Use `BETTER_WAYBACK_TEST_URL=http://localhost:4317 npm test` to include API validation/security tests.
+
 ## Domain
 
 2026-11-14: Verisign's .com RDAP lookup for `betterwaybackmachine.com` returned 404 (no registry record). This suggests it is unregistered, not a guarantee of registrar checkout availability or price. `betterwayback.com` is registered. Neither domain was purchased.
