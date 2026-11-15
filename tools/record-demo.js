@@ -24,7 +24,7 @@ try {
     if (await page.locator('.live-frame').count()) throw new Error('Demo unexpectedly used a live iframe instead of the genuine packaged captures.');
   }
   // Warm every asset outside the recorded scenes. No loading delay is represented as app speed.
-  for (const site of ['openai', 'anthropic', 'nvidia']) await ready(site);
+  for (const site of ['openai', 'nvidia']) await ready(site);
   async function scrollEntry(which, duration = 0) {
     const entry = which === 'first' ? page.locator('.timeline-entry').first() : page.locator('.timeline-entry').last();
     const y = await entry.evaluate(n => n.getBoundingClientRect().top + scrollY - 18);
@@ -61,7 +61,7 @@ try {
   await session.send('Page.startScreencast', { format: 'jpeg', quality: 95, maxWidth: 1920, maxHeight: 1080, everyNthFrame: 1 });
   await first;
   const elapsed = () => (performance.now() - started) / 1000;
-  for (const site of ['openai', 'anthropic', 'nvidia']) {
+  for (const site of ['openai', 'nvidia']) {
     if (site !== 'openai') { await ready(site); await scrollEntry('first'); await page.waitForTimeout(400); }
     const start = site === 'openai' ? 0 : elapsed();
     await page.waitForTimeout(1900);
