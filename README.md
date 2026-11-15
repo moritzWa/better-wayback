@@ -14,6 +14,10 @@ npm start
 
 Open http://localhost:4317. Rendering uses the optional local resource queue when installed; otherwise it runs directly. At most two archived pages render concurrently.
 
+The homepage opens a packaged Stripe example immediately. Stripe and Amazon examples use checked-in screenshot and text data, not a live browser or an Internet Archive request. Custom searches still query and render the archive.
+
+The examples are curated, not complete histories: four Stripe captures from 2012–2026 and six Amazon captures from 1999–2019. Unavailable rendering attempts are disclosed. Archived assets may be incomplete even in successful captures.
+
 ## What works
 
 - Public CDX capture lookup, successful-response filtering, adjacent HTML digest deduplication.
@@ -23,7 +27,8 @@ Open http://localhost:4317. Rendering uses the optional local resource queue whe
 - Two concurrent renders, 24-hour CDX cache, cached previews first, stable chronological preview DOM.
 - Readiness checks for delayed CSS/JavaScript reveals, fonts, visible images and stable content. Animations are not cancelled before screenshots.
 - Changes-only/all-sampled views and before/after text comparison.
-- Mobile layout, explicit partial-history warnings, failed captures visible in all-sampled view.
+- Mobile layout, explicit partial-history warnings, and failed captures visible in both timeline views.
+- Pending capture skeletons and unavailable cards remain visible while a search runs, including in the grouped view. Grouping, sample count and automatic date bounds live in Settings.
 - Archived browser traffic is restricted to HTTPS web.archive.org, with WebSockets blocked. Chromium's OS sandbox is explicitly enabled, with separate browser contexts. No live-site fallback; archived HTML is never embedded into the application origin.
 - Minimal design matching agent-view.app, plus a static blog with researched alternatives and history articles, source notes, metadata, JSON-LD, sitemap and robots routes.
 
@@ -59,6 +64,17 @@ node test/site.js
 ```
 
 The site test checks real HTTP blog routing, metadata, JSON-LD, CSP, HEAD responses, sitemap, missing articles and responsive layouts. Article source checking and access restrictions are documented in `content/RESEARCH.md`.
+
+## Refreshing the examples
+
+```sh
+node tools/precache-demos.js stripe --cached-only
+node tools/precache-demos.js amazon --cached-only
+```
+
+Omit `--cached-only` to capture missing previews from the Internet Archive. Network refreshes use sandboxed Chromium, run one archived page at a time and stop on upstream throttling. If you use a local heavy-job queue, run the refresh through that queue. Example manifests live in `demos/`, and screenshot files in `public/demos/`. Runtime example requests only read those packaged files.
+
+Future article briefs are in [the editorial plan](docs/editorial-plan.md).
 
 ## License and credits
 
