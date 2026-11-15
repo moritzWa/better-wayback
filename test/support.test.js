@@ -27,6 +27,7 @@ test('support endpoint security and privacy', async t => {
     assert.equal(url, 'https://challenges.cloudflare.com/turnstile/v0/siteverify');
     assert.equal(options.body.get('secret'), 'private-test-key');
     assert.equal(options.body.get('response'), 'test-token');
+    assert.equal(options.redirect, 'manual');
     return Response.json(result);
   };
   t.after(() => { globalThis.fetch = original; });
@@ -78,6 +79,10 @@ test('support endpoint security and privacy', async t => {
     assert.equal(calls, before);
   });
   await t.test('verification and rate-store failures never expose secrets', async () => {
+    globalThis.fetch = async () => new Response(null, { status: 302, headers: { Location: 'https://other.invalid/' } });
+    const redirect = await handleSupportRequest(request(), makeEnv());
+    assert.equal(redirect.status, 503);
+    assert.ok(!(await redirect.text()).includes(email));
     globalThis.fetch = async () => { throw new Error(email); };
     const response = await handleSupportRequest(request(), makeEnv());
     assert.equal(response.status, 503); assert.ok(!(await response.text()).includes(email));

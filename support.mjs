@@ -55,7 +55,7 @@ export async function handleSupportRequest(request, env = {}) {
     try { body = JSON.parse(new TextDecoder().decode(bytes)); } catch { return reply(400, { error: 'Invalid JSON.' }); }
     if (typeof body?.token !== 'string' || !body.token.trim() || body.token.length > 2048) return reply(400, { error: 'Verification required.' });
     const verification = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-      method: 'POST', body: new URLSearchParams({ secret: env.TURNSTILE_SECRET_KEY, response: body.token, remoteip: ip }),
+      method: 'POST', redirect: 'manual', body: new URLSearchParams({ secret: env.TURNSTILE_SECRET_KEY, response: body.token, remoteip: ip }),
       signal: AbortSignal.timeout(10000),
     });
     if (!verification.ok) return reply(503, { error: 'Verification is unavailable. Please try again.' });
