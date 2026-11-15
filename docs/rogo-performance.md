@@ -12,6 +12,10 @@ After browser batching was deployed, a default `rogo.ai` search returned seven c
 
 A second search, `rogo.ai` from 2025 through 2026, returned two cached captures and attempted six new captures. The quota coordinator reserved a batch of five, then a batch of one after a cooldown. It completed in 101.719 seconds, including 21 seconds of cooldown. Three archive pages had unsettled assets and were visibly marked unavailable. Five captures succeeded. The five-capture batch had no launch pause between its results, removing four former 20-second pauses. Remaining latency came mostly from real archive navigation and readiness checks.
 
+After concurrent cache checks and streamed image-existence checks were deployed, the fully cached default `rogo.ai` API search completed in 1.050 seconds, including lookup. All eight results arrived together, with no browser launch or cooldown. This measures the timeline API, not browser image decoding or a cold archive search.
+
+A separate real headless-browser navigation to `https://visualwayback.com/?url=rogo.ai` completed its cached eight-result timeline in 614 ms and decoded the first visible screenshot by 647 ms. Seven text-version cards were shown after grouping, with no errors. This was a warm archive cache, not a cold-render result; later screenshots remain lazy-loaded.
+
 ## Changes
 
 - Reuse one browser for up to eight captures, keeping a separate isolated context for every page.
