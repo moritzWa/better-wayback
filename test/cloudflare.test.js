@@ -148,11 +148,26 @@ test('oversized screenshots and render failures never persist partial metadata; 
 test('archive redirects and oversized indexes fail boundedly with no job persisted', async () => {
   const env = environment();
   const handle = createRuntime({ fetchArchive: async (_url, options) => {
-    assert.equal(options.redirect, 'error');
+    assert.equal(options.redirect, 'manual');
     assert.ok(options.signal);
     return new Response('x'.repeat(512 * 1024 + 1));
   } });
   assert.equal((await handle(jobRequest(), env)).status, 502);
+  assert.equal(env.CACHE.puts.length, 0);
+});
+
+test('manual archive redirects are rejected without following Location or writing cache', async () => {
+  const env = environment();
+  let calls = 0;
+  const handle = createRuntime({ fetchArchive: async (_url, options) => {
+    calls++;
+    assert.equal(options.redirect, 'manual');
+    return new Response(null, { status: 302, headers: { Location: 'http://127.0.0.1/private' } });
+  } });
+  const response = await handle(jobRequest(), env);
+  assert.equal(response.status, 502);
+  assert.match((await response.json()).error, /Wayback returned 302/);
+  assert.equal(calls, 1);
   assert.equal(env.CACHE.puts.length, 0);
 });
 

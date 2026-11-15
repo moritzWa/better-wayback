@@ -54,7 +54,9 @@ export function createRuntime({ launch, render, fetchArchive = fetch }) {
       if (from) params.set('from', from);
       params.set('to', to);
       const query = async () => {
-        const response = await fetchArchive(`https://web.archive.org/cdx/search/cdx?${params}`, { headers: { 'User-Agent': USER_AGENT }, redirect: 'error', signal: AbortSignal.timeout(10000) });
+        // Workers supports follow/manual, not Node's redirect:'error'. Manual keeps
+        // archive redirects from reaching any other host; non-2xx fails below.
+        const response = await fetchArchive(`https://web.archive.org/cdx/search/cdx?${params}`, { headers: { 'User-Agent': USER_AGENT }, redirect: 'manual', signal: AbortSignal.timeout(10000) });
         if (!response.ok) throw new Error(`Wayback returned ${response.status}. Please retry later.`);
         const data = JSON.parse(await boundedText(response, 512 * 1024));
         if (!Array.isArray(data)) throw new Error('Unexpected archive index response');
