@@ -31,9 +31,9 @@ Set `SUPPORT_EMAIL` and `TURNSTILE_SECRET_KEY` with `wrangler secret put`. `TURN
 
 ## Free limits
 
-Cloudflare publishes 10 browser minutes per day on Workers Free, shared across the account. Static examples do not consume this allowance. The app enforces a smaller budget and pauses live rendering when it is exhausted. Atomic reservations prevent concurrent requests from overspending that budget. Platform limits can still reject requests earlier if other applications use the same account.
+Cloudflare publishes 10 browser minutes per day on Workers Free, shared across the account. Static examples do not consume this allowance. The app caps its own budget at 540 seconds. Each launch reserves 90 seconds; a confirmed browser closure refunds the unused time, retaining elapsed seconds plus a two-second margin. Failed or unconfirmed closures keep the full reservation. Atomic reservations and single-use refund tokens prevent concurrent requests from overspending that budget. Platform limits can still reject requests earlier if other applications use the same account.
 
-The app limits new jobs to 100 per UTC day and KV writes to 400 per day. Previews expire after seven days; jobs expire after one day. Images are limited to 2 MiB and metadata to 64 KiB. New rendering fails closed without the quota binding. Keep the account on Workers Free; never upgrade it automatically.
+The app limits new jobs to 100 per UTC day and KV writes to 400 per day. Previews expire after seven days; jobs expire after one day. Unavailable captures get separate one-hour failure markers, remain visible and do not block later dates. These markers never count as successful screenshots. Images are limited to 2 MiB and metadata to 64 KiB. New rendering fails closed without the quota binding. Keep the account on Workers Free; never upgrade it automatically.
 
 ## Verified remotely
 
