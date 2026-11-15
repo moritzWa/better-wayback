@@ -3,26 +3,28 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f6f5f0">
-  <title>Better Wayback · Less clicking. More time travel.</title>
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="Browse sampled Wayback Machine captures in a visual timeline. Group similar text and compare archived versions.">
+  <title>Better Wayback · A visual history of a webpage</title>
   <link rel="stylesheet" href="/style.css">
   <script type="module" src="/app.js"></script>
 </head>
-<body>
-  <header class="masthead"><a class="brand" href="/" aria-label="Better Wayback home"><span class="brand-icon">↶</span>better<span class="brand-light">wayback</span><span class="beta">LABS</span></a><a class="archive-credit" href="https://archive.org/donate" target="_blank" rel="noopener">Built on the Internet Archive <span>↗</span></a></header>
+<body class="wayback-ui">
+ <div class="page">
+  <header class="masthead"><a class="brand" href="/" aria-label="Better Wayback home">Better Wayback</a><nav aria-label="Main navigation"><a href="/blog/">Blog</a><a href="https://web.archive.org/" target="_blank" rel="noopener">Wayback Machine ↗</a></nav></header>
   <main>
     <section class="intro">
-      <div class="eyebrow"><span class="orange-dot"></span> THE WEB DOESN’T STAND STILL.</div>
-      <h1>Skip the snapshots.<br>See <em>what changed.</em></h1>
-      <p class="subtitle">A visual history of any webpage. Repeated versions folded away.<br class="desktop"> The changes worth opening, all in one timeline.</p>
+      <div class="eyebrow">A visual Wayback timeline</div>
+      <h1>See how a webpage<br>changed over time.</h1>
+      <p class="subtitle">Browse archived previews in one timeline. Group similar text, compare versions, and open the original captures.</p>
       <form id="search-form">
-        <div class="search-box"><span class="search-icon" aria-hidden="true">↗</span><label class="sr-only" for="url">Website URL</label><input id="url" type="text" required placeholder="Enter a website or page URL" autocomplete="url" value=""><button id="search-button" type="submit">Explore history <span>→</span></button></div>
+        <div class="search-box"><label class="sr-only" for="url">Website URL</label><input id="url" type="text" required placeholder="Enter a website or page URL" autocomplete="url" autocapitalize="off" spellcheck="false" value=""><button id="search-button" type="submit">Explore history <span>→</span></button></div>
         <div class="search-options"><div><label for="from">From</label><input id="from" type="number" min="1996" max="2026" value="1996"><span class="option-dash">—</span><label for="to">To</label><input id="to" type="number" min="1996" max="2026" value="2026"></div><div><label for="count">Sample</label><select id="count"><option value="8">8 captures · quick look</option><option value="16">16 captures</option><option value="24">24 captures · deeper look</option></select></div></div>
       </form>
-      <div class="try-links">TAKE A TRIP <button type="button" data-site="stripe.com">stripe.com ↗</button><button type="button" data-site="wikipedia.org">wikipedia.org ↗</button><button type="button" data-site="example.com">example.com ↗</button></div>
+      <div class="try-links"><span>Try a page</span><button type="button" data-site="stripe.com">stripe.com</button><button type="button" data-site="wikipedia.org">wikipedia.org</button><button type="button" data-site="example.com">example.com</button></div>
     </section>
     <section id="results" hidden aria-label="Website history">
-      <div class="results-header"><div><div class="eyebrow">THE STORY SO FAR</div><h2 id="site-title"></h2></div><div class="view-toggle" role="group" aria-label="Timeline view"><button id="changes-view" class="active" type="button" aria-pressed="true">Changes only</button><button id="all-view" type="button" aria-pressed="false">All sampled</button></div></div>
+      <div class="results-header"><div><div class="eyebrow">Archived history</div><h2 id="site-title"></h2></div><div class="view-toggle" role="group" aria-label="Timeline view"><button id="changes-view" class="active" type="button" aria-pressed="true">Changes only</button><button id="all-view" type="button" aria-pressed="false">All sampled</button></div></div>
       <div class="controls-row"><p id="stats">Finding captures…</p><label class="sensitivity" for="sensitivity">Group similar text <input id="sensitivity" type="range" min="75" max="100" value="94"><output id="sensitivity-value">94%</output></label></div>
       <div id="progress" role="status" aria-live="polite"><span class="spinner"></span><span id="status">Finding archived captures…</span><div class="progress-track"><div id="progress-fill"></div></div></div>
       <div id="error" role="alert" hidden></div>
@@ -30,9 +32,10 @@
       <div id="timeline"></div>
       <div id="empty-state" class="empty-state" hidden>No readable captures yet. Try a wider date range or another URL.</div>
     </section>
-    <section id="explainer" class="explainer"><div class="explainer-label">A LITTLE LESS ARCHAEOLOGY.</div><div><span class="step-number">01</span><h3>Find the history</h3><p>We look up real captures from the Wayback Machine. No new archive to build.</p></div><div><span class="step-number">02</span><h3>Fold the repeats</h3><p>Similar rendered text gets grouped. Broken images alone won’t create a new version.</p></div><div><span class="step-number">03</span><h3>See the difference</h3><p>Browse visual previews. Open a version or compare its text with the previous one.</p></div></section>
+    <section id="explainer" class="explainer"><div class="explainer-label eyebrow">How it works</div><div class="features"><div><h3>Sample the archive</h3><p>We look up captures from the Wayback Machine across your date range. This is a sampled history, not every change.</p></div><div><h3>Group similar text</h3><p>Captures with similar rendered text are grouped together. Use the slider to adjust how closely they must match.</p></div><div><h3>Compare versions</h3><p>Browse previews, compare text with the previous version, or open a capture in the Wayback Machine.</p></div><div><h3>Know the limits</h3><p>Archived pages can be incomplete. Dates show when a page was captured, not when a change first went live.</p></div></div></section>
   </main>
-  <footer><span>A better window into the same archive.</span><span>Independent prototype. Not affiliated with the Internet Archive. <a href="https://archive.org/donate" target="_blank" rel="noopener">Support the archive ↗</a></span></footer>
+   <footer class="footer"><span>Independent prototype. Not affiliated with the Internet Archive.</span><a href="https://archive.org/donate" target="_blank" rel="noopener">Support the archive ↗</a></footer>
+ </div>
   <dialog id="compare-dialog"><div class="dialog-header"><div><div class="eyebrow">BETWEEN TWO VERSIONS</div><h2 id="compare-title">What changed</h2></div><button id="close-dialog" class="close-button" aria-label="Close comparison">✕</button></div><div id="comparison"></div><p class="compare-note">Text lines are compared, not image pixels. Reflowed text can appear as an edit.</p></dialog>
 </body>
 </html>
