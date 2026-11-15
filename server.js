@@ -2,7 +2,7 @@ import http from 'node:http';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { spawn } from 'node:child_process';
-import { normalizeUrl, keyFor } from './lib.js';
+import { normalizeUrl, keyFor, RENDER_VERSION } from './lib.js';
 
 const root = resolve('.');
 const port = Number(process.env.PORT || 4317);
@@ -25,11 +25,11 @@ const server = http.createServer(async (req, res) => {
       const from = String(input.from || '1996'), to = String(input.to || new Date().getFullYear());
       if (!/^\d{4}$/.test(from) || !/^\d{4}$/.test(to) || from > to || +from < 1996 || +to > new Date().getFullYear()) return json(res, 400, { error: 'Enter a valid year range from 1996 to today.' });
       const count = [8, 16, 24].includes(Number(input.count)) ? Number(input.count) : 8;
-      const id = keyFor(JSON.stringify([url, from, to, count, 'v2']));
+      const id = keyFor(JSON.stringify([url, from, to, count, RENDER_VERSION]));
       if (jobs.has(id)) return json(res, 200, { id, url });
       try {
         const saved = JSON.parse(await readFile(resolve(root, `.cache/job-${id}.json`), 'utf8'));
-        if (saved.events.at(-1)?.type === 'done') {
+        if (saved.events.at(-1)?.type === 'done' && !saved.events.some(event => event.type === 'error' || event.capture?.error)) {
           jobs.set(id, { events: saved.events, listeners: new Set(), done: true });
           return json(res, 200, { id, url });
         }
@@ -66,7 +66,7 @@ const server = http.createServer(async (req, res) => {
       child.on('exit', code => {
         clearTimeout(timer); children.delete(child);
         if (!job.done) add({ type: 'error', message: `Renderer stopped (${code}). ${stderr.slice(-400)}` });
-        if (job.events.some(e => e.type === 'error')) jobs.delete(id);
+        if (job.events.some(e => e.type === 'error' || e.capture?.error)) jobs.delete(id);
         else { mkdir('.cache', { recursive: true }).then(() => writeFile(`.cache/job-${id}.json`, JSON.stringify({ url, from, to, count, events: job.events }))).catch(console.error); }
       });
       return json(res, 202, { id, url });
@@ -91,7 +91,7 @@ const server = http.createServer(async (req, res) => {
     res.end(data);
   } catch (error) { json(res, error.code === 'ENOENT' ? 404 : 500, { error: error.message }); }
 });
-server.listen(port, '127.0.0.1', () => console.log(`Better Wayback: http://localhost:${port}`));
+server.listen(port, '127.0.0.1', () => console.log(`Better Wayback: http://localhost:${server.address().port}`));
 function shutdown() {
   for (const child of children) { try { process.kill(-child.pid, 'SIGTERM'); } catch {} }
   server.close();

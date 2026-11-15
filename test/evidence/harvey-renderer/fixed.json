@@ -1,0 +1,24 @@
+{
+  "timestamp": "20240218234204",
+  "original": "https://www.harvey.ai/",
+  "requestedTimestamp": "20240218234204",
+  "text": "Security\nBlog\nCareers\n26\nContact Sales\nUnprecedented\nLegal AI\nJoin the Waitlist\nCopyright © 2026 Harvey, Inc. All rights reserved.\nFollow us on:\nCompany\nSecurity\nBlog\nCareers\n26\nResources\nLegal",
+  "title": "Harvey | Generative AI for Elite Law Firms",
+  "archiveUrl": "https://web.archive.org/web/20240218234204/https://www.harvey.ai/",
+  "timing": {
+    "navigationMs": 1009,
+    "totalMs": 6726,
+    "readiness": {
+      "waitMs": 5651,
+      "finiteAnimations": 0,
+      "hiddenHeadings": 0,
+      "visibleHeadings": [
+        "Unprecedented  Legal AI"
+      ],
+      "imagesPending": 0,
+      "fontsReady": true,
+      "textLength": 199,
+      "timedOut": false
+    }
+  }
+}

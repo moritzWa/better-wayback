@@ -1,0 +1,20 @@
+[
+  {
+    "concurrency": 1,
+    "captures": [
+      4714,
+      4691
+    ],
+    "elapsedMs": 9493,
+    "upstreamRequests": 0
+  },
+  {
+    "concurrency": 2,
+    "captures": [
+      4750,
+      4750
+    ],
+    "elapsedMs": 4797,
+    "upstreamRequests": 0
+  }
+]
