@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { articles } from './content/articles.js';
 
-export const BLOG_ORIGIN = 'https://betterwaybackmachine.com';
-const BRAND = 'Better Wayback';
+export const BLOG_ORIGIN = 'https://visualwayback.com';
+const BRAND = 'Visual Wayback';
 const html = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 const json = value => JSON.stringify(value).replace(/[<>&\u2028\u2029]/g, char => `\\u${char.charCodeAt(0).toString(16).padStart(4, '0')}`);
 const articlePath = article => `/blog/${article.slug}/`;

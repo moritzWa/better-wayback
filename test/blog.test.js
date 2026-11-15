@@ -14,7 +14,7 @@ test('blog routes provide index, two sourced articles, stylesheet, sitemap, and 
     const article = handleBlogRequest(slug);
     assert.equal(article.status, 200, slug);
     assert.match(article.body, /<meta[^>]+name="description"/);
-    assert.ok(article.body.includes(`https://betterwaybackmachine.com${slug}`));
+    assert.ok(article.body.includes(`https://visualwayback.com${slug}`));
     assert.match(article.body, /application\/ld\+json/);
     assert.match(article.body, /sources|references/i);
     assert.ok([...article.body.matchAll(/href="https?:\/\//g)].length >= 6, 'multiple linked sources');
@@ -28,5 +28,5 @@ test('blog routes provide index, two sourced articles, stylesheet, sitemap, and 
   const sitemap = handleBlogRequest('/sitemap.xml');
   assert.equal(sitemap.status, 200);
   for (const slug of slugs) assert.ok(sitemap.body.includes(slug));
-  assert.match(handleBlogRequest('/robots.txt').body, /Sitemap: https:\/\/betterwaybackmachine\.com\/sitemap\.xml/);
+  assert.match(handleBlogRequest('/robots.txt').body, /Sitemap: https:\/\/visualwayback\.com\/sitemap\.xml/);
 });

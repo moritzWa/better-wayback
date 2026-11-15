@@ -14,7 +14,7 @@ Starting sources:
 
 ## Why an archived website can load as a black screen
 
-Start with the exact Harvey capture that exposed a bug in Better Wayback. Show the incomplete screenshot beside the completed reveal, with measured timings. Explain the difference between missing archive resources, an animation that has not finished, and a renderer that cancels it.
+Start with the exact Harvey capture that exposed a bug in Visual Wayback. Show the incomplete screenshot beside the completed reveal, with measured timings. Explain the difference between missing archive resources, an animation that has not finished, and a renderer that cancels it.
 
 Include a small practical checklist: open the original replay, check the final timestamp, let entrance effects finish, then inspect missing resource requests. Do not imply that waiting longer can recover resources that were never archived.
 

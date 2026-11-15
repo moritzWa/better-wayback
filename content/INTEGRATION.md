@@ -45,11 +45,11 @@ Both static articles and metadata escape HTML. JSON-LD separately escapes `<`, `
 
 ## Editorial and domain status
 
-Canonical/OG/schema/sitemap origin: `https://betterwaybackmachine.com`. This is the requested target domain, not a claim it is purchased, live or configured. No deployment or purchase is part of this module.
+Canonical/OG/schema/sitemap origin: `https://visualwayback.com`. The domain was registered November 15, 2026. No deployment or purchase is performed by this module.
 
-The local clock was checked on November 14, 2026 in America/New_York before setting article dates. Both articles were prepared that day. The visible methodology and source notes disclose documentation-based research, the publisher's interest in Better Wayback and limits on verification. No interviews were conducted for these articles.
+The local clock was checked on November 14, 2026 in America/New_York before setting article dates. Both articles were prepared that day. The visible methodology and source notes disclose documentation-based research, the publisher's interest in Visual Wayback and limits on verification. No interviews were conducted for these articles.
 
-Better Wayback claims deliberately stop at a sampled interface to the Internet Archive, rendered-text grouping and screenshot previews. They do not promise independent archival coverage, visual-diff detection, continuous monitoring or every-change discovery. The prototype has no account/billing system; no hosted price is invented.
+Visual Wayback claims deliberately stop at a sampled interface to the Internet Archive, rendered-text grouping and screenshot previews. They do not promise independent archival coverage, visual-diff detection, continuous monitoring or every-change discovery. The prototype has no account/billing system; no hosted price is invented.
 
 ## Checks
 

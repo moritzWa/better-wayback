@@ -14,7 +14,7 @@ await Promise.all(Array.from({ length: 4 }, async () => {
   while (pending.length) {
     const url = pending.shift();
     try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(20000), redirect: 'follow', headers: { 'User-Agent': 'BetterWayback-EditorialLinkCheck/1.0' } });
+      const response = await fetch(url, { signal: AbortSignal.timeout(20000), redirect: 'follow', headers: { 'User-Agent': 'VisualWayback-EditorialLinkCheck/1.0' } });
       console.log(`${response.status} ${url}${response.url !== url ? ` -> ${response.url}` : ''}`);
       await response.body?.cancel();
       if (!response.ok) failures++;

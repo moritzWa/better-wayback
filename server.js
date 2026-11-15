@@ -117,7 +117,7 @@ const server = http.createServer(async (req, res) => {
     res.end(req.method === 'HEAD' ? undefined : data);
   } catch (error) { json(res, error.code === 'ENOENT' ? 404 : 500, { error: error.message }); }
 });
-server.listen(port, '127.0.0.1', () => console.log(`Better Wayback: http://localhost:${server.address().port}`));
+server.listen(port, '127.0.0.1', () => console.log(`Visual Wayback: http://localhost:${server.address().port}`));
 function shutdown() {
   for (const child of children) { try { process.kill(-child.pid, 'SIGTERM'); } catch {} }
   server.close();

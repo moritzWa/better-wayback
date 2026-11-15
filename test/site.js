@@ -21,7 +21,7 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error' && /Content Security Policy|Refused to/.test(message.text())) errors.push(message.text()); });
   await page.goto(base + '/');
-  assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'), 'https://betterwaybackmachine.com/');
+  assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'), 'https://visualwayback.com/');
   await page.waitForFunction(() => document.getElementById('progress').hidden);
   const demoResponse = await page.request.get(base + '/api/demos/stripe');
   assert.equal(demoResponse.status(), 200);

@@ -1,4 +1,4 @@
-# Better Wayback
+# Visual Wayback
 
 A visual Wayback Machine timeline that folds consecutive captures with similar rendered text. Independent prototype, not affiliated with the Internet Archive.
 
@@ -80,4 +80,4 @@ Future article briefs are in [the editorial plan](docs/editorial-plan.md).
 
 Built by [Moritz Wallawitsch](https://moritzw.com/). The application source is available under the [MIT License](LICENSE). Historical screenshots and archived page content belong to their respective owners and are not relicensed by this project. Captures come from the [Internet Archive](https://archive.org/); this project is independent and not affiliated with it.
 
-Canonical URLs target `https://betterwaybackmachine.com`. Running the prototype locally does not imply that the public domain is deployed.
+Canonical URLs target `https://visualwayback.com`, registered November 15, 2026 through November 15, 2027. The repository keeps its original `better-wayback` name so existing source links continue to work. Running the prototype locally does not imply that the public domain is deployed.
