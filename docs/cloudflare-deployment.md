@@ -37,6 +37,8 @@ The app limits new jobs to 100 per UTC day and KV writes to 400 per day. Preview
 
 ## Verified remotely
 
+On November 15, 2026, `https://visualwayback.com/` served the app with valid HTTPS. Both articles, discovery routes, support configuration, JavaScript assets and all ten packaged PNGs passed custom-domain checks. Initial HTML and public assets contained no support address. Deployment is manual with Wrangler; no GitHub auto-deploy workflow is configured.
+
 On November 15, 2026, the real Cloudflare Browser Run binding rendered Harvey's January 2, 2024 archive capture in about 10.6 seconds. The resulting PNG showed its complete hero, not a blank entrance animation. The response streamed a capture and continuation event, and the PNG was served from KV. This is one successful capture, not a claim that every archived site works.
 
 The deployed support flow kept the address out of the initial DOM, loaded Turnstile after clicking, and revealed the address after completing the real challenge. An invalid token returned 403 with `Cache-Control: no-store` and no address. Automated tests cover quota failure, cached results, response headers, static routes and SSE reconnection. Bots that pass Turnstile can still retrieve the address.
