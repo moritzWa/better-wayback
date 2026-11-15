@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "visual-wayback",
+  "main": "cloudflare/worker.js",
+  "compatibility_date": "2026-11-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "assets": {
+    "directory": ".cache/cloudflare-assets",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/jobs", "/api/jobs/*", "/api/support/*", "/cache/*"],
+    "not_found_handling": "404-page"
+  },
+  "browser": { "binding": "BROWSER" },
+  "durable_objects": { "bindings": [{ "name": "QUOTAS", "class_name": "QuotaCoordinator" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["QuotaCoordinator"] }],
+  "vars": { "ENABLE_RENDERING": "false" },
+  // Parent supplies CACHE KV namespace through a deployment config; no account IDs or secrets in git.
+  // Keep the account on Workers Free. No R2, paid plans, cron or background browser jobs.
+  "build": { "command": "npm run build:cloudflare" }
+}
