@@ -12,7 +12,7 @@ npx playwright install chromium
 npm start
 ```
 
-Open http://localhost:4317. By default rendering goes through Moritz's local `~/.claude/scripts/heavy-job.py --wait` resource queue. On another machine, use `BETTER_WAYBACK_NO_QUEUE=1 npm start`.
+Open http://localhost:4317. Rendering uses the optional local resource queue when installed; otherwise it runs directly. At most two archived pages render concurrently.
 
 ## What works
 
@@ -35,7 +35,7 @@ Grouping compares rendered text, not layout or image pixels. A redesign with unc
 
 Captured API responses may replay, but missing responses or resources can make captures incomplete. The visible archive toolbar is removed before extraction. Pages use a fixed 1280×800 viewport. Capture date is not launch date. Redirected replay timestamps are recorded rather than silently showing the originally requested date.
 
-One analysis runs at a time, with a 15-minute deadline. Completed jobs and rendered captures are cached on disk; interrupted event streams aren't resumed across a restart. No accounts, billing, hosted backend, domain purchase, or visual-diff mode yet.
+One analysis runs at a time, with a 15-minute deadline. Completed jobs and rendered captures are cached on disk; interrupted event streams aren't resumed across a restart. No accounts, billing, or visual-diff mode yet.
 
 A correct uncached animated page can take longer than an incomplete screenshot. The exact February 18, 2024 Harvey capture now shows its full hero in 6.726 seconds, compared with the old incomplete capture at 3.318 seconds. Two-page throughput on the same recorded archive was 1.98× sequential throughput; this is not a network latency guarantee. Reproduction and evidence: `test/evidence/harvey-renderer/README.md`.
 
@@ -43,23 +43,25 @@ A correct uncached animated page can take longer than an incomplete screenshot. 
 
 ```sh
 npm test
-# With server running; renders a browser, run through the resource queue:
-python3 ~/.claude/scripts/heavy-job.py --wait -- npm run test:ui
+# With server running:
+npm run test:ui
 ```
 
 UI tests use clearly marked deterministic fixtures via network interception. Real capture rendering is checked separately against Internet Archive, not represented by the test fixture screenshots.
 
-Optional real-network end-to-end check (with server running): `python3 ~/.claude/scripts/heavy-job.py --wait -- node test/live.js`. This checks Stripe's 2012–2026 history, real screenshots, text comparison, and mobile overflow. Use `BETTER_WAYBACK_TEST_URL=http://localhost:4317 npm test` to include API validation/security tests.
+Optional real-network end-to-end check (with server running): `node test/live.js`. This checks Stripe's 2012–2026 history, real screenshots, text comparison, and mobile overflow. Use `BETTER_WAYBACK_TEST_URL=http://localhost:4317 npm test` to include API validation/security tests.
 
 For the full suite including renderer browser checks and blog module checks:
 
 ```sh
-python3 ~/.claude/scripts/heavy-job.py --wait -- env RENDERER_BROWSER_TESTS=1 BETTER_WAYBACK_TEST_URL=http://localhost:4317 node --test test/api.test.js test/blog.test.js test/lib.test.js test/renderer.test.js test/renderer-api.test.js content/blog.test.js
-python3 ~/.claude/scripts/heavy-job.py --wait -- node test/site.js
+RENDERER_BROWSER_TESTS=1 BETTER_WAYBACK_TEST_URL=http://localhost:4317 node --test test/api.test.js test/blog.test.js test/lib.test.js test/renderer.test.js test/renderer-api.test.js content/blog.test.js
+node test/site.js
 ```
 
 The site test checks real HTTP blog routing, metadata, JSON-LD, CSP, HEAD responses, sitemap, missing articles and responsive layouts. Article source checking and access restrictions are documented in `content/RESEARCH.md`.
 
-## Domain
+## License and credits
 
-2026-11-14: Verisign's .com RDAP lookup for `betterwaybackmachine.com` returned 404. Porkbun's signed-in checkout confirmed availability and $11.81 for one year, renewing at the currently displayed $11.81 rate. Wise approval was not completed. After two bounded approval watches, the unapproved authentication challenge was cancelled and checkout reported it could not authenticate the payment. No domain purchase was confirmed and no payment retry was made. A fresh checkout needs Wise approval; verify orders before retrying. `betterwayback.com` is registered. The app and blog run locally, not publicly deployed; canonical URLs target the planned domain.
+Built by [Moritz Wallawitsch](https://moritzw.com/). The application source is available under the [MIT License](LICENSE). Historical screenshots and archived page content belong to their respective owners and are not relicensed by this project. Captures come from the [Internet Archive](https://archive.org/); this project is independent and not affiliated with it.
+
+Canonical URLs target `https://betterwaybackmachine.com`. Running the prototype locally does not imply that the public domain is deployed.
