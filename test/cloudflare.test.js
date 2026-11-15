@@ -218,6 +218,76 @@ test('manual archive redirects are rejected without following Location or writin
   assert.equal(env.CACHE.puts.length, 0);
 });
 
+test('capture-local readiness failure is explicit, short-lived, and resume skips it to render the next capture', async t => {
+  let now = Date.parse('2026-11-15T12:00:00Z');
+  t.mock.method(Date, 'now', () => now);
+  const env = environment();
+  const rendered = [];
+  const handle = createRuntime({ fetchArchive: indexFetch, launch: async () => ({ close: async () => {} }), render: async (_, capture) => {
+    rendered.push(capture.timestamp);
+    if (capture.timestamp === captures[0].timestamp) throw new Error('Archive did not finish revealing (hidden headings: 1)');
+    return { ...capture, text: 'Genuine archived content', png: new Uint8Array([1, 2, 3]) };
+  } });
+  const { id } = await (await handle(jobRequest(), env)).json();
+  const first = await parse(await handle(eventRequest(id), env));
+  assert.deepEqual(first.map(e => e.type), ['index', 'status', 'capture', 'continue']);
+  const failure = first[2].capture;
+  assert.match(failure.error, /hidden headings/);
+  assert.equal(failure.requestedTimestamp, captures[0].timestamp);
+  assert.equal(failure.archiveUrl, `https://web.archive.org/web/${captures[0].timestamp}/${captures[0].original}`);
+  assert.equal(failure.image, undefined);
+  assert.equal(failure.text, undefined);
+  assert.equal(failure.failureExpiresAt, now + 3600000);
+  const marker = env.CACHE.puts.find(put => put.key.startsWith('failure:'));
+  assert.equal(marker.options.expirationTtl, 3600);
+  assert.equal(env.CACHE.values.has(`capture:${key(captures[0])}`), false);
+  assert.equal(env.CACHE.values.has(`image:${key(captures[0])}`), false);
+  now += 20000;
+  const second = await parse(await handle(eventRequest(id), env));
+  assert.deepEqual(second.map(e => e.type), ['index', 'capture', 'status', 'capture', 'done']);
+  assert.equal(second[1].cached, true);
+  assert.equal(second[1].completed, 1);
+  assert.equal(second[3].completed, 2);
+  assert.ok(second[3].capture.image);
+  assert.deepEqual(rendered, captures.map(c => c.timestamp));
+  // Enforce expiry even if the provider has not yet removed an expired KV value.
+  now += 3600000;
+  await parse(await handle(eventRequest(id), env));
+  assert.equal(rendered.at(-1), captures[0].timestamp);
+  assert.equal(rendered.length, 3);
+});
+
+test('all unavailable captures finish as an explicit partial timeline and replay without browser work', async t => {
+  let now = Date.parse('2026-11-15T12:00:00Z');
+  t.mock.method(Date, 'now', () => now);
+  const env = environment();
+  let launches = 0;
+  const handle = createRuntime({ fetchArchive: indexFetch, launch: async () => { launches++; return { close: async () => {} }; }, render: async () => { throw new Error('Incomplete or unavailable archive replay'); } });
+  const { id } = await (await handle(jobRequest(), env)).json();
+  await parse(await handle(eventRequest(id), env));
+  now += 20000;
+  const final = await parse(await handle(eventRequest(id), env));
+  assert.equal(final.at(-1).type, 'done');
+  assert.equal(final.filter(e => e.type === 'capture' && e.capture.error).length, 2);
+  env.ENABLE_RENDERING = 'false';
+  const replay = await parse(await handle(eventRequest(id), env));
+  assert.deepEqual(replay.map(e => e.type), ['index', 'capture', 'capture', 'done']);
+  assert.equal(launches, 2);
+});
+
+test('launch failures and platform/archive throttles remain global errors without failure markers', async () => {
+  for (const stage of ['launch', 'render']) {
+    const env = environment();
+    const handle = createRuntime({ fetchArchive: indexFetch, launch: async () => { if (stage === 'launch') throw new Error('Browser returned 429'); return { close: async () => {} }; }, render: async () => { throw new Error('Archive returned HTTP 503'); } });
+    const { id } = await (await handle(jobRequest(), env)).json();
+    const events = await parse(await handle(eventRequest(id), env));
+    assert.equal(events.at(-1).type, 'error');
+    assert.equal(events.at(-1).retryAfter, 90);
+    assert.equal(env.CACHE.puts.length, 1);
+    assert.equal(events.some(e => e.type === 'capture'), false);
+  }
+});
+
 test('disconnect during launch closes a late browser without rendering or persisting', async () => {
   const env = environment();
   let acquired, started, closed = 0;

@@ -1,9 +1,10 @@
-import { normalizeUrl, keyFor, selectCaptures, RENDER_VERSION, USER_AGENT } from '../lib.js';
+import { normalizeUrl, keyFor, selectCaptures, replayUrl, RENDER_VERSION, USER_AGENT } from '../lib.js';
 import { quota } from './quota.js';
 
 export const MAX_IMAGE = 2 * 1024 * 1024;
 const MAX_JSON = 65536;
 const TTL = 7 * 86400;
+const FAILURE_TTL = 3600;
 const json = (status, body) => Response.json(body, { status, headers: { 'Cache-Control': 'no-store', ...(body.retryAfter ? { 'Retry-After': String(body.retryAfter) } : {}) } });
 const captureKey = capture => keyFor(capture.timestamp + capture.original + ':' + RENDER_VERSION);
 async function boundedText(response, limit) {
@@ -29,10 +30,12 @@ async function cached(env, capture) {
   if (!env.CACHE) return null;
   const key = captureKey(capture);
   const saved = await env.CACHE.get(`capture:${key}`, 'json');
-  if (!saved || saved.renderVersion !== RENDER_VERSION || saved.error || !saved.text || saved.image !== `/cache/${key}.png`) return null;
-  // Publish only complete pairs, even after a failed or partially propagated KV write.
-  if (!(await env.CACHE.get(`image:${key}`, 'arrayBuffer'))) return null;
-  return saved;
+  if (saved && saved.renderVersion === RENDER_VERSION && !saved.error && saved.text && saved.image === `/cache/${key}.png`) {
+    // Publish only complete pairs, even after a failed or partially propagated KV write.
+    if (await env.CACHE.get(`image:${key}`, 'arrayBuffer')) return saved;
+  }
+  const failed = await env.CACHE.get(`failure:${key}`, 'json');
+  return failed?.renderVersion === RENDER_VERSION && failed.error && !failed.image && failed.failureExpiresAt > Date.now() ? failed : null;
 }
 
 export function createRuntime({ launch, render, fetchArchive = fetch }) {
@@ -99,11 +102,10 @@ export function createRuntime({ launch, render, fetchArchive = fetch }) {
         const abort = () => { cancelled = true; void close(); };
         request.signal.addEventListener('abort', abort, { once: true });
         if (request.signal.aborted) abort();
-        let timer;
+        let timer, completed = 0, stage = 'cache', attemptFinished = false;
+        const missing = [];
         try {
           emit(job.index);
-          let completed = 0;
-          const missing = [];
           for (const capture of job.captures) {
             const saved = await cached(env, capture);
             if (saved) emit({ type: 'capture', capture: saved, cached: true, completed: ++completed });
@@ -120,12 +122,17 @@ export function createRuntime({ launch, render, fetchArchive = fetch }) {
           // All work belongs to this connected response. Never rely on waitUntil.
           const timeout = new Promise((_, reject) => { timer = setTimeout(() => { void close(); reject(new Error('Capture exceeded the 25-second free runtime deadline. Retry later; cached previews are kept.')); }, 25000); });
           const work = (async () => {
+            stage = 'launch';
             const acquired = await launch(env.BROWSER);
-            if (cancelled) { await acquired.close(); throw new Error('Client disconnected'); }
+            if (cancelled || attemptFinished) { await acquired.close(); throw new Error('Client disconnected'); }
             browser = acquired;
+            stage = 'render';
             const result = await render(browser, missing[0]);
+            if (cancelled || attemptFinished) return;
+            stage = 'close';
             await close();
-            if (cancelled) return;
+            if (cancelled || attemptFinished) return;
+            stage = 'persist';
             const { png, ...metadata } = result;
             if (!png || png.byteLength > MAX_IMAGE) throw new Error('Screenshot exceeds the 2 MiB free cache limit.');
             const key = captureKey(missing[0]);
@@ -139,8 +146,22 @@ export function createRuntime({ launch, render, fetchArchive = fetch }) {
           })();
           await Promise.race([work, timeout]);
         } catch (error) {
-          const rateLimited = /429|rate limit|cooling/i.test(error.message);
-          emit({ type: 'error', message: error.message, retryAfter: rateLimited ? 90 : 300 });
+          attemptFinished = true;
+          const rateLimited = error.status === 429 || /429|503|rate limit|cooling|browser.*limit/i.test(error.message);
+          if (stage === 'render' && !rateLimited && !cancelled) {
+            // Unavailable captures must not pin every reconnect to the same date.
+            // Keep failures separate from genuine image metadata and retry after TTL.
+            await close();
+            if (!cancelled) {
+              const capture = missing[0];
+              const failed = { ...capture, requestedTimestamp: capture.timestamp, archiveUrl: replayUrl(capture.timestamp, capture.original), error: String(error.message).slice(0, 1000), renderVersion: RENDER_VERSION, failureExpiresAt: Date.now() + FAILURE_TTL * 1000 };
+              try {
+                await env.CACHE.put(`failure:${captureKey(capture)}`, JSON.stringify(failed), { expirationTtl: FAILURE_TTL });
+                emit({ type: 'capture', capture: failed, cached: false, completed: ++completed });
+                emit(missing.length === 1 ? { type: 'done' } : { type: 'continue', retryAfter: closeConfirmed ? 20 : 90 });
+              } catch { emit({ type: 'error', message: 'Could not cache the failed attempt. Retry later; existing previews are kept.', retryAfter: 300 }); }
+            }
+          } else emit({ type: 'error', message: error.message, retryAfter: rateLimited ? 90 : 300 });
         } finally {
           clearTimeout(timer);
           cancelled = true;
