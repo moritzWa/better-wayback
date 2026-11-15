@@ -1,10 +1,15 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "visual-wayback",
+  "account_id": "b48a6cb7eca97c4b953c8fe2c582d376",
   "main": "cloudflare/worker.js",
   "compatibility_date": "2026-11-15",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
+  "routes": [
+    { "pattern": "visualwayback.com", "custom_domain": true },
+    { "pattern": "www.visualwayback.com", "custom_domain": true }
+  ],
   "assets": {
     "directory": ".cache/cloudflare-assets",
     "binding": "ASSETS",
@@ -14,8 +19,9 @@
   "browser": { "binding": "BROWSER" },
   "durable_objects": { "bindings": [{ "name": "QUOTAS", "class_name": "QuotaCoordinator" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["QuotaCoordinator"] }],
-  "vars": { "ENABLE_RENDERING": "false" },
-  // Parent supplies CACHE KV namespace through a deployment config; no account IDs or secrets in git.
+  "kv_namespaces": [{ "binding": "CACHE", "id": "3add5a5e97f445868f0a0e60e028921e" }],
+  "vars": { "ENABLE_RENDERING": "true", "TURNSTILE_SITE_KEY": "0x4AAAAAAGCVCeO7VLb5SjGM" },
+  // Resource IDs and sitekeys are public. Support address and secret key stay in Worker secrets.
   // Keep the account on Workers Free. No R2, paid plans, cron or background browser jobs.
   "build": { "command": "npm run build:cloudflare" }
 }

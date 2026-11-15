@@ -2,6 +2,14 @@
 
 A visual Wayback Machine timeline that folds consecutive captures with similar rendered text. Independent prototype, not affiliated with the Internet Archive.
 
+## Public hosting
+
+The public site runs on Cloudflare Workers Free. Static pages, the blog and packaged examples do not launch a browser. New screenshots use the account's free Browser Run allowance. The app stops new renders when its daily budget runs out; it does not upgrade the plan or charge visitors.
+
+The edge runtime renders one capture per connected request and resumes after a cooldown. It caches previews for seven days. Live timelines can be incomplete when the archive is unavailable or the free quota is exhausted. The local Node server below has different concurrency and disk-cache limits.
+
+Deployment, quotas and verification are documented in [the Cloudflare deployment guide](docs/cloudflare-deployment.md). The [support link](SUPPORT.md) reveals a server-held email only after a click and Turnstile verification. This deters simple scraping, not bots that complete the challenge.
+
 ## Run
 
 Requires Node 22+ and Chromium for Playwright.
@@ -80,4 +88,4 @@ Future article briefs are in [the editorial plan](docs/editorial-plan.md).
 
 Built by [Moritz Wallawitsch](https://moritzw.com/). The application source is available under the [MIT License](LICENSE). Historical screenshots and archived page content belong to their respective owners and are not relicensed by this project. Captures come from the [Internet Archive](https://archive.org/); this project is independent and not affiliated with it.
 
-Canonical URLs target `https://visualwayback.com`, registered November 15, 2026 through November 15, 2027. The repository keeps its original `better-wayback` name so existing source links continue to work. Running the prototype locally does not imply that the public domain is deployed.
+Canonical URLs target `https://visualwayback.com`, registered November 15, 2026 through November 15, 2027. The repository keeps its original `better-wayback` name so existing source links continue to work.
