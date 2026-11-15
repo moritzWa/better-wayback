@@ -5,12 +5,14 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--item', required=True, help='Personal ElevenLabs 1Password item ID, not the key')
 parser.add_argument('--out', required=True)
 parser.add_argument('--model', default='eleven_v4')
+parser.add_argument('--voice', default='XZgCP7SDPjTJVTavedju')
+parser.add_argument('--voice-name', default='Will - Conversational Narrator')
 args = parser.parse_args()
 out = pathlib.Path(args.out)
 out.mkdir(parents=True, exist_ok=True)
-text = "Visual Wayback shows how a company's website changes over time. On the Wayback Machine, you open snapshots one by one. Here, scroll through OpenAI before ChatGPT, and Nvidia before the AI boom. One visual timeline. Try visual wayback dot com."
+text = "Visual Wayback. Website history, visualized. On Wayback, open snapshots one by one. Here, just scroll through OpenAI and Nvidia. Try it out now at visual wayback dot com."
 key = subprocess.check_output(['op', 'item', 'get', args.item, '--vault', 'Main', '--fields', 'credential', '--reveal'], text=True).strip()
-voice = 'nPczCjzI2devNBz1zQrb'  # Brian, stock voice, not a clone.
+voice = args.voice  # A licensed library narrator, not a voice clone.
 body = {'text': text, 'model_id': args.model, 'voice_settings': {'stability': .5, 'similarity_boost': .75, 'style': .15, 'use_speaker_boost': True, 'speed': 1.05}}
 request = urllib.request.Request(f'https://api.elevenlabs.io/v1/text-to-speech/{voice}/with-timestamps?output_format=mp3_44100_128', data=json.dumps(body).encode(), headers={'xi-api-key': key, 'Content-Type': 'application/json'}, method='POST')
 try:
@@ -22,6 +24,6 @@ except urllib.error.HTTPError as error:
     raise SystemExit(1)
 (out / 'voiceover.mp3').write_bytes(base64.b64decode(result.pop('audio_base64')))
 (out / 'voiceover-alignment.json').write_text(json.dumps(result, indent=2))
-(out / 'voiceover.json').write_text(json.dumps({'provider': 'ElevenLabs', 'voice': 'Brian', 'voice_id': voice, 'model': args.model, 'text': text, 'speed': 1.05}, indent=2))
+(out / 'voiceover.json').write_text(json.dumps({'provider': 'ElevenLabs', 'voice': args.voice_name, 'voice_id': voice, 'model': args.model, 'text': text, 'speed': 1.05}, indent=2))
 alignment = result.get('normalized_alignment') or result.get('alignment') or {}
-print(json.dumps({'audio': str(out / 'voiceover.mp3'), 'characters': len(text), 'lastWordEndsAt': alignment.get('character_end_times_seconds', [None])[-1], 'voice': 'Brian', 'model': args.model}))
+print(json.dumps({'audio': str(out / 'voiceover.mp3'), 'characters': len(text), 'lastWordEndsAt': alignment.get('character_end_times_seconds', [None])[-1], 'voice': args.voice_name, 'model': args.model}))

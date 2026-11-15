@@ -1,6 +1,12 @@
 # Short product demo
 
-## Current direction: native 4K, pitch / problem / showcase
+## Latest revision: shorter real-scrolling motion edit
+
+Use the [motion research and production notes](demo-motion-research.md) for the current version. Moritz preferred real scrolling over the static 4K montage, wanted a different narrator, the Internet Archive logo in the problem section and an explicit spoken closing invitation. The new workflow retains native 4K capture, restores actual browser scrolling and targets 16.4 seconds, shorter than both the 17.1-second and 19.2-second cuts.
+
+Run `tools/capture-demo-motion.js`, `tools/build-demo-motion.py --overwrite` and `tools/check-demo-motion.py` through the heavy-job queue. Generate narration into the `motion` source folder with `tools/create-demo-voiceover.py`; its current default is Will - Conversational Narrator. The deliverable still replaces the same Desktop video. The older workflows below are retained for source history, not as the current creative direction.
+
+## Earlier direction: native 4K, pitch / problem / showcase
 
 The current edit replaces the earlier upscaled 720p screencast. `tools/capture-demo-hires.js` photographs five genuine archive replays at a 1280×800 CSS viewport with device scale factor 3, producing 3840×2400 PNGs (four showcase dates plus Nvidia 2007 for the overview). It then photographs the deployed product at 1280×720 CSS pixels and DPR 3, producing lossless 3840×2160 product frames. There is no screencast-resolution limit and no enlargement of 720p source frames.
 
