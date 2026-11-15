@@ -20,9 +20,12 @@ Open http://localhost:4317. By default rendering goes through Moritz's local `~/
 - 8, 16, or 24 chronological samples with both endpoints included.
 - Headless archived-page replay, rendered text extraction, screenshot previews.
 - Progressive results, screenshot/text disk cache, text-similarity grouping and adjustable threshold.
+- Two concurrent renders, 24-hour CDX cache, cached previews first, stable chronological preview DOM.
+- Readiness checks for delayed CSS/JavaScript reveals, fonts, visible images and stable content. Animations are not cancelled before screenshots.
 - Changes-only/all-sampled views and before/after text comparison.
 - Mobile layout, explicit partial-history warnings, failed captures visible in all-sampled view.
-- Archived browser traffic is restricted to HTTPS web.archive.org. No live-site fallback. Untrusted content is rendered in isolated browser contexts, never embedded into the application origin.
+- Archived browser traffic is restricted to HTTPS web.archive.org, with WebSockets blocked. Chromium's OS sandbox is explicitly enabled, with separate browser contexts. No live-site fallback; archived HTML is never embedded into the application origin.
+- Minimal design matching agent-view.app, plus a static blog with researched alternatives and history articles, source notes, metadata, JSON-LD, sitemap and robots routes.
 
 ## Limits
 
@@ -33,6 +36,8 @@ Grouping compares rendered text, not layout or image pixels. A redesign with unc
 Captured API responses may replay, but missing responses or resources can make captures incomplete. The visible archive toolbar is removed before extraction. Pages use a fixed 1280×800 viewport. Capture date is not launch date. Redirected replay timestamps are recorded rather than silently showing the originally requested date.
 
 One analysis runs at a time, with a 15-minute deadline. Completed jobs and rendered captures are cached on disk; interrupted event streams aren't resumed across a restart. No accounts, billing, hosted backend, domain purchase, or visual-diff mode yet.
+
+A correct uncached animated page can take longer than an incomplete screenshot. The exact February 18, 2024 Harvey capture now shows its full hero in 6.726 seconds, compared with the old incomplete capture at 3.318 seconds. Two-page throughput on the same recorded archive was 1.98× sequential throughput; this is not a network latency guarantee. Reproduction and evidence: `test/evidence/harvey-renderer/README.md`.
 
 ## Tests
 
@@ -46,6 +51,15 @@ UI tests use clearly marked deterministic fixtures via network interception. Rea
 
 Optional real-network end-to-end check (with server running): `python3 ~/.claude/scripts/heavy-job.py --wait -- node test/live.js`. This checks Stripe's 2012–2026 history, real screenshots, text comparison, and mobile overflow. Use `BETTER_WAYBACK_TEST_URL=http://localhost:4317 npm test` to include API validation/security tests.
 
+For the full suite including renderer browser checks and blog module checks:
+
+```sh
+python3 ~/.claude/scripts/heavy-job.py --wait -- env RENDERER_BROWSER_TESTS=1 BETTER_WAYBACK_TEST_URL=http://localhost:4317 node --test test/api.test.js test/blog.test.js test/lib.test.js test/renderer.test.js test/renderer-api.test.js content/blog.test.js
+python3 ~/.claude/scripts/heavy-job.py --wait -- node test/site.js
+```
+
+The site test checks real HTTP blog routing, metadata, JSON-LD, CSP, HEAD responses, sitemap, missing articles and responsive layouts. Article source checking and access restrictions are documented in `content/RESEARCH.md`.
+
 ## Domain
 
-2026-11-14: Verisign's .com RDAP lookup for `betterwaybackmachine.com` returned 404 (no registry record). This suggests it is unregistered, not a guarantee of registrar checkout availability or price. `betterwayback.com` is registered. Neither domain was purchased.
+2026-11-14: Verisign's .com RDAP lookup for `betterwaybackmachine.com` returned 404. Porkbun's signed-in checkout confirmed availability and $11.81 for one year, renewing at the currently displayed $11.81 rate. The authorized payment is waiting for Wise approval; no purchase is claimed until the registrar confirms it. `betterwayback.com` is registered. The app and blog are running locally, not publicly deployed; canonical URLs target the planned domain.

@@ -3,6 +3,7 @@ import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import { normalizeUrl, keyFor, RENDER_VERSION } from './lib.js';
+import { handleBlogRequest, blogScriptHashes } from './blog.js';
 
 const root = resolve('.');
 const port = Number(process.env.PORT || 4317);
@@ -14,6 +15,17 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Referrer-Policy', 'no-referrer');
   const path = new URL(req.url, 'http://localhost').pathname;
   try {
+    if (req.method === 'GET' || req.method === 'HEAD') {
+      const blog = handleBlogRequest(path);
+      if (blog) {
+        res.writeHead(blog.status, {
+          'Content-Type': blog.contentType,
+          'Content-Security-Policy': `default-src 'none'; style-src 'self'; script-src ${blogScriptHashes.join(' ')}; base-uri 'none'; frame-ancestors 'none'; form-action 'none'`,
+        });
+        res.end(req.method === 'HEAD' ? undefined : blog.body);
+        return;
+      }
+    }
     if (req.method === 'POST' && path === '/api/jobs') {
       if (req.headers.origin && req.headers.origin !== `http://${req.headers.host}`) return json(res, 403, { error: 'Cross-origin requests are not allowed.' });
       let body = '';
@@ -85,10 +97,10 @@ const server = http.createServer(async (req, res) => {
     }
     const files = { '/': ['public/index.html', 'text/html'], '/app.js': ['public/app.js', 'text/javascript'], '/style.css': ['public/style.css', 'text/css'], '/group.js': ['group.js', 'text/javascript'] };
     const file = files[path] || (/^\/cache\/[a-f0-9]{24}\.png$/.test(path) ? [`.cache/${path.split('/').at(-1)}`, 'image/png'] : null);
-    if (req.method !== 'GET' || !file) return json(res, 404, { error: 'Not found' });
+    if (!['GET', 'HEAD'].includes(req.method) || !file) return json(res, 404, { error: 'Not found' });
     const data = await readFile(resolve(root, file[0]));
     res.writeHead(200, { 'Content-Type': file[1], 'Content-Security-Policy': "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-src 'none'; base-uri 'none'" });
-    res.end(data);
+    res.end(req.method === 'HEAD' ? undefined : data);
   } catch (error) { json(res, error.code === 'ENOENT' ? 404 : 500, { error: error.message }); }
 });
 server.listen(port, '127.0.0.1', () => console.log(`Better Wayback: http://localhost:${server.address().port}`));
