@@ -3,6 +3,7 @@ import { groupCaptures, similarity } from '/group.js';
 const $ = id => document.getElementById(id);
 let captures = [], changesOnly = true, total = 0, sampled = 0, capped = false, running = false, stream;
 let requested = [], indexed = false, generation = 0;
+let resumeTimer;
 const entries = new Map();
 const captureKey = capture => `${capture.requestedTimestamp || capture.timestamp}:${capture.original}`;
 const captureOrder = capture => capture.requestedTimestamp || capture.timestamp;
@@ -91,6 +92,7 @@ function compare(before, after) {
   $('comparison').replaceChildren(container); $('compare-dialog').showModal();
 }
 function finish() {
+  clearTimeout(resumeTimer);
   // A truncated stream must not quietly erase unfinished samples.
   for (const capture of requested) if (!captures.some(result => captureKey(result) === captureKey(capture))) captures.push({ ...capture, error: 'No preview returned for this capture. Try again to load it.' });
   running = false; $('search-button').disabled = false; $('progress').hidden = true; render();
@@ -116,9 +118,36 @@ function onEvent(event) {
     render();
   }
   if (event.type === 'done') { stream?.close(); finish(); }
-  if (event.type === 'error') { stream?.close(); $('error').textContent = event.message; $('error').hidden = false; finish(); }
+  if (event.type === 'error') { stream?.close(); $('error').textContent = event.message + (Number.isFinite(event.retryAfter) && event.retryAfter > 0 ? ` Try again in ${Math.ceil(event.retryAfter / 60)} minutes.` : ''); $('error').hidden = false; finish(); }
+}
+function connectStream(path, current, attempts = 0) {
+  if (current !== generation || !running) return;
+  const connection = new EventSource(path);
+  stream = connection;
+  connection.onmessage = message => {
+    if (current !== generation || stream !== connection || !running) return;
+    let event;
+    try { event = JSON.parse(message.data); } catch { connection.close(); onEvent({ type: 'error', message: 'Invalid renderer response. Available previews are kept.' }); return; }
+    if (event.type === 'continue') {
+      connection.close();
+      if (attempts >= 24) { onEvent({ type: 'error', message: 'Rendering paused after repeated retries. Available previews are kept. Search again later.' }); return; }
+      // Free-tier rendering advances one capture per connection. Never reconnect in a busy loop.
+      const seconds = Math.max(90, Math.min(3600, Number(event.retryAfter) || 90));
+      $('status').textContent = `${captures.length} of ${sampled} previews returned. Continuing in ${Math.ceil(seconds)} seconds…`;
+      clearTimeout(resumeTimer);
+      resumeTimer = setTimeout(() => connectStream(path, current, attempts + 1), seconds * 1000);
+      return;
+    }
+    onEvent(event);
+  };
+  connection.onerror = () => {
+    if (current !== generation || stream !== connection || !running) return;
+    connection.close();
+    onEvent({ type: 'error', message: 'Connection to the renderer was lost. Search again to reconnect; cached captures are kept.' });
+  };
 }
 function begin() {
+  clearTimeout(resumeTimer);
   generation++; captures = []; requested = []; indexed = false; entries.clear(); $('timeline').replaceChildren(); total = 0; sampled = 0; capped = false; running = true; stream?.close();
   $('search-button').disabled = true; $('results').hidden = false; $('explainer').hidden = true; $('error').hidden = true; $('progress').hidden = false; $('progress-fill').style.width = '0%'; $('status').textContent = 'Finding archived captures…';
   $('from').placeholder = 'Earliest'; $('to').placeholder = 'Latest';
@@ -141,9 +170,7 @@ $('search-form').onsubmit = async event => {
     const response = await fetch('/api/jobs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: $('url').value, from: $('from').value, to: $('to').value, count: $('count').value }) });
     const data = await response.json(); if (current !== generation) return; if (!response.ok) throw new Error(data.error);
     $('site-title').textContent = data.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
-    stream = new EventSource(`/api/jobs/${data.id}/events`);
-    stream.onmessage = event => { if (current === generation) onEvent(JSON.parse(event.data)); };
-    stream.onerror = () => { if (current === generation && running) { stream.close(); onEvent({ type: 'error', message: 'Connection to the renderer was lost. Search again to reconnect; cached captures are kept.' }); } };
+    connectStream(`/api/jobs/${data.id}/events`, current);
   } catch (error) { if (current === generation) onEvent({ type: 'error', message: error.message }); }
 };
 async function loadDemo(site) {
@@ -173,6 +200,7 @@ $('compare-dialog').onclick = event => { if (event.target === $('compare-dialog'
 const currentYear = new Date().getFullYear();
 for (const id of ['from', 'to']) $(id).max = currentYear;
 const params = new URLSearchParams(location.search);
+window.addEventListener('pagehide', () => { clearTimeout(resumeTimer); stream?.close(); });
 if (params.has('url')) {
   $('url').value = params.get('url');
   for (const id of ['from', 'to', 'count']) if (params.has(id)) $(id).value = params.get(id);

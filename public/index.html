@@ -13,6 +13,7 @@
   <meta property="og:url" content="https://visualwayback.com/">
   <link rel="stylesheet" href="/style.css">
   <script type="module" src="/app.js"></script>
+  <script type="module" src="/support.js"></script>
 </head>
 <body class="wayback-ui">
  <div class="page">
@@ -43,6 +44,7 @@
     </section>
     <section id="explainer" class="explainer"><div class="explainer-label eyebrow">How it works</div><div class="features"><div><h3>Sample the archive</h3><p>We look up captures from the Wayback Machine across your date range. This is a sampled history, not every change.</p></div><div><h3>Group similar text</h3><p>Captures with similar rendered text are grouped together. Use the slider to adjust how closely they must match.</p></div><div><h3>Compare versions</h3><p>Browse previews, compare text with the previous version, or open a capture in the Wayback Machine.</p></div><div><h3>Know the limits</h3><p>Archived pages can be incomplete. Dates show when a page was captured, not when a change first went live.</p></div></div></section>
   </main>
+  <aside class="support-banner" data-support aria-label="Support this project"><button type="button" data-support-open aria-expanded="false" aria-controls="support-panel">Support this project</button><span>Help keep Visual Wayback free.</span><div id="support-panel" data-support-panel hidden><p role="status" aria-live="polite"></p><div data-support-widget></div><button type="button" data-support-cancel>Cancel</button></div><noscript>Enable JavaScript to reveal the support email.</noscript></aside>
    <footer class="footer"><span>Not affiliated with the Internet Archive.</span><div class="footer-links"><a href="https://moritzw.com/">Built by Moritz Wallawitsch</a><a href="https://github.com/moritzWa/better-wayback">GitHub</a><a href="https://archive.org/donate" target="_blank" rel="noopener">Support the archive ↗</a></div></footer>
  </div>
   <dialog id="compare-dialog"><div class="dialog-header"><div><div class="eyebrow">BETWEEN TWO VERSIONS</div><h2 id="compare-title">What changed</h2></div><button id="close-dialog" class="close-button" aria-label="Close comparison">✕</button></div><div id="comparison"></div><p class="compare-note">Text lines are compared, not image pixels. Reflowed text can appear as an edit.</p></dialog>

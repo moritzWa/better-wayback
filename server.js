@@ -6,6 +6,21 @@ import { homedir } from 'node:os';
 import { normalizeUrl, keyFor, RENDER_VERSION } from './lib.js';
 import { handleBlogRequest, blogScriptHashes } from './blog.js';
 import { loadDemo, demoAsset } from './demos.js';
+import { handleSupportRequest } from './support.mjs';
+
+// Bounded, expiring development-only substitute for Cloudflare CACHE.
+const supportRates = new Map();
+const supportCache = {
+  async get(key) {
+    const value = supportRates.get(key);
+    return value && value.expires > Date.now() ? value.value : null;
+  },
+  async put(key, value, { expirationTtl }) {
+    for (const [id, entry] of supportRates) if (entry.expires <= Date.now()) supportRates.delete(id);
+    if (supportRates.size >= 1000 && !supportRates.has(key)) throw new Error('Rate store full');
+    supportRates.set(key, { value, expires: Date.now() + expirationTtl * 1000 });
+  },
+};
 
 const root = resolve('.');
 const port = Number(process.env.PORT || 4317);
@@ -17,6 +32,17 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Referrer-Policy', 'no-referrer');
   const path = new URL(req.url, 'http://localhost').pathname;
   try {
+    if (path.startsWith('/api/support/')) {
+      const headers = new Headers();
+      for (const [key, value] of Object.entries(req.headers)) if (typeof value === 'string') headers.set(key, value);
+      headers.set('CF-Connecting-IP', req.socket.remoteAddress || 'local');
+      const request = new Request(`http://${req.headers.host}${req.url}`, {
+        method: req.method, headers,
+        ...(!['GET', 'HEAD'].includes(req.method) ? { body: req, duplex: 'half' } : {}),
+      });
+      const support = await handleSupportRequest(request, { ...process.env, CACHE: supportCache });
+      if (support) { res.writeHead(support.status, Object.fromEntries(support.headers)); return res.end(Buffer.from(await support.arrayBuffer())); }
+    }
     if (['GET', 'HEAD'].includes(req.method) && /^\/api\/demos\/(stripe|amazon)$/.test(path)) {
       const demo = await loadDemo(path.split('/').at(-1), root);
       res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' });
@@ -33,7 +59,7 @@ const server = http.createServer(async (req, res) => {
       if (blog) {
         res.writeHead(blog.status, {
           'Content-Type': blog.contentType,
-          'Content-Security-Policy': `default-src 'none'; style-src 'self'; script-src ${blogScriptHashes.join(' ')}; base-uri 'none'; frame-ancestors 'none'; form-action 'none'`,
+          'Content-Security-Policy': `default-src 'none'; style-src 'self'; script-src 'self' https://challenges.cloudflare.com ${blogScriptHashes.join(' ')}; connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; base-uri 'none'; frame-ancestors 'none'; form-action 'none'`,
         });
         res.end(req.method === 'HEAD' ? undefined : blog.body);
         return;
@@ -109,11 +135,11 @@ const server = http.createServer(async (req, res) => {
       res.on('finish', () => clearInterval(heartbeat));
       return;
     }
-    const files = { '/': ['public/index.html', 'text/html'], '/app.js': ['public/app.js', 'text/javascript'], '/style.css': ['public/style.css', 'text/css'], '/group.js': ['group.js', 'text/javascript'] };
+    const files = { '/': ['public/index.html', 'text/html'], '/support.js': ['public/support.js', 'text/javascript'], '/app.js': ['public/app.js', 'text/javascript'], '/style.css': ['public/style.css', 'text/css'], '/group.js': ['group.js', 'text/javascript'] };
     const file = files[path] || (/^\/cache\/[a-f0-9]{24}\.png$/.test(path) ? [`.cache/${path.split('/').at(-1)}`, 'image/png'] : null);
     if (!['GET', 'HEAD'].includes(req.method) || !file) return json(res, 404, { error: 'Not found' });
     const data = await readFile(resolve(root, file[0]));
-    res.writeHead(200, { 'Content-Type': file[1], 'Content-Security-Policy': "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-src 'none'; base-uri 'none'" });
+    res.writeHead(200, { 'Content-Type': file[1], 'Content-Security-Policy': "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self' https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; base-uri 'none'" });
     res.end(req.method === 'HEAD' ? undefined : data);
   } catch (error) { json(res, error.code === 'ENOENT' ? 404 : 500, { error: error.message }); }
 });

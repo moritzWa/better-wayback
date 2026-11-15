@@ -52,10 +52,12 @@ ${noindex ? '<meta name="robots" content="noindex, follow">' : `<link rel="canon
 <meta name="twitter:card" content="summary">
 ${article ? `<meta property="article:published_time" content="${html(article.published)}"><meta property="article:modified_time" content="${html(article.modified)}">` : ''}
 <link rel="stylesheet" href="/blog/style.css">
+<script type="module" src="/support.js"></script>
 ${schema ? structuredData(schema) : ''}
 </head><body><a class="skip" href="#main">Skip to content</a><div class="page">
 <header class="site-header"><a class="brand" href="/">${html(BRAND)}</a><nav aria-label="Main"><a href="/">Home</a><a href="/blog/"${path === '/blog/' ? ' aria-current="page"' : ''}>Blog</a></nav></header>
 <main id="main">${content}</main>
+<aside class="support-banner" data-support aria-label="Support this project"><button type="button" data-support-open aria-expanded="false" aria-controls="support-panel">Support this project</button><span>Help keep Visual Wayback free.</span><div id="support-panel" data-support-panel hidden><p role="status" aria-live="polite"></p><div data-support-widget></div><button type="button" data-support-cancel>Cancel</button></div><noscript>Enable JavaScript to reveal the support email.</noscript></aside>
 <footer><span>Not affiliated with the Internet Archive.</span><div class="footer-links"><a href="https://moritzw.com/">Built by Moritz Wallawitsch</a><a href="https://github.com/moritzWa/better-wayback">GitHub</a><a href="/blog/">All articles</a></div></footer>
 </div></body></html>`;
 }
@@ -98,7 +100,7 @@ const css = readFileSync(new URL('./content/style.css', import.meta.url), 'utf8'
 const notFound = page({ title: 'Article not found', description: 'This article could not be found.', path: '/blog/', noindex: true, content: '<h1>Article not found.</h1><p>Browse the <a href="/blog/">web history and archiving guides</a>.</p>' });
 
 // Ready-to-append CSP hash sources for the exact inert JSON-LD blocks above.
-// No executable script, inline style, external font or external asset is required.
+// The support module loads Turnstile only after a user clicks.
 export const blogScriptHashes = Object.freeze([...scripts]);
 export const blogSitemapEntries = Object.freeze([
   Object.freeze({ path: '/blog/' }),

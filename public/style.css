@@ -1,4 +1,9 @@
 /* Scoped to the app so the independently rendered blog keeps its own styles. */
+.wayback-ui .support-banner { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--gray); }
+.wayback-ui .support-banner > span { margin-left: 12px; }
+.wayback-ui .support-banner button { font: inherit; background: none; border: 0; padding: 4px 0; color: var(--link); text-decoration: underline; text-underline-offset: 3px; }
+.wayback-ui .support-banner p { margin: 12px 0; overflow-wrap: anywhere; }
+.wayback-ui .support-banner [data-support-widget] { max-width: 100%; }
 .wayback-ui {
   --gray: #6e6e73;
   --ink: #1d1d1f;
