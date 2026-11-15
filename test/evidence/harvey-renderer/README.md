@@ -4,6 +4,8 @@ Capture: https://web.archive.org/web/20240218234204/https://www.harvey.ai/
 
 Viewport: 1280 × 800. Headless Chromium. Only HTTPS requests to `web.archive.org` are allowed. No live-site fallback or synthetic content.
 
+The shared renderer launcher explicitly sets `chromiumSandbox: true`. Browser contexts still isolate state, but are not an OS sandbox. The queued browser regression launches Chromium on this host and checks its actual command line has no `--no-sandbox` or `--disable-setuid-sandbox` flag.
+
 ## Real archive result
 
 - `baseline.png`: old renderer, 3.318 seconds after starting. The hero is mostly black. The heading and waitlist button are missing.
@@ -39,4 +41,4 @@ python3 ~/.claude/scripts/heavy-job.py --wait -- env RENDERER_BROWSER_TESTS=1 no
 
 The baseline command records the archive once in `test-output/harvey-renderer/archive.har`. The replay command drops aborted HAR entries and creates `replay.har`. The benchmark uses that local recording. The HAR is not committed; the before/after evidence is.
 
-The targeted suite passed all 14 tests, including delayed CSS and JavaScript reveals, hidden-content rejection, cache invalidation, cached-first events, two-page concurrency, archive-only routing and an ephemeral API server. The review server on port 4317 was left untouched.
+The targeted suite covers delayed CSS and JavaScript reveals, hidden-content rejection, cache invalidation, cached-first events, two-page concurrency, archive-only routing, sandbox launch options and an ephemeral API server. The review server on port 4317 was left untouched.

@@ -5,9 +5,16 @@ import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { chromium } from 'playwright';
-import { archiveRequestAllowed, isolatedContext, runPool, trackReadiness, waitForCaptureReady } from '../renderer.js';
+import { archiveRequestAllowed, isolatedContext, launchRendererBrowser, runPool, trackReadiness, waitForCaptureReady } from '../renderer.js';
 import { fetchCaptures, keyFor, RENDER_VERSION } from '../lib.js';
+
+test('renderer launch explicitly requires the Chromium OS sandbox', async () => {
+  let options;
+  const sentinel = {};
+  const result = await launchRendererBrowser({ launch: async value => { options = value; return sentinel; } });
+  assert.equal(result, sentinel);
+  assert.deepEqual(options, { headless: true, chromiumSandbox: true, args: ['--mute-audio'] });
+});
 
 test('archive-only policy blocks live, local, credentials, ports and WebSockets', () => {
   assert.equal(archiveRequestAllowed('https://web.archive.org/web/20240218234204/https://www.harvey.ai/'), true);
@@ -73,8 +80,13 @@ test('fully cached worker publishes previews without launching a browser or requ
 
 // Run browser tests only when explicitly queued by the caller.
 test('readiness waits for delayed reveals, ignores infinite decoration, rejects hidden heroes', { skip: process.env.RENDERER_BROWSER_TESTS !== '1' }, async () => {
-  const browser = await chromium.launch({ headless: true, args: ['--mute-audio'] });
+  const browser = await launchRendererBrowser();
   try {
+    const cdp = await browser.newBrowserCDPSession();
+    const { arguments: args } = await cdp.send('Browser.getBrowserCommandLine');
+    assert.equal(args.includes('--no-sandbox'), false, 'real browser must not disable the OS sandbox');
+    assert.equal(args.includes('--disable-setuid-sandbox'), false);
+    await cdp.detach();
     const context = await isolatedContext(browser);
     const page = await context.newPage();
     const activity = trackReadiness(page);

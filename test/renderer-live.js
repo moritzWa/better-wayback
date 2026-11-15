@@ -1,13 +1,12 @@
 // Run through heavy-job.py --wait. Exact real-archive reproduction, not a live-site fallback.
-import { chromium } from 'playwright';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { USER_AGENT, replayUrl } from '../lib.js';
-import { isolatedContext, renderCapture, renderPage } from '../renderer.js';
+import { isolatedContext, launchRendererBrowser, renderCapture, renderPage } from '../renderer.js';
 
 const dir = resolve('test-output/harvey-renderer');
 await mkdir(dir, { recursive: true });
-const browser = await chromium.launch({ headless: true, args: ['--mute-audio'] });
+const browser = await launchRendererBrowser();
 if (process.argv.includes('--fixed') || process.argv.includes('--replay')) {
   let replayContext;
   try {

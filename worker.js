@@ -1,8 +1,7 @@
-import { chromium } from 'playwright';
 import { access, mkdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fetchCaptures, keyFor, selectCaptures, RENDER_VERSION, writeJsonAtomic } from './lib.js';
-import { renderCapture, runPool } from './renderer.js';
+import { launchRendererBrowser, renderCapture, runPool } from './renderer.js';
 
 const [url, from, to, countArg] = process.argv.slice(2);
 const cache = resolve('.cache');
@@ -29,7 +28,7 @@ try {
     } catch {}
     uncached.push({ capture, key });
   }
-  if (uncached.length) browser = await chromium.launch({ headless: true, args: ['--mute-audio'] });
+  if (uncached.length) browser = await launchRendererBrowser();
   let throttled = false;
   // Two pages at most, each in a fresh isolated context. No burst of dozens of IA replays.
   await runPool(uncached, 2, async ({ capture, key }) => {

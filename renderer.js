@@ -1,4 +1,10 @@
+import { chromium } from 'playwright';
 import { cleanText, replayUrl, USER_AGENT } from './lib.js';
+
+// Contexts isolate browser state, not host processes. Require Chromium's OS sandbox too.
+export function launchRendererBrowser(browserType = chromium) {
+  return browserType.launch({ headless: true, chromiumSandbox: true, args: ['--mute-audio'] });
+}
 
 export const ARCHIVE_CHROME_CSS = '#wm-ipp-base, #wm-ipp-print, #donato, .wb-autocomplete-suggestions { display:none!important; } html { scroll-behavior:auto!important; }';
 

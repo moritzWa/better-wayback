@@ -1,12 +1,11 @@
 // Uses the HAR recorded by renderer-live.js. Zero upstream traffic; run in the resource queue.
-import { chromium } from 'playwright';
 import { resolve } from 'node:path';
 import { writeFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import { isolatedContext, renderPage, runPool } from '../renderer.js';
+import { isolatedContext, launchRendererBrowser, renderPage, runPool } from '../renderer.js';
 
 const dir = resolve('test-output/harvey-renderer');
-const browser = await chromium.launch({ headless: true, args: ['--mute-audio'] });
+const browser = await launchRendererBrowser();
 const results = [];
 try {
   for (const concurrency of [1, 2]) {
