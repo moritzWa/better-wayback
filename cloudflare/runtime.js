@@ -78,13 +78,19 @@ export function createRuntime({ launch, render, fetchArchive = fetch }) {
   async function events(request, env, id) {
     const job = await env.CACHE?.get(`job:${id}`, 'json');
     if (!job) return json(404, { error: 'Timeline expired. Search again; cached captures are kept.' });
-    let browser, cancelled = false;
+    let browser, cancelled = false, reservationToken, closeConfirmed = false;
     const close = async () => {
       const owned = browser;
       browser = null;
       if (!owned) return;
       let timer;
-      try { await Promise.race([owned.close().catch(() => {}), new Promise(resolve => { timer = setTimeout(resolve, 2000); })]); }
+      try {
+        const confirmed = await Promise.race([owned.close().then(() => true, () => false), new Promise(resolve => { timer = setTimeout(() => resolve(false), 2000); })]);
+        if (confirmed && reservationToken) {
+          const released = await quota(env, 'release', { token: reservationToken });
+          closeConfirmed = released.ok === true;
+        }
+      }
       finally { clearTimeout(timer); }
     };
     const stream = new ReadableStream({
@@ -108,6 +114,7 @@ export function createRuntime({ launch, render, fetchArchive = fetch }) {
           if (env.ENABLE_RENDERING !== 'true' || !env.BROWSER) { emit({ type: 'error', message: 'New rendering is disabled. Cached previews and packaged examples remain available.' }); return; }
           const allowance = await quota(env, 'render');
           if (!allowance.ok) { emit({ type: 'error', message: allowance.error, retryAfter: allowance.retryAfter }); return; }
+          reservationToken = allowance.token;
           if (cancelled) return;
           emit({ type: 'status', message: `Rendering ${missing[0].timestamp.slice(0, 4)}. One capture per free-runtime request.` });
           // All work belongs to this connected response. Never rely on waitUntil.
@@ -128,7 +135,7 @@ export function createRuntime({ launch, render, fetchArchive = fetch }) {
             await env.CACHE.put(`image:${key}`, png, { expirationTtl: TTL });
             await env.CACHE.put(`capture:${key}`, encoded, { expirationTtl: TTL });
             emit({ type: 'capture', capture: saved, cached: false, completed: ++completed });
-            emit(missing.length === 1 ? { type: 'done' } : { type: 'continue', retryAfter: 90 });
+            emit(missing.length === 1 ? { type: 'done' } : { type: 'continue', retryAfter: closeConfirmed ? 20 : 90 });
           })();
           await Promise.race([work, timeout]);
         } catch (error) {

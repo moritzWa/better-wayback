@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRuntime, MAX_IMAGE } from '../cloudflare/runtime.js';
-import { QuotaCoordinator, LIMITS, reserve } from '../cloudflare/quota.js';
+import { QuotaCoordinator, LIMITS, reserve, release } from '../cloudflare/quota.js';
 import { keyFor, RENDER_VERSION } from '../lib.js';
 
 class FakeKV {
@@ -38,7 +38,7 @@ async function save(env, capture) {
 test('quota reservations survive reset, serialize launches, and never refund failed launches', async () => {
   const now = Date.parse('2026-11-15T12:00:00Z');
   let state;
-  for (let i = 0; i < LIMITS.launches; i++) {
+  for (let i = 0; i < LIMITS.browserBudgetMs / LIMITS.browserReservationMs; i++) {
     const result = reserve(state, 'render', now + i * 90000);
     assert.equal(result.status, 200);
     state = structuredClone(result.state);
@@ -62,6 +62,53 @@ test('all KV writes share an atomic 400/day cap; jobs cap at 100/day', () => {
   for (let i = 0; i < LIMITS.jobs; i++) state = reserve(state, 'job', now).state;
   assert.equal(reserve(state, 'job', now).status, 429);
   assert.equal(reserve(state, 'write', now).status, 200);
+});
+
+test('confirmed token refunds permit an eight-capture timeline, enforce 20s pacing, and are idempotent', () => {
+  const now = Date.parse('2026-11-15T12:00:00Z');
+  let state;
+  for (let i = 0; i < 8; i++) {
+    const start = now + i * 31000;
+    const reservation = reserve(state, 'render', start);
+    assert.equal(reservation.status, 200);
+    assert.equal(reservation.state.browserMs, i * 13000 + 90000);
+    const closed = release(reservation.state, reservation.body.token, start + 10600);
+    assert.equal(closed.state.browserMs, (i + 1) * 13000);
+    assert.equal(reserve(closed.state, 'render', start + 30599).status, 429);
+    assert.equal(release(closed.state, reservation.body.token, start + 11000).state, undefined);
+    state = structuredClone(closed.state);
+  }
+  assert.equal(state.browserMs, 104000);
+  assert.equal(state.launches, 8);
+  assert.equal(release(state, '__proto__', now + 300000).status, 400);
+  assert.equal(release(state, 'unknown', now + 300000).status, 400);
+});
+
+test('legacy running budget migrates without reset; expired or late tokens cannot release a newer lease', () => {
+  const now = Date.parse('2026-11-15T12:00:00Z');
+  const legacy = { day: '2026-11-15', launches: 5, writes: 10, jobs: 1, nextLaunch: now + 5000 };
+  assert.equal(reserve(legacy, 'render', now).status, 429);
+  const sixth = reserve(legacy, 'render', now + 5000);
+  assert.equal(sixth.state.browserMs, 540000);
+  assert.equal(reserve(sixth.state, 'render', now + 100000).status, 429);
+  assert.equal(release(sixth.state, sixth.body.token, now + 86400000).status, 400);
+  const first = reserve(undefined, 'render', now);
+  const second = reserve(first.state, 'render', now + 90000);
+  const late = release(second.state, first.body.token, now + 95000);
+  assert.equal(late.state.nextLaunch, now + 180000);
+  assert.equal(late.state.browserMs, 180000);
+});
+
+test('failed browser close retains full reservation and 90s continuation cooldown', async () => {
+  const env = environment();
+  const handle = createRuntime({ fetchArchive: indexFetch, launch: async () => ({ close: async () => { throw new Error('Close failed'); } }), render: async (_, capture) => ({ ...capture, text: 'Archived text', png: new Uint8Array([1]) }) });
+  const { id } = await (await handle(jobRequest(), env)).json();
+  const events = await parse(await handle(eventRequest(id), env));
+  assert.equal(events.at(-1).type, 'continue');
+  assert.equal(events.at(-1).retryAfter, 90);
+  const retry = await parse(await handle(eventRequest(id), env));
+  assert.equal(retry.at(-1).type, 'error');
+  assert.ok(retry.at(-1).retryAfter > 20);
 });
 
 test('static assets never need browser, quota or KV; malformed APIs do not fall through', async () => {
@@ -100,7 +147,7 @@ test('one isolated capture per stream, cached-first replay, explicit delayed con
   const { id } = await (await handle(jobRequest(), env)).json();
   const events = await parse(await handle(eventRequest(id), env));
   assert.deepEqual(events.map(e => e.type), ['index', 'status', 'capture', 'continue']);
-  assert.equal(events.at(-1).retryAfter, 90);
+  assert.equal(events.at(-1).retryAfter, 20);
   assert.equal(launches, 1);
   assert.equal(closes, 1);
   const retry = await parse(await handle(eventRequest(id), env));
