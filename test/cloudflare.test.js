@@ -102,6 +102,24 @@ test('a batch reuses one browser, streams results immediately and survives a fai
   assert.equal(launches, 1);
 });
 
+test('cached timeline verifies image existence without buffering PNG bodies', async () => {
+  const env = environment();
+  const handle = createRuntime({ fetchArchive: indexFetch, launch: async () => { throw new Error('Cached replay must not launch'); } });
+  const { id } = await (await handle(jobRequest(), env)).json();
+  for (const capture of captures) await save(env, capture);
+  const originalGet = env.CACHE.get.bind(env.CACHE);
+  let cancelled = 0;
+  env.CACHE.get = async (key, type) => {
+    if (!key.startsWith('image:')) return originalGet(key, type);
+    assert.equal(type, 'stream');
+    return new ReadableStream({ cancel() { cancelled++; } });
+  };
+  const events = await parse(await handle(eventRequest(id), env));
+  assert.equal(cancelled, 2);
+  assert.equal(events.filter(e => e.type === 'capture' && e.cached).length, 2);
+  assert.equal(events.at(-1).type, 'done');
+});
+
 test('confirmed token refunds permit an eight-capture timeline, enforce 20s pacing, and are idempotent', () => {
   const now = Date.parse('2026-11-15T12:00:00Z');
   let state;

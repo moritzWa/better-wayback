@@ -32,7 +32,12 @@ async function cached(env, capture) {
   const saved = await env.CACHE.get(`capture:${key}`, 'json');
   if (saved && saved.renderVersion === RENDER_VERSION && !saved.error && saved.text && saved.image === `/cache/${key}.png`) {
     // Publish only complete pairs, even after a failed or partially propagated KV write.
-    if (await env.CACHE.get(`image:${key}`, 'arrayBuffer')) return saved;
+    const image = await env.CACHE.get(`image:${key}`, 'stream');
+    if (image) {
+      // Check existence without downloading every full PNG into the Worker again.
+      await image.cancel?.();
+      return saved;
+    }
   }
   const failed = await env.CACHE.get(`failure:${key}`, 'json');
   return failed?.renderVersion === RENDER_VERSION && failed.error && !failed.image && failed.failureExpiresAt > Date.now() ? failed : null;
@@ -113,8 +118,9 @@ export function createRuntime({ launch, render, fetchArchive = fetch }) {
         const platformFailure = error => error.status === 429 || /429|503|rate limit|cooling|browser.*limit|browser.*closed|Target.*closed/i.test(error.message);
         try {
           emit(job.index);
-          for (const capture of job.captures) {
-            const saved = await cached(env, capture);
+          const cachedCaptures = await Promise.all(job.captures.map(capture => cached(env, capture)));
+          for (let i = 0; i < job.captures.length; i++) {
+            const capture = job.captures[i], saved = cachedCaptures[i];
             if (saved) emit({ type: 'capture', capture: saved, cached: true, completed: ++completed });
             else missing.push(capture);
           }

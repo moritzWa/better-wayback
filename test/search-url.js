@@ -8,7 +8,7 @@ let browser;
 const deadline = setTimeout(() => { server.kill('SIGTERM'); process.exitCode = 1; }, 60000);
 try {
   const [output] = await once(server.stdout, 'data');
-  const base = String(output).match(/http:\/\/localhost:\d+/)[0];
+  const base = process.env.SEARCH_URL_TEST_BASE || String(output).match(/http:\/\/localhost:\d+/)[0];
   browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
   let requests = [];
