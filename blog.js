@@ -56,7 +56,7 @@ ${schema ? structuredData(schema) : ''}
 </head><body><a class="skip" href="#main">Skip to content</a><div class="page">
 <header class="site-header"><a class="brand" href="/">${html(BRAND)}</a><nav aria-label="Main"><a href="/">Home</a><a href="/blog/"${path === '/blog/' ? ' aria-current="page"' : ''}>Blog</a></nav></header>
 <main id="main">${content}</main>
-<footer><span>Independent project. Not affiliated with the Internet Archive.</span><a href="/blog/">All articles</a></footer>
+<footer><span>Not affiliated with the Internet Archive.</span><div class="footer-links"><a href="https://moritzw.com/">Built by Moritz Wallawitsch</a><a href="https://github.com/moritzWa/better-wayback">GitHub</a><a href="/blog/">All articles</a></div></footer>
 </div></body></html>`;
 }
 

@@ -21,7 +21,8 @@
 .wayback-ui button { cursor: pointer; }
 .wayback-ui button:disabled { opacity: .55; cursor: wait; }
 .wayback-ui :focus-visible { outline: 2px solid #506cf7; outline-offset: 4px; }
-.wayback-ui .page { max-width: 880px; margin: 0 auto; padding: 56px 32px 48px; }
+.wayback-ui .page { max-width: 880px; min-height: 100vh; min-height: 100dvh; margin: 0 auto; padding: 56px 32px 32px; display: flex; flex-direction: column; }
+.wayback-ui main { flex: 1; }
 .wayback-ui .masthead { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 72px; }
 .wayback-ui .brand { color: var(--ink); font-size: 20px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; }
 .wayback-ui nav { display: flex; gap: 24px; font-size: 13px; }
@@ -38,7 +39,13 @@
 .wayback-ui .search-options { display: flex; justify-content: space-between; gap: 12px; margin-top: 14px; color: var(--gray); font-size: 12px; }
 .wayback-ui .search-options > div { display: flex; align-items: center; gap: 8px; }
 .wayback-ui .search-options input, .wayback-ui select { color: var(--ink); border: 1px solid var(--rule); border-radius: 4px; background: #fff; padding: 5px 6px; font-size: 12px; min-height: 30px; }
-.wayback-ui .search-options input { width: 68px; }
+.wayback-ui .search-options input { width: 80px; }
+.wayback-ui .settings { margin-top: 14px; font-size: 12px; color: var(--gray); }
+.wayback-ui .settings summary { cursor: pointer; width: fit-content; }
+.wayback-ui .settings-panel { margin-top: 12px; padding: 16px; border: 1px solid var(--rule); border-radius: 8px; }
+.wayback-ui .settings-panel .search-options { margin-top: 0; }
+.wayback-ui .settings-panel .sensitivity { margin-top: 16px; flex-wrap: wrap; }
+.wayback-ui .settings-panel p { margin: 12px 0 0; }
 .wayback-ui .try-links { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 20px; font-size: 13px; color: var(--gray); }
 .wayback-ui .try-links button, .wayback-ui .card-actions button { border: 0; padding: 0; background: none; color: var(--link); }
 .wayback-ui .try-links button:hover, .wayback-ui .card-actions button:hover { color: var(--ink); }
@@ -49,6 +56,7 @@
 .wayback-ui h3 { margin: 0 0 2px; font-size: 15px; font-weight: 600; }
 .wayback-ui .features p { margin: 0; color: var(--gray); }
 .wayback-ui .footer { margin-top: 80px; padding-top: 16px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; gap: 20px; color: var(--gray); font-size: 12px; }
+.wayback-ui .footer-links { display: flex; flex-wrap: wrap; gap: 8px 16px; }
 .wayback-ui .results-header { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
 .wayback-ui h2 { margin: 0; font-size: 24px; line-height: 1.25; letter-spacing: -.01em; overflow-wrap: anywhere; }
 .wayback-ui .view-toggle { display: flex; gap: 18px; flex-shrink: 0; }
@@ -66,7 +74,7 @@
 .wayback-ui .sampling-note, .wayback-ui .compare-note { color: var(--gray); font-size: 12px; margin: 16px 0 24px; }
 .wayback-ui #error { border-left: 2px solid var(--rule); padding: 12px; font-size: 13px; }
 .wayback-ui .empty-state { padding: 32px 0; color: var(--gray); }
-.wayback-ui .timeline-entry { border-top: 1px solid var(--rule); padding: 24px 0 40px; }
+.wayback-ui .timeline-entry { padding: 24px 0 40px; }
 .wayback-ui .entry-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin-bottom: 14px; }
 .wayback-ui .entry-date { font-size: 20px; font-weight: 600; }
 .wayback-ui .entry-month, .wayback-ui .entry-count { font-size: 12px; color: var(--gray); }
@@ -78,10 +86,16 @@
 .wayback-ui .browser-url { margin-left: 8px; color: var(--gray); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wayback-ui .preview-link { display: block; background: var(--code-bg); }
 .wayback-ui .preview-link img { display: block; width: 100%; height: auto; aspect-ratio: 1280 / 800; object-fit: cover; object-position: top; }
-.wayback-ui .card-bottom { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 10px 20px; padding: 12px 14px; font-size: 12px; }
-.wayback-ui .entry-title { overflow-wrap: anywhere; }
+.wayback-ui .card-bottom { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 10px 20px; padding: 12px 14px; min-height: 43px; font-size: 12px; }
+.wayback-ui .entry-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wayback-ui .card-actions { display: flex; gap: 18px; white-space: nowrap; }
 .wayback-ui .entry-error { padding: 24px; color: var(--gray); font-size: 13px; }
+.wayback-ui .entry-pending, .wayback-ui .entry-error { aspect-ratio: 1280 / 800; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 16px; padding: 24px; text-align: center; }
+.wayback-ui .entry-pending { background: var(--code-bg); color: var(--gray); font-size: 13px; }
+.wayback-ui .skeleton-lines { width: 58%; display: grid; gap: 12px; }
+.wayback-ui .skeleton-lines i { height: 8px; background: #e5e5e9; border-radius: 2px; }
+.wayback-ui .skeleton-lines i:last-child { width: 65%; }
+.wayback-ui .entry-placeholder-bottom { height: 43px; padding: 12px 14px; color: var(--gray); font-size: 12px; overflow: hidden; }
 .wayback-ui dialog { color: var(--ink); border: 1px solid var(--rule); border-radius: 10px; background: #fff; padding: 24px; width: min(960px, calc(100% - 32px)); max-height: 85vh; }
 .wayback-ui dialog::backdrop { background: #0005; }
 .wayback-ui .dialog-header { display: flex; align-items: start; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
@@ -108,6 +122,8 @@
   .wayback-ui .search-options { flex-wrap: wrap; }
   .wayback-ui .try-links { gap: 10px 16px; }
   .wayback-ui .results-header { align-items: start; flex-direction: column; }
+  .wayback-ui .card-bottom { grid-template-columns: minmax(0, 1fr); gap: 8px; min-height: 70px; }
+  .wayback-ui .entry-placeholder-bottom { height: 70px; }
   .wayback-ui .explainer, .wayback-ui #results { margin-top: 48px; }
   .wayback-ui .footer { flex-direction: column; gap: 8px; margin-top: 56px; }
   .wayback-ui dialog { padding: 20px; }

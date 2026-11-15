@@ -6,6 +6,16 @@ import { articles } from './articles.js';
 
 const articlePaths = articles.map(article => `/blog/${article.slug}/`);
 
+test('every blog page credits the builder and links to public source', () => {
+  for (const path of ['/blog/', '/blog/missing/', ...articlePaths]) {
+    const body = handleBlogRequest(path).body;
+    assert.match(body, /<footer>[\s\S]*href="https:\/\/moritzw.com\/">Built by Moritz Wallawitsch<\/a>/);
+    assert.match(body, /href="https:\/\/github.com\/moritzWa\/better-wayback">GitHub<\/a>/);
+  }
+  assert.match(handleBlogRequest('/blog/style.css').body, /min-height: 100dvh/);
+  assert.match(handleBlogRequest('/blog/style.css').body, /main \{ flex: 1; \}/);
+});
+
 test('serves only the blog and the two discovery endpoints', () => {
   for (const path of ['/blog/', '/blog', ...articlePaths, '/blog/style.css', '/sitemap.xml', '/robots.txt']) {
     const response = handleBlogRequest(path);
