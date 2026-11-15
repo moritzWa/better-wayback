@@ -16,6 +16,8 @@ The browser scales each iframe's 1280 by 800 desktop viewport into the existing 
 
 HTML comparison strips scripts/styles/templates and explicitly hidden content, preserves text boundaries and deduplicates exact repeated lines. Missing, pending or truncated text remains separate in grouped views. Cached rendered text may be used when HTML extraction fails; different source types are never compared or grouped together. The local Node server remains the original screenshot development path.
 
+If every sampled capture already has a valid PNG/text pair, the runtime keeps the homogeneous rendered-text timeline and finishes without additional HTML requests or quota writes. Mixed PNG/iframe timelines use HTML comparison where available, preserving PNG previews.
+
 ## Resources
 
 - Worker: `visual-wayback`, personal Cloudflare account.
@@ -52,6 +54,10 @@ Cloudflare publishes 10 browser minutes per day on Workers Free, shared across t
 The app limits new jobs to 100 per UTC day and KV writes to 400 per day. Previews expire after seven days; jobs expire after one day. Unavailable captures get separate one-hour failure markers, remain visible and do not block later dates. These markers never count as successful screenshots. Images are limited to 2 MiB and metadata to 64 KiB. New rendering fails closed without the quota binding. Keep the account on Workers Free; never upgrade it automatically.
 
 ## Verified remotely
+
+For the HTML-first rollout on November 15, 2026, a real Rogo 2026 timeline returned its first replay link 0.46 seconds after connecting to SSE and completed eight HTML comparisons in 7.05 seconds. That excludes the earlier CDX lookup. The test Worker had no Browser Run binding, so those lookups could not launch server browsers.
+
+On the public domain, a fresh muted Linux browser context opened the same timeline with cached HTML metadata. Metadata was complete at 1.58 seconds, an iframe was attached at 1.69 seconds, first iframe content painted at 3.38 seconds and a visible hero heading appeared at 9.33 seconds. Archive asset caching was not controlled. At most two iframe documents were active; switching to Stripe removed the live frames and retained its four genuine cached captures. These are observations of one timeline, not an instant-render guarantee.
 
 On November 15, 2026, `https://visualwayback.com/` served the app with valid HTTPS. Both articles, discovery routes, support configuration, JavaScript assets and all ten packaged PNGs passed custom-domain checks. Initial HTML and public assets contained no support address. Deployment is manual with Wrangler; no GitHub auto-deploy workflow is configured.
 

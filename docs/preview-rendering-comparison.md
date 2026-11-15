@@ -1,6 +1,6 @@
 # Screenshots versus client-rendered archive previews
 
-Measured November 15, 2026. Production behavior was not changed. The disposable Cloudflare benchmark Worker was deleted after testing.
+Measured November 15, 2026. Production behavior was not changed during this benchmark. The disposable Cloudflare benchmark Worker was deleted after testing. HTML-first mode was implemented after approval; its current contract is in [the deployment guide](cloudflare-deployment.md).
 
 ## Who renders what
 

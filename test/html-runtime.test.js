@@ -86,6 +86,22 @@ test('cached genuine PNGs stay available and failed screenshot markers never blo
   assert.ok(!returned.some(e => e.capture?.error));
 });
 
+test('fully photographed timelines retain instant rendered-text comparisons without HTML requests', async () => {
+  const env = environment(); let fetched = 0;
+  const handle = runtime(async () => { fetched++; return source(); });
+  for (const c of captures) {
+    env.values.set(`capture:${key(c)}`, JSON.stringify({ ...c, text: 'The text from this genuine cached screenshot.', image: `/cache/${key(c)}.png`, renderVersion: RENDER_VERSION }));
+    env.values.set(`image:${key(c)}`, new Uint8Array([1]));
+  }
+  const { id } = await (await handle(request(), env)).json();
+  const quotas = env.calls.length;
+  const returned = await parse(await handle(events(id), env));
+  assert.equal(fetched, 0); assert.equal(env.calls.length, quotas);
+  assert.equal(returned.at(-1).type, 'done');
+  assert.ok(returned.some(e => e.type === 'index' && e.previewMode === 'cached'));
+  assert.ok(returned.filter(e => e.type === 'capture' && !e.capture.textPending).every(e => e.capture.textSource === 'rendered' && e.capture.image));
+});
+
 test('live/local/credentialed replay redirects are rejected; iframe remains usable without comparison', async () => {
   for (const target of ['https://example.com/private', 'http://127.0.0.1/', 'https://name@web.archive.org/web/20200101000000/https://example.com/']) {
     const env = environment(); let fetched = [];

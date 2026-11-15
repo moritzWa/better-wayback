@@ -111,6 +111,13 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
             emit({ type: 'capture', capture: html ? compose(capture, png, html) : { ...compose(capture, png), ...(png ? { text: png.text, textSource: 'rendered', comparisonUnavailable: false } : {}), textPending: true }, cached: Boolean(png || html), completed: ++completed });
             return { capture, png, html };
           }));
+          // A fully photographed timeline already has one consistent text source.
+          // Preserve its instant comparisons without refetching every HTML page.
+          if (items.every(item => item.png)) {
+            emit({ ...job.index, textSource: 'rendered', previewMode: 'cached' });
+            for (const { capture, png } of items) emit({ type: 'capture', capture: { ...png, preview: 'image', previewUrl: iframeUrl(capture), textSource: 'rendered', textPending: false }, cached: true, completed });
+            emit({ type: 'done' }); return;
+          }
           const missing = items.filter(item => !item.html);
           if (!missing.length) { emit({ type: 'done' }); return; }
           if (!extractHtml) { emit({ type: 'error', message: 'HTML comparison is unavailable. Direct archive previews remain accessible.' }); return; }
