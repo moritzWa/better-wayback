@@ -6,7 +6,9 @@ A visual Wayback Machine timeline that folds consecutive captures with similar r
 
 The public site runs on Cloudflare Workers Free. Static pages, the blog and packaged examples do not launch a browser. New screenshots use the account's free Browser Run allowance. The app stops new renders when its daily budget runs out; it does not upgrade the plan or charge visitors.
 
-The edge runtime renders one capture per connected request and resumes after a cooldown. It caches previews for seven days. Live timelines can be incomplete when the archive is unavailable or the free quota is exhausted. The local Node server below has different concurrency and disk-cache limits.
+The edge runtime reuses one browser for up to eight sequential captures per connected request, streaming each result as it arrives. It only waits for a launch cooldown between batches, not between screenshots. It caches previews for seven days. Live timelines can be incomplete when the archive is unavailable or the free quota is exhausted. The local Node server below has different concurrency and disk-cache limits.
+
+Submitted searches update the address bar, for example `/?url=rogo.ai`. Links preserve date/sample settings, reload the same search, and work with Back/Forward. Typing alone does not start archive jobs.
 
 Deployment, quotas and verification are documented in [the Cloudflare deployment guide](docs/cloudflare-deployment.md). The [support link](SUPPORT.md) reveals a server-held email only after a click and Turnstile verification. This deters simple scraping, not bots that complete the challenge.
 

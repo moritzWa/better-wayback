@@ -64,6 +64,44 @@ test('all KV writes share an atomic 400/day cap; jobs cap at 100/day', () => {
   assert.equal(reserve(state, 'write', now).status, 200);
 });
 
+test('batches reserve deadlines and writes atomically, shrink to budget, and refund only once', () => {
+  const now = Date.parse('2026-11-15T12:00:00Z');
+  const first = reserve(undefined, 'render', now, 8);
+  assert.equal(first.body.captures, 8);
+  assert.equal(first.state.browserMs, 265000);
+  assert.equal(first.state.writes, 16);
+  assert.equal(first.state.nextLaunch, now + 265000);
+  const closed = release(first.state, first.body.token, now + 45000);
+  assert.equal(closed.state.browserMs, 47000);
+  assert.equal(release(closed.state, first.body.token, now + 46000).state, undefined);
+  const low = { ...closed.state, browserMs: 430000, nextLaunch: now };
+  assert.equal(reserve(low, 'render', now + 50000, 8).body.captures, 1);
+  const fewWrites = { ...closed.state, writes: 396, nextLaunch: now };
+  assert.equal(reserve(fewWrites, 'render', now + 50000, 8).body.captures, 2);
+});
+
+test('a batch reuses one browser, streams results immediately and survives a failed capture', async () => {
+  const env = environment(); env.RENDER_BATCH_SIZE = '8';
+  let launches = 0, closes = 0, renders = 0;
+  const handle = createRuntime({ fetchArchive: indexFetch, launch: async () => { launches++; return { close: async () => { closes++; } }; }, render: async (_, capture) => {
+    renders++;
+    if (renders === 1) throw new Error('Archive reveal unavailable');
+    return { ...capture, text: 'Working capture', png: new Uint8Array([1]) };
+  } });
+  const { id } = await (await handle(jobRequest(), env)).json();
+  const events = await parse(await handle(eventRequest(id), env));
+  assert.equal(launches, 1); assert.equal(closes, 1); assert.equal(renders, 2);
+  const returned = events.filter(e => e.type === 'capture');
+  assert.equal(returned.length, 2);
+  assert.match(returned[0].capture.error, /reveal unavailable/);
+  assert.equal(returned[1].capture.text, 'Working capture');
+  assert.equal(events.at(-1).type, 'done');
+  assert.ok(!events.some(e => e.type === 'continue'));
+  const replay = await parse(await handle(eventRequest(id), env));
+  assert.equal(replay.filter(e => e.type === 'capture' && e.cached).length, 2);
+  assert.equal(launches, 1);
+});
+
 test('confirmed token refunds permit an eight-capture timeline, enforce 20s pacing, and are idempotent', () => {
   const now = Date.parse('2026-11-15T12:00:00Z');
   let state;

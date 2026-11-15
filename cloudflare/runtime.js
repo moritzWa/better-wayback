@@ -102,8 +102,15 @@ export function createRuntime({ launch, render, fetchArchive = fetch }) {
         const abort = () => { cancelled = true; void close(); };
         request.signal.addEventListener('abort', abort, { once: true });
         if (request.signal.aborted) abort();
-        let timer, completed = 0, stage = 'cache', attemptFinished = false;
+        let timer, captureTimer, completed = 0, stage = 'cache', attemptFinished = false, activeCapture;
         const missing = [];
+        const saveFailure = async capture => {
+          const failed = { ...capture, requestedTimestamp: capture.timestamp, archiveUrl: replayUrl(capture.timestamp, capture.original), error: String(capture.failureMessage).slice(0, 1000), renderVersion: RENDER_VERSION, failureExpiresAt: Date.now() + FAILURE_TTL * 1000 };
+          delete failed.failureMessage;
+          await env.CACHE.put(`failure:${captureKey(capture)}`, JSON.stringify(failed), { expirationTtl: FAILURE_TTL });
+          emit({ type: 'capture', capture: failed, cached: false, completed: ++completed });
+        };
+        const platformFailure = error => error.status === 429 || /429|503|rate limit|cooling|browser.*limit|browser.*closed|Target.*closed/i.test(error.message);
         try {
           emit(job.index);
           for (const capture of job.captures) {
@@ -114,56 +121,71 @@ export function createRuntime({ launch, render, fetchArchive = fetch }) {
           if (!missing.length) { emit({ type: 'done' }); return; }
           // Missing captures remain in the index, not silently hidden by grouping.
           if (env.ENABLE_RENDERING !== 'true' || !env.BROWSER) { emit({ type: 'error', message: 'New rendering is disabled. Cached previews and packaged examples remain available.' }); return; }
-          const allowance = await quota(env, 'render');
+          const requestedBatch = Math.max(1, Math.min(8, Number(env.RENDER_BATCH_SIZE) || 1));
+          const allowance = await quota(env, 'render', { count: Math.min(requestedBatch, missing.length) });
           if (!allowance.ok) { emit({ type: 'error', message: allowance.error, retryAfter: allowance.retryAfter }); return; }
           reservationToken = allowance.token;
           if (cancelled) return;
-          emit({ type: 'status', message: `Rendering ${missing[0].timestamp.slice(0, 4)}. One capture per free-runtime request.` });
+          const batch = missing.slice(0, allowance.captures || 1);
+          activeCapture = batch[0];
+          emit({ type: 'status', message: `Loading ${batch.length} archived preview${batch.length === 1 ? '' : 's'} in one browser…` });
           // All work belongs to this connected response. Never rely on waitUntil.
-          const timeout = new Promise((_, reject) => { timer = setTimeout(() => { void close(); reject(new Error('Capture exceeded the 25-second free runtime deadline. Retry later; cached previews are kept.')); }, 25000); });
+          const timeout = new Promise((_, reject) => { timer = setTimeout(() => { attemptFinished = true; void close(); reject(new Error('Capture exceeded the free runtime batch deadline. Retry later; cached previews are kept.')); }, 25000 * batch.length); });
           const work = (async () => {
             stage = 'launch';
             const acquired = await launch(env.BROWSER);
             if (cancelled || attemptFinished) { await acquired.close(); throw new Error('Client disconnected'); }
             browser = acquired;
-            stage = 'render';
-            const result = await render(browser, missing[0]);
-            if (cancelled || attemptFinished) return;
+            for (const capture of batch) {
+              if (cancelled || attemptFinished) return;
+              activeCapture = capture;
+              stage = 'render';
+              if (capture !== batch[0]) emit({ type: 'status', message: `Rendering ${capture.timestamp.slice(0, 4)}. ${completed} of ${job.captures.length} previews returned…` });
+              let result;
+              try {
+                const deadline = new Promise((_, reject) => { captureTimer = setTimeout(() => { attemptFinished = true; void close(); reject(new Error('Capture exceeded the 25-second free runtime deadline.')); }, 25000); });
+                result = await Promise.race([render(browser, capture), deadline]);
+              } catch (error) {
+                if (platformFailure(error) || attemptFinished || cancelled) throw error;
+                await saveFailure({ ...capture, failureMessage: error.message });
+                continue;
+              } finally { clearTimeout(captureTimer); }
+              if (cancelled || attemptFinished) return;
+              stage = 'persist';
+              const { png, ...metadata } = result;
+              if (!png || png.byteLength > MAX_IMAGE) throw new Error('Screenshot exceeds the 2 MiB free cache limit.');
+              const key = captureKey(capture);
+              const saved = { ...metadata, text: metadata.text.slice(0, 48000), image: `/cache/${key}.png`, renderVersion: RENDER_VERSION };
+              const encoded = JSON.stringify(saved);
+              if (new TextEncoder().encode(encoded).byteLength > MAX_JSON) throw new Error('Capture metadata exceeds the free cache limit.');
+              await env.CACHE.put(`image:${key}`, png, { expirationTtl: TTL });
+              await env.CACHE.put(`capture:${key}`, encoded, { expirationTtl: TTL });
+              if (cancelled || attemptFinished) return;
+              emit({ type: 'capture', capture: saved, cached: false, completed: ++completed });
+            }
             stage = 'close';
             await close();
             if (cancelled || attemptFinished) return;
-            stage = 'persist';
-            const { png, ...metadata } = result;
-            if (!png || png.byteLength > MAX_IMAGE) throw new Error('Screenshot exceeds the 2 MiB free cache limit.');
-            const key = captureKey(missing[0]);
-            const saved = { ...metadata, text: metadata.text.slice(0, 48000), image: `/cache/${key}.png`, renderVersion: RENDER_VERSION };
-            const encoded = JSON.stringify(saved);
-            if (new TextEncoder().encode(encoded).byteLength > MAX_JSON) throw new Error('Capture metadata exceeds the free cache limit.');
-            await env.CACHE.put(`image:${key}`, png, { expirationTtl: TTL });
-            await env.CACHE.put(`capture:${key}`, encoded, { expirationTtl: TTL });
-            emit({ type: 'capture', capture: saved, cached: false, completed: ++completed });
-            emit(missing.length === 1 ? { type: 'done' } : { type: 'continue', retryAfter: closeConfirmed ? 20 : 90 });
+            emit(completed === job.captures.length ? { type: 'done' } : { type: 'continue', retryAfter: closeConfirmed ? 20 : 90 });
           })();
           await Promise.race([work, timeout]);
         } catch (error) {
           attemptFinished = true;
-          const rateLimited = error.status === 429 || /429|503|rate limit|cooling|browser.*limit/i.test(error.message);
+          const rateLimited = platformFailure(error);
           if (stage === 'render' && !rateLimited && !cancelled) {
             // Unavailable captures must not pin every reconnect to the same date.
             // Keep failures separate from genuine image metadata and retry after TTL.
             await close();
             if (!cancelled) {
-              const capture = missing[0];
-              const failed = { ...capture, requestedTimestamp: capture.timestamp, archiveUrl: replayUrl(capture.timestamp, capture.original), error: String(error.message).slice(0, 1000), renderVersion: RENDER_VERSION, failureExpiresAt: Date.now() + FAILURE_TTL * 1000 };
               try {
-                await env.CACHE.put(`failure:${captureKey(capture)}`, JSON.stringify(failed), { expirationTtl: FAILURE_TTL });
-                emit({ type: 'capture', capture: failed, cached: false, completed: ++completed });
-                emit(missing.length === 1 ? { type: 'done' } : { type: 'continue', retryAfter: closeConfirmed ? 20 : 90 });
+                await saveFailure({ ...activeCapture, failureMessage: error.message });
+                emit(completed === job.captures.length ? { type: 'done' } : { type: 'continue', retryAfter: closeConfirmed ? 20 : 90 });
               } catch { emit({ type: 'error', message: 'Could not cache the failed attempt. Retry later; existing previews are kept.', retryAfter: 300 }); }
             }
           } else emit({ type: 'error', message: error.message, retryAfter: rateLimited ? 90 : 300 });
         } finally {
           clearTimeout(timer);
+          clearTimeout(captureTimer);
           cancelled = true;
           await close();
           request.signal.removeEventListener('abort', abort);

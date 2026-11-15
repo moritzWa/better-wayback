@@ -128,11 +128,12 @@ function connectStream(path, current, attempts = 0) {
     if (current !== generation || stream !== connection || !running) return;
     let event;
     try { event = JSON.parse(message.data); } catch { connection.close(); onEvent({ type: 'error', message: 'Invalid renderer response. Available previews are kept.' }); return; }
-    if (event.type === 'continue') {
+    const coolingDown = event.type === 'error' && Number.isFinite(event.retryAfter) && event.retryAfter > 0 && event.retryAfter <= 90 && /cooling down|rate limit|429/i.test(event.message || '');
+    if (event.type === 'continue' || coolingDown) {
       connection.close();
       if (attempts >= 24) { onEvent({ type: 'error', message: 'Rendering paused after repeated retries. Available previews are kept. Search again later.' }); return; }
       // Free-tier rendering advances one capture per connection. Never reconnect in a busy loop.
-      const seconds = Math.max(20, Math.min(3600, Number(event.retryAfter) || 90));
+      const seconds = Math.max(coolingDown ? 1 : 20, Math.min(3600, Number(event.retryAfter) || 90));
       $('status').textContent = `${captures.length} of ${sampled} previews returned. Continuing in ${Math.ceil(seconds)} seconds…`;
       clearTimeout(resumeTimer);
       resumeTimer = setTimeout(() => connectStream(path, current, attempts + 1), seconds * 1000);
@@ -155,8 +156,21 @@ function begin() {
   $('site-title').textContent = $('url').value; render();
   return generation;
 }
-$('search-form').onsubmit = async event => {
-  event.preventDefault(); if (running) return;
+function updateSearchUrl() {
+  const value = $('url').value.trim();
+  try {
+    const site = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`);
+    if (site.username || site.password) return;
+  } catch { return; }
+  const target = new URL(location.href);
+  for (const key of ['url', 'from', 'to', 'count']) target.searchParams.delete(key);
+  target.searchParams.set('url', value);
+  for (const key of ['from', 'to']) if ($(key).value) target.searchParams.set(key, $(key).value);
+  if ($('count').value !== '8') target.searchParams.set('count', $('count').value);
+  if (target.href !== location.href) history.pushState(null, '', target);
+}
+async function search(recordHistory = true) {
+  if (recordHistory) updateSearchUrl();
   let preset;
   try {
     const raw = $('url').value.trim();
@@ -172,7 +186,8 @@ $('search-form').onsubmit = async event => {
     $('site-title').textContent = data.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
     connectStream(`/api/jobs/${data.id}/events`, current);
   } catch (error) { if (current === generation) onEvent({ type: 'error', message: error.message }); }
-};
+}
+$('search-form').onsubmit = event => { event.preventDefault(); if (!running) void search(); };
 async function loadDemo(site) {
   $('url').value = site;
   const current = begin();
@@ -190,7 +205,7 @@ async function loadDemo(site) {
     finish();
   } catch (error) { if (current === generation) onEvent({ type: 'error', message: error.message }); }
 }
-for (const button of document.querySelectorAll('[data-site]')) button.onclick = () => { $('from').value = ''; $('to').value = ''; loadDemo(button.dataset.site); };
+for (const button of document.querySelectorAll('[data-site]')) button.onclick = () => { $('from').value = ''; $('to').value = ''; $('count').value = '8'; $('url').value = button.dataset.site; updateSearchUrl(); void loadDemo(button.dataset.site); };
 $('changes-view').onclick = () => { changesOnly = true; toggle(); };
 $('all-view').onclick = () => { changesOnly = false; toggle(); };
 function toggle() { $('changes-view').classList.toggle('active', changesOnly); $('all-view').classList.toggle('active', !changesOnly); $('changes-view').setAttribute('aria-pressed', String(changesOnly)); $('all-view').setAttribute('aria-pressed', String(!changesOnly)); render(); }
@@ -199,10 +214,13 @@ $('close-dialog').onclick = () => $('compare-dialog').close();
 $('compare-dialog').onclick = event => { if (event.target === $('compare-dialog')) $('compare-dialog').close(); };
 const currentYear = new Date().getFullYear();
 for (const id of ['from', 'to']) $(id).max = currentYear;
-const params = new URLSearchParams(location.search);
 window.addEventListener('pagehide', () => { clearTimeout(resumeTimer); stream?.close(); });
-if (params.has('url')) {
-  $('url').value = params.get('url');
-  for (const id of ['from', 'to', 'count']) if (params.has(id)) $(id).value = params.get(id);
-  $('search-form').requestSubmit();
-} else loadDemo('stripe.com');
+function restoreSearch() {
+  const params = new URLSearchParams(location.search);
+  $('url').value = params.get('url') || 'stripe.com';
+  for (const id of ['from', 'to']) $(id).value = params.get(id) || '';
+  $('count').value = ['8', '16', '24'].includes(params.get('count')) ? params.get('count') : '8';
+  void search(false);
+}
+window.addEventListener('popstate', restoreSearch);
+restoreSearch();
