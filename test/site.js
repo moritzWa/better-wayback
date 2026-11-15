@@ -41,6 +41,21 @@ try {
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     await page.screenshot({ path: `test-output/real-stripe-${width}.png`, fullPage: true });
   }
+  const amazonResponse = await page.request.get(base + '/api/demos/amazon');
+  assert.equal(amazonResponse.status(), 200);
+  const amazon = await amazonResponse.json();
+  assert.ok(amazon.captures.length >= 2, 'Real Amazon history must include multiple dates');
+  await page.getByRole('button', { name: 'Amazon', exact: true }).click();
+  await page.waitForFunction(() => document.getElementById('progress').hidden && document.getElementById('site-title').textContent.includes('amazon'));
+  await page.getByRole('button', { name: 'All sampled', exact: true }).click();
+  assert.equal(await page.locator('.timeline-entry img').count(), amazon.captures.length);
+  for (const image of await page.locator('.timeline-entry img').all()) { await image.scrollIntoViewIfNeeded(); await image.evaluate(n => n.decode()); }
+  if (amazon.unavailable.length) assert.match(await page.locator('#error').innerText(), /Partial cached history/);
+  for (const width of [320, 390, 768, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    await page.screenshot({ path: `test-output/real-amazon-${width}.png`, fullPage: true });
+  }
   await page.getByRole('link', { name: 'Blog', exact: true }).first().click();
   assert.ok(page.url().endsWith('/blog/'));
   await page.screenshot({ path: 'test-output/blog-index-desktop.png', fullPage: true });
@@ -70,7 +85,7 @@ try {
   assert.equal(notFound.status(), 404);
   assert.match(await notFound.text(), /noindex/);
   assert.deepEqual(errors, []);
-  console.log('PASS: real packaged Stripe previews decoded, default count/automatic dates, 320/390/768/1440 real timeline screenshots, app/blog navigation, article metadata/JSON-LD, CSP, HEAD, sitemap and 404.');
+  console.log('PASS: real packaged Stripe/Amazon previews decoded, unavailable summary, default count/automatic dates, 320/390/768/1440 real timeline screenshots, app/blog navigation, article metadata/JSON-LD, CSP, HEAD, sitemap and 404.');
 } finally {
   await browser?.close();
   if (server.exitCode === null) { const exited = once(server, 'exit'); server.kill('SIGTERM'); await exited; }

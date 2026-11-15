@@ -122,11 +122,20 @@ function begin() {
   generation++; captures = []; requested = []; indexed = false; entries.clear(); $('timeline').replaceChildren(); total = 0; sampled = 0; capped = false; running = true; stream?.close();
   $('search-button').disabled = true; $('results').hidden = false; $('explainer').hidden = true; $('error').hidden = true; $('progress').hidden = false; $('progress-fill').style.width = '0%'; $('status').textContent = 'Finding archived captures…';
   $('from').placeholder = 'Earliest'; $('to').placeholder = 'Latest';
+  $('sampling-note').textContent = 'A sampled history, not every change. Dates show when a version was archived, not when it launched.';
   $('site-title').textContent = $('url').value; render();
   return generation;
 }
 $('search-form').onsubmit = async event => {
   event.preventDefault(); if (running) return;
+  let preset;
+  try {
+    const raw = $('url').value.trim();
+    const url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
+    const host = url.hostname.replace(/^www\./, '');
+    if (['stripe.com', 'amazon.com'].includes(host) && url.pathname === '/' && !url.search && !url.port && !url.username && !url.password) preset = host;
+  } catch {}
+  if (preset && !$('from').value && !$('to').value && $('count').value === '8') { await loadDemo(preset); return; }
   const current = begin();
   try {
     const response = await fetch('/api/jobs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: $('url').value, from: $('from').value, to: $('to').value, count: $('count').value }) });
@@ -145,6 +154,7 @@ async function loadDemo(site) {
     const data = await response.json(); if (current !== generation) return;
     if (!response.ok || !data.captures?.length) throw new Error(data.error || 'Cached previews are not available yet. Explore history to load captures from the archive.');
     indexed = true; total = data.total; sampled = data.sampled; capped = data.capped; captures = data.captures;
+    $('sampling-note').textContent = 'Cached example. A selection of archived previews, not every capture or change. Dates show when a page was archived, not when it launched.';
     $('site-title').textContent = data.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
     const first = data.firstTimestamp || captures[0].timestamp, last = data.lastTimestamp || captures.at(-1).timestamp;
     $('from').placeholder = first.slice(0, 4); $('to').placeholder = last.slice(0, 4);

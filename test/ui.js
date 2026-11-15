@@ -21,6 +21,8 @@ try {
   browser = await chromium.launch({ headless: true, args: ['--mute-audio'] });
   const page = await browser.newPage({ viewport: { width: 1440, height: 1100 } });
   const errors = [];
+  let jobRequests = 0;
+  page.on('request', request => { if (request.method() === 'POST' && request.url().endsWith('/api/jobs')) jobRequests++; });
   page.on('pageerror', error => errors.push(error.message));
   await page.addInitScript(() => {
     window.fixtureStreamCount = 0;
@@ -59,15 +61,24 @@ try {
   assert.equal(await page.locator('.timeline-entry img').count(), 2);
   assert.equal(await page.locator('#from').getAttribute('placeholder'), '2000');
   assert.equal(await page.locator('#from').inputValue(), '');
+  assert.match(await page.locator('#sampling-note').innerText(), /Cached example/);
+  for (const preset of ['stripe.com', 'https://www.stripe.com/', 'amazon.com', 'https://www.amazon.com/']) {
+    await page.locator('#url').fill(preset);
+    await page.getByRole('button', { name: 'Explore history' }).click();
+    await page.waitForFunction(() => document.getElementById('progress').hidden);
+    assert.equal(jobRequests, 0, `Preset ${preset} must not POST a render job`);
+  }
   await page.getByText('Settings', { exact: true }).click();
   await page.locator('#from').fill('1999');
   await page.locator('#count').selectOption('8');
-  await page.locator('#url').fill('fixture.test');
+  await page.locator('#url').fill('stripe.com');
   await page.getByRole('button', { name: 'Explore history' }).click();
   await page.waitForFunction(() => window.fixtureStream);
+  assert.equal(jobRequests, 1, 'A custom preset date still starts a live job');
   assert.equal(await page.locator('.entry-pending').count(), 8, 'Initial lookup reserves requested samples');
   const emit = event => page.evaluate(event => window.emitFixture(event), event);
   await emit({ type: 'index', total: 300, sampled: 4, captures: selected, firstTimestamp: '19980101000000', lastTimestamp: '20260101000000' });
+  assert.doesNotMatch(await page.locator('#sampling-note').innerText(), /Cached example/);
   assert.equal(await page.locator('#from').inputValue(), '1999', 'Metadata preserves user override');
   assert.equal(await page.locator('.entry-pending').count(), 4);
   await page.getByText('Settings', { exact: true }).click();
@@ -117,11 +128,19 @@ try {
   await page.waitForFunction(() => document.getElementById('progress').hidden);
   assert.equal(await page.locator('#from').inputValue(), '', 'Example resets automatic date');
   assert.equal(await page.locator('#site-title').innerText(), 'amazon.com');
+  await page.locator('#url').fill('fixture.test');
   await page.getByRole('button', { name: 'Explore history' }).click();
   await page.waitForFunction(() => window.fixtureStreamCount === 2);
   await emit({ type: 'error', message: 'UI fixture connection error' });
   assert.equal(await page.locator('#error').innerText(), 'UI fixture connection error');
   assert.equal(await page.locator('#search-button').isEnabled(), true);
+  await page.getByText('Settings', { exact: true }).click();
+  await page.locator('#count').selectOption('16');
+  await page.locator('#url').fill('stripe.com');
+  await page.getByRole('button', { name: 'Explore history' }).click();
+  await page.waitForFunction(() => window.fixtureStreamCount === 3);
+  assert.equal(jobRequests, 3, 'A custom preset sample count still starts a live job');
+  await emit({ type: 'error', message: 'UI fixture stopped' });
   // Both app and short blog pages use normal flex layout, never an overlay footer.
   for (const path of ['/', '/blog/missing-ui-fixture/']) {
     await page.goto(base + path);
