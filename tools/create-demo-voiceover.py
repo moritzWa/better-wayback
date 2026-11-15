@@ -8,7 +8,7 @@ parser.add_argument('--model', default='eleven_v4')
 args = parser.parse_args()
 out = pathlib.Path(args.out)
 out.mkdir(parents=True, exist_ok=True)
-text = 'OpenAI before ChatGPT. Nvidia, then and now. Visual Wayback brings archived websites into one timeline. Compare versions, spot changes, and explore the originals. Try it free at visual wayback dot com.'
+text = "Visual Wayback shows how a company's website changes over time. On the Wayback Machine, you open snapshots one by one. Here, scroll through OpenAI before ChatGPT, and Nvidia before the AI boom. One visual timeline. Try visual wayback dot com."
 key = subprocess.check_output(['op', 'item', 'get', args.item, '--vault', 'Main', '--fields', 'credential', '--reveal'], text=True).strip()
 voice = 'nPczCjzI2devNBz1zQrb'  # Brian, stock voice, not a clone.
 body = {'text': text, 'model_id': args.model, 'voice_settings': {'stability': .5, 'similarity_boost': .75, 'style': .15, 'use_speaker_boost': True, 'speed': 1.05}}

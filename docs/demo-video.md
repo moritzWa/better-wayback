@@ -1,5 +1,33 @@
 # Short product demo
 
+## Current direction: native 4K, pitch / problem / showcase
+
+The current edit replaces the earlier upscaled 720p screencast. `tools/capture-demo-hires.js` photographs five genuine archive replays at a 1280×800 CSS viewport with device scale factor 3, producing 3840×2400 PNGs (four showcase dates plus Nvidia 2007 for the overview). It then photographs the deployed product at 1280×720 CSS pixels and DPR 3, producing lossless 3840×2160 product frames. There is no screencast-resolution limit and no enlargement of 720p source frames.
+
+The higher-resolution archive PNGs replace only the same dated PNG responses inside the recording browser. The production site's assets, dates, labels and behavior stay unchanged. Every replacement must resolve to the exact manifest timestamp. Archive-only HTTP and WebSocket isolation and the normal readiness/error checks still apply. Failed replays are not presented as successful previews. Original archived raster artwork may itself have limited resolution.
+
+`tools/build-demo-hires.py` makes a 19.2-second 4K H.264/AAC edit with 576 frames at 30 fps. The structure is:
+
+- 0–4.4 seconds: Visual Wayback, website history in one timeline.
+- 4.4–8.4 seconds: Wayback Machine means opening snapshots one by one, returning and choosing another date.
+- 8.4–14.4 seconds: genuine OpenAI 2019/2023 and Nvidia 2013/2025 product frames. OpenAI's 2025 DPR-3 replay did not settle on two bounded attempts, so it was excluded rather than photographed unfinished. Nvidia 2013 has a stronger intact hero than the partially archived 2007 page.
+- 14.4–16.2 seconds: the actual Visual Wayback overview.
+- 16.2–19.2 seconds: the URL and free/open-source end card.
+
+No comparison dialog appears. Anthropic remains excluded from the showcase, but its website example stays available. The pitch and problem cards are editorial typography, not fabricated Wayback UI. The product scenes are an edited montage, not a speed benchmark.
+
+ElevenLabs Brian now reads a new pitch/problem/showcase script. The previous take is retained with the previous deliverable. New source files and QA reports live in `~/Documents/visual-wayback/demo-video/high-res/`. The finished deliverable still replaces the same `~/Desktop/visual-wayback-demo.mp4` for review.
+
+```sh
+python3 ~/.claude/scripts/heavy-job.py --wait -- node tools/capture-demo-hires.js
+python3 tools/create-demo-voiceover.py --item <personal-1password-item-id> --out ~/Documents/visual-wayback/demo-video/high-res
+python3 ~/.claude/scripts/heavy-job.py --wait -- python3 tools/build-demo-hires.py --overwrite
+```
+
+The older workflow below documents the source of the pixelation and earlier revisions; use the native-4K workflow above for new renders.
+
+The final native-4K revision passed full-file decoding and ffprobe checks: 3840×2160, 576 frames, 19.200 seconds, H.264/AAC. `tools/check-demo-hires.py` generated an eight-scene contact sheet from the completed MP4, not from intermediate frames. Independent transcription of the final MP4 verified the pitch, snapshot-by-snapshot problem, both company names and the complete closing URL. The comparison dialog and Anthropic showcase are absent. Review artifacts and checks are saved beside the high-resolution sources.
+
 The demo uses the actual Visual Wayback UI and the genuine packaged OpenAI and Nvidia captures. Anthropic was removed from the video at Moritz's request because its website was less visually interesting. Its website example remains available. The video is edited for brevity, not a real-time speed benchmark. The archive pages themselves are not fabricated. The opening and closing captures for each company show different archived dates.
 
 ## Sources and narration
