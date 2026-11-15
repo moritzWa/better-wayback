@@ -132,7 +132,7 @@ function connectStream(path, current, attempts = 0) {
       connection.close();
       if (attempts >= 24) { onEvent({ type: 'error', message: 'Rendering paused after repeated retries. Available previews are kept. Search again later.' }); return; }
       // Free-tier rendering advances one capture per connection. Never reconnect in a busy loop.
-      const seconds = Math.max(90, Math.min(3600, Number(event.retryAfter) || 90));
+      const seconds = Math.max(20, Math.min(3600, Number(event.retryAfter) || 90));
       $('status').textContent = `${captures.length} of ${sampled} previews returned. Continuing in ${Math.ceil(seconds)} seconds…`;
       clearTimeout(resumeTimer);
       resumeTimer = setTimeout(() => connectStream(path, current, attempts + 1), seconds * 1000);

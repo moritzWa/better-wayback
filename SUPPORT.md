@@ -52,5 +52,5 @@ configured. Test mail addresses use `example.invalid`. Screenshots are written t
 `artifacts/support/` and must not contain a real address.
 
 The same UI suite checks Cloudflare's one-capture SSE continuation: reconnects
-wait at least 90 seconds, replayed captures are deduplicated, quota failures keep
+honor server cooldowns (at least 20 seconds, 90 seconds when unspecified), replayed captures are deduplicated, quota failures keep
 partial results, and a terminal error never retries automatically.
