@@ -115,7 +115,7 @@ function render() {
   refreshPreviews();
 }
 function compare(before, after) {
-  document.querySelector('.compare-note').textContent = before.textSource === 'html' ? 'Compares text extracted from archived HTML, not rendered pixels. JavaScript-only text can be missing; responsive duplicates are removed.' : 'Text lines are compared, not image pixels. Reflowed text can appear as an edit.';
+  document.querySelector('.compare-note').textContent = before.textSource === 'html' ? 'Compares page text, including collapsed sections, not visual appearance. JavaScript-only text can be missing; responsive duplicates are removed.' : 'Text lines are compared, not image pixels. Reflowed text can appear as an edit.';
   $('compare-title').textContent = `${date(before.timestamp)} → ${date(after.timestamp)}`;
   const container = el('div', 'diff-columns');
   const lines = [before.text.split('\n'), after.text.split('\n')];
