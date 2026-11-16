@@ -38,6 +38,7 @@ try {
       assert.match(await current.locator('img').getAttribute('alt'),/live site captured/);
       assert.match(await page.locator('#sampling-note').innerText(),/not an Internet Archive replay/);
     }
+    assert.doesNotMatch(await page.locator('#sampling-note').textContent(), /A sampled history|Dates show when|New previews load|A selection of archived previews/);
     assert.equal(jobs, 0);
   }
   await page.locator('#settings').evaluate(n => { n.open = true; });

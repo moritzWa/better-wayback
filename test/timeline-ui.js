@@ -1,0 +1,152 @@
+// Deterministic integration fixtures. No external archive traffic or renderer jobs.
+import { chromium } from 'playwright';
+import assert from 'node:assert/strict';
+import { readFile, mkdir } from 'node:fs/promises';
+import { createServer } from 'node:http';
+
+const assets = new Set(['app.js', 'examples.js', 'previews.js', 'previews.css', 'timeline-nav.js', 'timeline-nav.css', 'style.css', 'logo.svg', 'favicon.svg']);
+const server = createServer(async (req, res) => {
+  const path = new URL(req.url, 'http://localhost').pathname;
+  const file = path === '/' ? 'public/index.html' : path === '/group.js' ? 'group.js' : assets.has(path.slice(1)) ? `public${path}` : null;
+  if (!file) { res.writeHead(404); res.end(); return; }
+  res.setHeader('Content-Type', file.endsWith('.js') ? 'text/javascript' : file.endsWith('.css') ? 'text/css' : file.endsWith('.svg') ? 'image/svg+xml' : 'text/html');
+  res.end(await readFile(file));
+});
+await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+const base = `http://127.0.0.1:${server.address().port}`;
+const capture = (year, text = `Version ${year} different words`) => ({ timestamp: `${year}0101000000`, original: 'https://fixture.test/', title: `Fixture ${year}`, text, image: '/fixture.svg', archiveUrl: `https://web.archive.org/web/${year}0101000000/https://fixture.test/` });
+const demo = [capture(2000, 'Same version'), capture(2001, 'Same version'), ...[2004, 2008, 2012, 2016, 2020, 2024].map(y => capture(y))];
+let browser;
+try {
+  browser = await chromium.launch({ headless: true, args: ['--mute-audio'] });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
+  const errors = []; page.on('pageerror', error => errors.push(error.message));
+  let jobs = 0, replays = 0;
+  await page.addInitScript(() => {
+    window.fixtureStreams = [];
+    window.EventSource = class { constructor() { window.fixtureStreams.push(this); } close() { this.closed = true; } };
+    window.emit = (event, index = window.fixtureStreams.length - 1) => window.fixtureStreams[index].onmessage({ data: JSON.stringify(event) });
+  });
+  await page.route('**/api/demos/*', route => route.fulfill({ json: { url: route.request().url().endsWith('amazon') ? 'https://amazon.com/' : 'https://stripe.com/', total: 1000, sampled: demo.length, captures: demo, curated: true } }));
+  await page.route('**/api/jobs', route => { jobs++; return route.fulfill({ json: { id: 'fixture', url: 'https://fixture.test/' } }); });
+  await page.route('**/fixture.svg', route => route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800"><rect width="1280" height="800" fill="#eee"/></svg>' }));
+  await page.route('https://web.archive.org/**', route => { replays++; return route.fulfill({ contentType: 'text/html', body: '<html><body style="height:2000px">Archive replay fixture</body></html>' }); });
+  const emit = event => page.evaluate(event => window.emit(event), event);
+  const points = page.locator('.timeline-nav-points a');
+  const settled = () => page.waitForFunction(() => !document.querySelector('#search-button').disabled);
+  await page.goto(base); await settled();
+  assert.equal(jobs, 0); assert.equal(replays, 0);
+  assert.equal(await page.locator('iframe').count(), 0, 'PNG presets stay instant without iframe DOM/network');
+  assert.equal(await points.count(), 7, 'Changes-only nav excludes grouped capture');
+  assert.equal(await page.locator('.browser-chrome, .card-bottom, .entry-title').count(), 0);
+  await page.locator('#all-view').click();
+  assert.equal(await points.count(), 8);
+  await page.locator('#timeline').evaluate(n => scrollTo(0, n.offsetTop));
+  await page.waitForFunction(() => !document.querySelector('.timeline-nav').hidden);
+  const pageGeometry = await page.locator('.page').boundingBox();
+  const railGeometry = await page.locator('.timeline-nav').boundingBox();
+  assert.ok(railGeometry.x + railGeometry.width < pageGeometry.x, 'Rail does not squeeze/overlap centered page');
+  const beforeUrl = page.url(), beforeHistory = await page.evaluate(() => history.length);
+  await points.last().click();
+  await page.waitForFunction(() => Math.abs(document.querySelector('#timeline').lastElementChild.getBoundingClientRect().top - 24) < 2);
+  await page.waitForFunction(() => document.querySelector('.timeline-nav-points a:last-child').getAttribute('aria-current') === 'location');
+  assert.equal(page.url(), beforeUrl); assert.equal(await page.evaluate(() => history.length), beforeHistory);
+  assert.equal(jobs, 0); assert.equal(replays, 0, 'Jump never activates a manual poster');
+  await page.locator('.timeline-entry').nth(3).evaluate(n => scrollTo(0, n.getBoundingClientRect().top + scrollY - 24));
+  await page.waitForFunction(() => document.querySelector('.timeline-nav-points a:nth-child(4)').hasAttribute('aria-current'));
+  await page.evaluate(() => scrollTo(0, 0));
+  await page.setViewportSize({ width: 1440, height: 500 });
+  await page.waitForFunction(() => document.querySelector('.timeline-nav').hidden);
+  await page.setViewportSize({ width: 1440, height: 900 });
+
+  // New searches cancel old streams and replace, rather than retain, anchors.
+  await page.locator('#url').fill('fixture.test'); await page.locator('#search-form').evaluate(n => n.requestSubmit());
+  await page.waitForFunction(() => window.fixtureStreams.length === 1);
+  const selected = [capture(1999), capture(2002), capture(2007), capture(2018)];
+  await emit({ type: 'index', total: 10, sampled: 4, captures: selected });
+  assert.equal(await points.count(), 4);
+  assert.equal(await page.locator('.timeline-nav-points a[data-state="pending"]').count(), 4);
+  assert.match(await points.first().getAttribute('aria-label'), /Jan 1, 1999.*pending/);
+  await emit({ type: 'capture', capture: selected[0] });
+  await page.locator('#timeline').evaluate(n => scrollTo(0, n.offsetTop));
+  await points.first().focus();
+  await points.first().evaluate(n => { window.savedPoint = n; window.savedCard = document.querySelector('.timeline-entry'); window.savedPoster = window.savedCard.querySelector('img'); window.savedInteract = window.savedCard.querySelector('.preview-interact-button'); });
+  await emit({ type: 'capture', capture: { ...selected[0], text: 'Updated HTML metadata', textSource: 'html' } });
+  assert.equal(await points.first().evaluate(n => n === window.savedPoint && n === document.activeElement), true, 'Metadata updates preserve nav DOM and focus');
+  assert.equal(await page.locator('.timeline-entry').first().evaluate(n => n === window.savedCard && n.querySelector('img') === window.savedPoster && n.querySelector('.preview-interact-button') === window.savedInteract), true);
+  await emit({ type: 'capture', capture: { ...selected[1], error: 'Fixture unavailable' } });
+  assert.match(await points.nth(1).getAttribute('aria-label'), /Jan 1, 2002.*unavailable/);
+  await emit({ type: 'capture', capture: selected[2] });
+  await emit({ type: 'done' });
+  assert.equal(await page.locator('.timeline-nav-points a[data-state="unavailable"]').count(), 2, 'Missing terminal capture remains an honest unavailable point');
+
+  // Every action is in the date row. The original preview button still toggles.
+  const entry = page.locator('.timeline-entry').first();
+  assert.equal(await entry.locator('.entry-meta .preview-interact-button').count(), 1);
+  await entry.locator('.preview-interact-button').click();
+  await entry.locator('iframe').waitFor();
+  assert.equal(await entry.locator('.preview-interact-button').innerText(), 'Done');
+  await entry.locator('.preview-interact-button').click();
+  assert.equal(await entry.locator('.preview-interact-button').innerText(), 'Interact');
+
+  // Mobile picker stays within 320px and scrolls beneath itself.
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.locator('#timeline').evaluate(n => scrollTo(0, n.offsetTop));
+    await page.locator('.timeline-year-picker select').selectOption({ index: 3 });
+    await page.waitForFunction(() => Math.abs(document.querySelector('#timeline').lastElementChild.getBoundingClientRect().top - 76) < 2);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${width}px overflow`);
+    assert.equal(await page.locator('.timeline-nav-points').isVisible(), false);
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.locator('[data-site="amazon.com"]').click(); await settled();
+  assert.equal(await page.locator('.timeline-nav-points a[aria-label*="1999"]').count(), 0, 'New search clears stale anchors');
+  await emit({ type: 'capture', capture: capture(1996) });
+  assert.equal(await page.locator('.timeline-nav-points a[aria-label*="1996"]').count(), 0, 'Cancelled stream cannot repopulate nav');
+  await page.goBack(); await page.waitForFunction(() => window.fixtureStreams.length === 2);
+  assert.equal(await page.locator('#url').inputValue(), 'fixture.test');
+  await emit({ type: 'error', message: 'Fixture stopped' });
+  await page.goForward(); await settled();
+  assert.equal(await page.locator('#url').inputValue(), 'amazon.com');
+
+  // Prove destination priming occurs before a smooth scroll, without moving first.
+  await page.locator('#url').fill('live-fixture.test'); await page.locator('#search-form').evaluate(n => n.requestSubmit());
+  await page.waitForFunction(() => window.fixtureStreams.length === 3);
+  const live = demo.map(c => { const { image, ...rest } = c; return { ...rest, previewUrl: rest.archiveUrl }; });
+  await emit({ type: 'index', total: 8, sampled: 8, captures: live });
+  for (const c of live) await emit({ type: 'capture', capture: c });
+  await emit({ type: 'done' });
+  await page.locator('#timeline').evaluate(n => scrollTo(0, n.offsetTop));
+  await page.waitForFunction(() => [...document.querySelectorAll('iframe')].every(n => n.contentWindow));
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.evaluate(() => { window.originalScroll = window.scrollTo; window.scrollTo = options => { window.jumpOptions = options; window.primedBeforeScroll = Boolean(document.querySelector('#timeline').lastElementChild.querySelector('iframe[src]')); }; });
+  await points.last().click();
+  assert.equal(await page.evaluate(() => window.primedBeforeScroll), true);
+  assert.equal(await page.evaluate(() => window.jumpOptions.behavior), 'smooth');
+  await page.evaluate(() => { window.scrollTo = window.originalScroll; });
+  // A dense short desktop rail must reveal its active point without scrolling
+  // any ancestor (especially the outer document).
+  const dense = Array.from({ length: 24 }, (_, i) => capture(1999 + i));
+  await page.route('**/api/demos/*', route => route.fulfill({ json: { url: 'https://stripe.com/', total: 24, sampled: 24, captures: dense, curated: true } }));
+  await page.locator('[data-site="stripe.com"]').click(); await settled();
+  await page.locator('#all-view').click();
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.setViewportSize({ width: 1440, height: 420 });
+  assert.equal(await points.count(), 24);
+  const outerY = await page.locator('#timeline').evaluate(n => { const last = n.lastElementChild; scrollTo(0, last.getBoundingClientRect().top + scrollY - 24); return scrollY; });
+  await page.waitForFunction(() => document.querySelector('.timeline-nav-points a:last-child').hasAttribute('aria-current'));
+  const activeRail = await page.locator('.timeline-nav-points').evaluate(n => {
+    const rail = n.getBoundingClientRect(), active = n.querySelector('[aria-current]').getBoundingClientRect();
+    return { scrollTop: n.scrollTop, visible: active.top >= rail.top - 1 && active.bottom <= rail.bottom + 1 };
+  });
+  assert.ok(activeRail.scrollTop > 0, 'Dense rail scrolls internally');
+  assert.equal(activeRail.visible, true, 'Last active dot stays visible in short desktop viewport');
+  assert.equal(await page.evaluate(() => scrollY), outerY, 'Rail auto-reveal never moves outer document');
+  await mkdir('test-output', { recursive: true });
+  await page.screenshot({ path: 'test-output/timeline-desktop.png' });
+  assert.deepEqual(errors, []);
+  console.log('PASS: stable visible-card nav, active scroll, far jump + pre-scroll preview priming, grouping, metadata focus/DOM, pending/errors, cancellation, query Back/Forward, 320/390 picker, zero preset iframe/jobs.');
+} finally {
+  await browser?.close();
+  await new Promise(resolve => server.close(resolve));
+}

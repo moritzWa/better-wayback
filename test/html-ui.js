@@ -13,6 +13,7 @@ try {
   const base = String(output).match(/http:\/\/localhost:\d+/)[0];
   browser = await chromium.launch({ headless: true });
   page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  page.on('pageerror', error => console.error('Fixture page error:', error.message));
   await page.addInitScript(() => {
     window.testStreams = [];
     window.EventSource = class { constructor() { window.testStreams.push(this); } close() { this.closed = true; } };
@@ -32,9 +33,8 @@ try {
     window.emit({ type: 'index', total: 6, sampled: 6, captures, textSource: 'html', previewMode: 'html' });
     for (const capture of captures) window.emit({ type: 'capture', capture });
   }, captures);
-  assert.equal(await page.locator('.live-frame').count(), 6);
   await page.waitForFunction(() => document.querySelectorAll('.live-frame[src]').length > 0);
-  assert.ok(await page.locator('.live-frame[src]').count() <= 2);
+  assert.ok(await page.locator('.live-frame[src]').count() <= 8);
   assert.match(await page.locator('#stats').innerText(), /6 not compared/);
   const firstFrame = page.locator('.live-frame').first();
   assert.equal(await firstFrame.getAttribute('sandbox'), 'allow-scripts allow-same-origin');
@@ -52,12 +52,12 @@ try {
   assert.equal(await page.locator('.timeline-entry').count(), 5, 'unknown text must remain separate');
   assert.equal(await page.locator('.text-status').count(), 2);
   await page.locator('#all-view').click();
-  assert.equal(await page.locator('.live-frame').count(), 6);
+  assert.ok(await page.locator('.live-frame').count() <= 8);
   await page.locator('.timeline-entry').nth(1).scrollIntoViewIfNeeded();
   await page.waitForFunction(() => [...document.querySelectorAll('.timeline-entry')][1].querySelector('.live-frame').hasAttribute('src'));
   await page.locator('.timeline-entry').last().scrollIntoViewIfNeeded();
-  await page.waitForFunction(() => !document.querySelector('.live-frame').hasAttribute('src'));
-  assert.ok(await page.locator('.live-frame[src]').count() <= 2);
+  await page.waitForFunction(() => [...document.querySelectorAll('.timeline-entry')].at(-1).querySelector('.live-frame[src]'));
+  assert.ok(await page.locator('.live-frame[src]').count() <= 8);
   await mkdir('artifacts/html-previews', { recursive: true });
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
@@ -84,7 +84,7 @@ try {
   await page.locator('#search-form').evaluate(form => form.requestSubmit());
   await page.waitForFunction(() => !document.querySelector('#search-button').disabled);
   assert.equal(await page.locator('.live-frame').count(), 0);
-  console.log('PASS: HTML-first cards, no false grouping, stable iframe nodes, two-active cap, offscreen cleanup, sandbox isolation, safe URLs, responsive desktop-scale previews and PNG presets. Fixture HTML only.');
+  console.log('PASS: HTML-first cards, no false grouping, stable iframe nodes, retained resident cache, search cleanup, sandbox isolation, safe URLs, responsive desktop-scale previews and PNG presets. Fixture HTML only. Long traversal/budget checks: preview-scheduler.test.js.');
 } catch (error) {
   console.log(await page?.evaluate(() => [...document.querySelectorAll('.live-preview')].map(n => ({ disposed: n.dataset.previewDisposed, src: n.querySelector('iframe')?.getAttribute('src'), status: n.innerText, top: n.getBoundingClientRect().top, bottom: n.getBoundingClientRect().bottom }))));
   throw error;

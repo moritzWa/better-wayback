@@ -10,7 +10,7 @@ const server = createServer(async (req, res) => {
   const path = new URL(req.url, 'http://localhost').pathname;
   const blog = handleBlogRequest(path);
   if (blog) { res.writeHead(blog.status, { 'Content-Type': blog.contentType }); res.end(blog.body); return; }
-  const files = { '/': ['public/index.html', 'text/html'], '/app.js': ['public/app.js', 'text/javascript'], '/examples.js': ['public/examples.js', 'text/javascript'], '/previews.js': ['public/previews.js', 'text/javascript'], '/style.css': ['public/style.css', 'text/css'], '/group.js': ['group.js', 'text/javascript'], '/logo.svg': ['public/logo.svg','image/svg+xml'], '/favicon.svg': ['public/favicon.svg','image/svg+xml'], '/favicon-32.png': ['public/favicon-32.png','image/png'], '/favicon.ico': ['public/favicon.ico','image/x-icon'], '/apple-touch-icon.png': ['public/apple-touch-icon.png','image/png'] };
+  const files = { '/': ['public/index.html', 'text/html'], '/app.js': ['public/app.js', 'text/javascript'], '/examples.js': ['public/examples.js', 'text/javascript'], '/previews.js': ['public/previews.js', 'text/javascript'], '/previews.css': ['public/previews.css', 'text/css'], '/timeline-nav.js': ['public/timeline-nav.js', 'text/javascript'], '/timeline-nav.css': ['public/timeline-nav.css', 'text/css'], '/style.css': ['public/style.css', 'text/css'], '/group.js': ['group.js', 'text/javascript'], '/logo.svg': ['public/logo.svg','image/svg+xml'], '/favicon.svg': ['public/favicon.svg','image/svg+xml'], '/favicon-32.png': ['public/favicon-32.png','image/png'], '/favicon.ico': ['public/favicon.ico','image/x-icon'], '/apple-touch-icon.png': ['public/apple-touch-icon.png','image/png'] };
   if (!files[path]) { res.writeHead(404); res.end(); return; }
   res.writeHead(200, { 'Content-Type': files[path][1] }); res.end(await readFile(files[path][0]));
 });
@@ -47,6 +47,17 @@ try {
   assert.equal(await page.locator('.entry-pending').count(), 8);
   assert.equal(await page.locator('h1').evaluate(n => getComputedStyle(n).fontSize), '44px');
   assert.equal(await page.locator('.page').evaluate(n => getComputedStyle(n).maxWidth), '880px');
+  await page.keyboard.press('Tab');
+  await page.locator('#url').focus();
+  assert.equal(await page.locator('#url').evaluate(n => getComputedStyle(n).outlineStyle), 'none', 'No rectangular input outline');
+  assert.notEqual(await page.locator('.search-box').evaluate(n => getComputedStyle(n).boxShadow), 'none', 'Outer search box preserves visible focus');
+  assert.equal(await page.locator('.search-box').evaluate(n => getComputedStyle(n).borderRadius), '8px');
+  const exampleGaps = await page.locator('.try-links').evaluate(n => {
+    const [label, first, second] = [...n.children].map(child => child.getBoundingClientRect());
+    return { label: first.left - label.right, item: second.left - first.right };
+  });
+  assert.equal(exampleGaps.item, 16, 'Example button gaps stay unchanged');
+  assert.equal(exampleGaps.label, 32, 'Only label-to-examples separation increases');
   const widths = [320, 390, 768, 1440];
   async function snapshots(state) {
     for (const width of widths) {
@@ -61,7 +72,9 @@ try {
   assert.equal(await page.locator('.timeline-entry img').count(), 2);
   assert.equal(await page.locator('#from').getAttribute('placeholder'), '2000');
   assert.equal(await page.locator('#from').inputValue(), '');
-  assert.match(await page.locator('#sampling-note').innerText(), /Cached example/);
+  assert.equal(await page.locator('#sampling-note').isVisible(), false);
+  assert.equal(await page.locator('#sampling-note').textContent(), '', 'Routine cached caveats removed without reserving a paragraph gap');
+  assert.match(await page.locator('#stats').innerText(), /Cached example/);
   for (const preset of ['stripe.com', 'https://www.stripe.com/', 'amazon.com', 'https://www.amazon.com/']) {
     await page.locator('#url').fill(preset);
     await page.getByRole('button', { name: 'Explore history' }).click();
@@ -78,7 +91,8 @@ try {
   assert.equal(await page.locator('.entry-pending').count(), 8, 'Initial lookup reserves requested samples');
   const emit = event => page.evaluate(event => window.emitFixture(event), event);
   await emit({ type: 'index', total: 300, sampled: 4, captures: selected, firstTimestamp: '19980101000000', lastTimestamp: '20260101000000' });
-  assert.doesNotMatch(await page.locator('#sampling-note').innerText(), /Cached example/);
+  assert.equal(await page.locator('#sampling-note').isVisible(), false);
+  assert.equal(await page.locator('#sampling-note').textContent(), '', 'Routine live-result caveats removed');
   assert.equal(await page.locator('#from').inputValue(), '1999', 'Metadata preserves user override');
   assert.equal(await page.locator('.entry-pending').count(), 4);
   await page.getByText('Settings', { exact: true }).click();

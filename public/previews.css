@@ -1,0 +1,11 @@
+/* Flush layers share the enclosing card's clip, without nested radii. */
+.live-preview .live-stage { position: relative; width: 100%; aspect-ratio: 1280 / 800; overflow: hidden; background: var(--code-bg, #f6f6f7); }
+.live-preview .live-frame { position: absolute; inset: 0; width: 1280px; height: 800px; border: 0; transform-origin: top left; pointer-events: none; }
+.live-preview.is-interacting .live-frame { pointer-events: auto; }
+.live-preview .preview-poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.live-preview .preview-interaction-shield { position: absolute; inset: 0; display: block; width: 100%; height: 100%; border: 0; padding: 0; border-radius: 0; background: transparent; cursor: pointer; touch-action: pan-y; }
+.live-preview .preview-interaction-shield[hidden], .live-preview .preview-poster[hidden], .live-preview .live-status[hidden] { display: none; }
+.preview-interact-button { color: inherit; font: inherit; border: 0; background: transparent; padding: 4px 0; cursor: pointer; }
+.preview-interact-button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.preview-interact-button[aria-pressed="true"] { font-weight: 600; }
+.live-preview .live-status { margin: 0; padding: 8px 14px; font-size: 11px; color: var(--gray, #666); background: var(--code-bg, #f6f6f7); }

@@ -1,5 +1,6 @@
 import { groupCaptures, similarity, comparableText } from '/group.js';
-import { livePreview, refreshPreviews, resetPreviews } from '/previews.js';
+import { livePreview, refreshPreviews, resetPreviews, prioritizePreview } from '/previews.js';
+import { timelineNavigation } from '/timeline-nav.js';
 import { exampleForSite } from '/examples.js';
 
 const $ = id => document.getElementById(id);
@@ -8,10 +9,12 @@ let requested = [], indexed = false, generation = 0;
 let resumeTimer;
 let indexLabel;
 const entries = new Map();
+const navigation = timelineNavigation($('timeline'), prioritizePreview);
 const captureKey = capture => `${capture.requestedTimestamp || capture.timestamp}:${capture.original}`;
 const captureOrder = capture => capture.requestedTimestamp || capture.timestamp;
 const date = stamp => new Date(`${stamp.slice(0,4)}-${stamp.slice(4,6)}-${stamp.slice(6,8)}T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 const el = (tag, className, text) => { const n = document.createElement(tag); if (className) n.className = className; if (text !== undefined) n.textContent = text; return n; };
+function samplingNote(text = '') { $('sampling-note').textContent = text; $('sampling-note').hidden = !text; }
 function render() {
   const groups = groupCaptures(captures, Number($('sensitivity').value) / 100);
   const pending = running ? (requested.length ? requested : Array.from({ length: Number($('count').value) }, (_, i) => ({ slot: i, original: $('url').value }))).filter(c => !captures.some(result => captureKey(result) === captureKey(c))) : [];
@@ -25,7 +28,7 @@ function render() {
   $('sensitivity-value').textContent = $('sensitivity').value + '%';
   $('empty-state').hidden = running || visible.length > 0;
   let previous, position = 0;
-  const visibleKeys = new Set();
+  const visibleKeys = new Set(), navItems = [];
   for (const capture of visible) {
     const currentSite = capture.sourceType === 'live';
     const key = capture.timestamp ? captureKey(capture) : `finding-${capture.slot}`;
@@ -34,54 +37,65 @@ function render() {
     if (!entry) {
       entry = el('article', 'timeline-entry');
       entry.dataset.capture = key;
+      entry.id = `capture-${encodeURIComponent(key)}`;
+      const meta = el('div', 'entry-meta'), details = el('div', 'entry-details');
+      details.append(el('div', 'entry-date'), el('div', 'entry-month'), el('div', 'entry-badge'), el('div', 'entry-count'));
+      const actions = el('div', 'card-actions'), button = el('button', 'compare-button', 'Compare text'); button.type = 'button';
+      const open = el('a', 'archive-link'); open.target = '_blank'; open.rel = 'noopener';
+      actions.append(button, open); meta.append(details, actions); entry.append(meta);
       entries.set(key, entry);
     }
-    const meta = el('div', 'entry-meta');
-    meta.append(el('div', 'entry-date', currentSite ? 'Current' : capture.timestamp ? capture.timestamp.slice(0, 4) : 'Finding capture'), el('div', 'entry-month', capture.timestamp ? date(capture.timestamp) : `Sample ${capture.slot + 1}`));
+    const meta = entry.querySelector('.entry-meta'), actions = meta.querySelector('.card-actions');
+    meta.querySelector('.entry-date').textContent = currentSite ? 'Current' : capture.timestamp ? capture.timestamp.slice(0, 4) : 'Finding capture';
+    meta.querySelector('.entry-month').textContent = capture.timestamp ? date(capture.timestamp) : `Sample ${capture.slot + 1}`;
     const difference = comparableText(previous, capture) && !capture.error && !capture.pending ? Math.round((1 - similarity(previous.text, capture.text)) * 100) : null;
     const noDifference = !previous ? 'FIRST SEEN' : (previous.textSource || 'rendered') !== (capture.textSource || 'rendered') ? 'DIFFERENT TEXT SOURCES' : 'NO PREVIOUS TEXT';
-    meta.append(el('div', 'entry-badge', currentSite ? 'LIVE SITE CAPTURE · NOT AN ARCHIVE REPLAY' : capture.pending ? 'PENDING' : capture.error ? 'UNAVAILABLE' : capture.textPending ? 'READING HTML' : capture.comparisonUnavailable || capture.textTruncated ? 'TEXT UNAVAILABLE' : difference === null ? noDifference : `${difference}% TEXT DIFFERENCE`));
-    if (capture.count > 1) meta.append(el('div', 'entry-count', `${capture.count} similar sampled captures\nthrough ${date(capture.lastTimestamp)}`));
+    meta.querySelector('.entry-badge').textContent = currentSite ? 'LIVE SITE CAPTURE · NOT AN ARCHIVE REPLAY' : capture.pending ? 'PENDING' : capture.error ? 'UNAVAILABLE' : capture.textPending ? 'READING HTML' : capture.comparisonUnavailable || capture.textTruncated ? 'TEXT UNAVAILABLE' : difference === null ? noDifference : `${difference}% TEXT DIFFERENCE`;
+    const count = meta.querySelector('.entry-count'); count.hidden = !(capture.count > 1);
+    count.textContent = capture.count > 1 ? `${capture.count} similar sampled captures\nthrough ${date(capture.lastTimestamp)}` : '';
+    // Reserve the same action-row height while a sample is pending.
+    actions.style.visibility = capture.pending || capture.error ? 'hidden' : '';
+    actions.inert = Boolean(capture.pending || capture.error);
+    const open = actions.querySelector('.archive-link'); open.href = capture.archiveUrl || '#'; open.textContent = currentSite ? 'Open current site ↗' : 'Open archive ↗';
     // Only rebuild a preview when its own data changes, never for another SSE result.
     const signature = JSON.stringify([capture.pending, capture.image, capture.previewUrl, capture.error, capture.original, capture.sourceType]);
     let card = entry.querySelector('.entry-card');
     if (!card || entry.dataset.signature !== signature || card.querySelector('[data-preview-disposed]')) {
+      const oldCard = card;
       card = el('div', 'entry-card');
-      const chrome = el('div', 'browser-chrome');
-      chrome.append(el('i'), el('i'), el('i'), el('span', 'browser-url', capture.original.replace(/^https?:\/\//, '')));
-      card.append(chrome);
+      actions.querySelector('.preview-interact-button')?.remove();
       if (capture.pending) {
         entry.setAttribute('aria-busy', 'true');
         const skeleton = el('div', 'entry-pending');
         const lines = el('div', 'skeleton-lines'); lines.setAttribute('aria-hidden', 'true'); lines.append(el('i'), el('i'), el('i'));
         skeleton.append(lines, el('span', '', indexed ? 'Waiting for archived preview…' : 'Looking up archived dates…'));
-        card.append(skeleton, el('div', 'entry-placeholder-bottom', 'Preview pending'));
+        card.append(skeleton);
       } else if (capture.error) {
         entry.removeAttribute('aria-busy');
-        card.append(el('div', 'entry-error', capture.error), el('div', 'entry-placeholder-bottom', 'This capture could not be loaded. Other results are kept.'));
+        card.append(el('div', 'entry-error', capture.error + ' Other results are kept.'));
       }
       else {
         entry.removeAttribute('aria-busy');
-        if (capture.image) {
+        if (capture.image && currentSite) {
           const link = el('a', 'preview-link'); link.href = capture.archiveUrl; link.target = '_blank'; link.rel = 'noopener';
           const image = el('img'); image.src = capture.image; image.alt = `${capture.title || capture.original}, ${currentSite ? 'live site captured' : 'archived'} ${date(capture.timestamp)}`; image.loading = 'lazy'; link.append(image); card.append(link);
-        } else card.append(livePreview(capture, `${capture.title || capture.original}, archived ${date(capture.timestamp)}`));
-        const bottom = el('div', 'card-bottom'); bottom.append(el('span', 'entry-title', capture.title || 'Archived page'));
-        const actions = el('div', 'card-actions');
-        const button = el('button', 'compare-button', 'Compare text'); button.type = 'button'; actions.append(button);
-        const open = el('a', '', currentSite ? 'Open current site ↗' : 'Open archive ↗'); open.href = capture.archiveUrl; open.target = '_blank'; open.rel = 'noopener'; actions.append(open); bottom.append(actions); card.append(bottom);
+        } else {
+          const preview = livePreview(capture, `${capture.title || capture.original}, archived ${date(capture.timestamp)}`, capture.image ? { poster: capture.image, manual: true } : {});
+          card.append(preview);
+          const interact = preview.querySelector('.preview-interact-button');
+          if (interact) actions.insertBefore(interact, open);
+        }
       }
-      entry.replaceChildren(meta, card);
+      if (oldCard) oldCard.replaceWith(card); else entry.append(card);
       entry.dataset.signature = signature;
-    } else entry.querySelector('.entry-meta').replaceWith(meta);
-    const title = card.querySelector('.entry-title'); if (title) title.textContent = capture.title || 'Archived page';
-    for (const link of card.querySelectorAll('.card-actions a, .preview-link')) link.href = capture.archiveUrl;
+    }
+    for (const link of card.querySelectorAll('.preview-link')) link.href = capture.archiveUrl;
     let textStatus = card.querySelector('.text-status');
     if (capture.comparisonUnavailable && !capture.textPending && !capture.error) {
       if (!textStatus) { textStatus = el('p', 'text-status'); card.append(textStatus); }
       textStatus.textContent = capture.textError || (capture.textTruncated ? 'HTML text is too long for a complete comparison.' : 'Little or no text in the archived HTML. JavaScript may supply the visible content.');
     } else textStatus?.remove();
-    const button = card.querySelector('.compare-button');
+    const button = actions.querySelector('.compare-button');
     if (button) {
       const before = previous;
       button.hidden = !comparableText(before, capture);
@@ -91,9 +105,12 @@ function render() {
     // insertBefore only when necessary; existing image nodes stay connected.
     const current = $('timeline').children[position];
     if (current !== entry) $('timeline').insertBefore(entry, current || null);
+    const state = capture.pending ? 'pending' : capture.error ? 'unavailable' : currentSite ? 'current site' : 'archived';
+    navItems.push({ entry, year: currentSite ? 'Now' : capture.timestamp?.slice(0, 4) || '…', label: `${capture.timestamp ? date(capture.timestamp) : `Sample ${capture.slot + 1}`} · ${state}`, state });
     position++;
   }
   for (const entry of [...$('timeline').children]) if (!visibleKeys.has(entry.dataset.capture)) entry.remove();
+  navigation.update(navItems);
   refreshPreviews();
 }
 function compare(before, after) {
@@ -126,7 +143,7 @@ function onEvent(event) {
     if (event.firstTimestamp) $('from').placeholder = event.firstTimestamp.slice(0, 4);
     if (event.lastTimestamp) $('to').placeholder = event.lastTimestamp.slice(0, 4);
     $('status').textContent = `Loading ${sampled} archived previews…`;
-    $('sampling-note').textContent = `A sampled history, not every change.${event.monthly ? ' Dense history: samples are drawn from one candidate per month across the date range.' : ''}${event.textSource === 'html' ? ' New previews load directly from the Internet Archive. Grouping compares archived HTML text, which can miss JavaScript-only content.' : ''} Dates show when a version was archived, not when it launched.`; render();
+    render();
   }
   if (event.type === 'capture') {
     const index = captures.findIndex(c => captureKey(c) === captureKey(event.capture));
@@ -169,11 +186,12 @@ function connectStream(path, current, attempts = 0) {
 function begin() {
   clearTimeout(resumeTimer);
   resetPreviews();
+  navigation.reset();
   generation++; captures = []; requested = []; indexed = false; entries.clear(); $('timeline').replaceChildren(); total = 0; sampled = 0; capped = false; running = true; stream?.close();
   indexLabel = null;
   $('search-button').disabled = true; $('results').hidden = false; $('explainer').hidden = true; $('error').hidden = true; $('progress').hidden = false; $('progress-fill').style.width = '0%'; $('status').textContent = 'Finding archived captures…';
   $('from').placeholder = 'Earliest'; $('to').placeholder = 'Latest';
-  $('sampling-note').textContent = 'A sampled history, not every change. Dates show when a version was archived, not when it launched.';
+  samplingNote();
   $('site-title').textContent = $('url').value; render();
   return generation;
 }
@@ -219,15 +237,16 @@ async function loadDemo(site) {
     const data = await response.json(); if (current !== generation) return;
     if (!response.ok || !data.captures?.length) throw new Error(data.error || 'Cached previews are not available yet. Change the dates or sample size in Settings to request a fresh history.');
     indexed = true; total = data.total; sampled = data.sampled; capped = data.capped; captures = data.captures;
-    indexLabel = data.curated ? 'Curated example' : null;
-    $('sampling-note').textContent = 'Cached example. A selection of archived previews, not every capture or change. Dates show when a page was archived, not when it launched.';
-    if(data.captures.some(c=>c.sourceType==='live')) $('sampling-note').textContent += ' The Current card is a separately labelled live-site capture on the date shown, not an Internet Archive replay.';
+    indexLabel = data.curated ? 'Curated example' : 'Cached example';
+    const notes = [];
+    if (data.captures.some(c => c.sourceType === 'live')) notes.push('The Current card is a separately labelled live-site capture on the date shown, not an Internet Archive replay.');
     $('site-title').textContent = data.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
     const first = data.firstTimestamp || captures[0].timestamp, last = data.lastTimestamp || captures.at(-1).timestamp;
     $('from').placeholder = first.slice(0, 4); $('to').placeholder = last.slice(0, 4);
     const unavailable = Array.isArray(data.unavailable) ? data.unavailable.length : Number(data.unavailable || 0);
-    if (unavailable && data.indexNote && data.curated) $('sampling-note').textContent += ` ${unavailable} other replay attempts were unavailable during curation; the successful captures are shown.`;
+    if (unavailable && data.indexNote && data.curated) notes.push(`${unavailable} other replay attempts were unavailable during curation; the successful captures are shown.`);
     else if (unavailable) { $('error').textContent = `Partial cached history: ${unavailable} preview attempts were unavailable. Showing the successful captures.`; $('error').hidden = false; }
+    samplingNote(notes.join(' '));
     finish();
   } catch (error) { if (current === generation) onEvent({ type: 'error', message: error.message }); }
 }

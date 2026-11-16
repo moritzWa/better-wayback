@@ -30,7 +30,9 @@ try {
   }), undefined, { timeout: 25000 });
   const visibleHeadingMs = Date.now() - start;
   const allMetadataMs = await metadataDone;
-  assert.ok(await page.locator('.live-frame[src]').count() <= 2);
+  const residentLimit = await page.evaluate(() => navigator.connection?.saveData || navigator.deviceMemory <= 4 ? 4 : navigator.deviceMemory ? 8 : 6);
+  assert.ok(await page.locator('.live-frame[src]').count() <= residentLimit);
+  assert.ok(await page.locator('[data-preview-state="loading"]').count() <= 2);
   assert.equal(await page.evaluate(() => document.querySelector('.live-frame[src]').contentDocument), null);
   assert.equal(await page.locator('.live-frame').first().getAttribute('sandbox'), 'allow-scripts allow-same-origin');
   const parentOrigin = await page.evaluate(() => performance.timeOrigin);

@@ -64,7 +64,7 @@ try {
   await sse.route('**/cache/fixture.svg', route => route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800"/>' }));
   await sse.goto(base + '/?url=fixture.invalid');
   await sse.waitForFunction(() => window.connections.length === 1);
-  const capture = year => ({ timestamp: `${year}0101000000`, original: 'https://fixture.invalid/', title: 'Fixture', text: `Page ${year}`, image: '/cache/fixture.svg', archiveUrl: 'https://example.invalid/' });
+  const capture = year => ({ timestamp: `${year}0101000000`, original: 'https://fixture.invalid/', title: 'Fixture', text: `Page ${year}`, image: '/cache/fixture.svg', archiveUrl: `https://web.archive.org/web/${year}0101000000/https://fixture.invalid/` });
   const index = { type: 'index', total: 2, sampled: 2, captures: [capture(2000), capture(2010)] };
   await sse.evaluate(({ index, first }) => { window.emit(index); window.emit({ type: 'capture', capture: first }); window.emit({ type: 'continue', retryAfter: 90 }); }, { index, first: capture(2000) });
   assert.equal(await sse.locator('.entry-pending').count(), 1);

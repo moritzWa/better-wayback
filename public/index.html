@@ -16,6 +16,8 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://visualwayback.com/">
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/previews.css">
+  <link rel="stylesheet" href="/timeline-nav.css">
   <script type="module" src="/app.js"></script>
   <script type="module" src="/support.js"></script>
 </head>
@@ -42,7 +44,7 @@
       <div class="controls-row"><p id="stats" aria-live="polite">Finding captures…</p></div>
       <div id="progress" role="status" aria-live="polite"><span class="spinner"></span><span id="status">Finding archived captures…</span><div class="progress-track"><div id="progress-fill"></div></div></div>
       <div id="error" role="alert" hidden></div>
-      <p id="sampling-note" class="sampling-note">A sampled history, not every change. Dates show when a version was archived, not when it launched.</p>
+      <p id="sampling-note" class="sampling-note" hidden></p>
       <div id="timeline"></div>
       <div id="empty-state" class="empty-state" hidden>No readable captures yet. Try a wider date range or another URL.</div>
     </section>
