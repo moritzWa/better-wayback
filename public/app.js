@@ -35,13 +35,18 @@ function samplingNote(text = '') { $('sampling-note').textContent = text; $('sam
 function render() {
   const groups = groupCaptures(captures, Number($('sensitivity').value) / 100);
   const pending = running ? (requested.length ? requested : Array.from({ length: Number($('count').value) }, (_, i) => ({ slot: i, original: $('url').value }))).filter(c => !captures.some(result => captureKey(result) === captureKey(c))) : [];
-  // Do not collapse slots while captures arrive. Errors always remain visible, even in grouped view.
-  const visible = running ? [...captures, ...pending.map(c => ({ ...c, pending: true }))] : changesOnly ? [...groups, ...captures.filter(c => c.error)] : captures.map(c => ({ ...c, count: 1 }));
+  // Keep pending slots until resolved, but never leave confirmed failures as cards.
+  const usable = captures.filter(c => !c.error);
+  const visible = running ? [...usable, ...pending.map(c => ({ ...c, pending: true }))] : changesOnly ? groups : usable.map(c => ({ ...c, count: 1 }));
   visible.sort((a, b) => (captureOrder(a) || '').localeCompare(captureOrder(b) || '') || (a.slot || 0) - (b.slot || 0));
   const failed = captures.filter(c => c.error).length;
   const knownGroups = groups.filter(c => comparableText(c, c)).length;
   const unCompared = captures.filter(c => !c.error && !comparableText(c, c)).length;
   $('stats').textContent = indexed ? `${indexLabel || (capped ? '1,200+ indexed' : `${total.toLocaleString()} indexed`)} · ${captures.length}/${sampled} sampled · ${knownGroups} text versions${unCompared ? ` · ${unCompared} not compared` : ''}${running ? ` · ${Math.max(0, sampled - captures.length)} pending` : ''}${failed ? ` · ${failed} unavailable` : ''}` : indexFailed ? 'Archive index lookup failed.' : 'Finding archived captures…';
+  if ($('error').dataset.partialResults) {
+    $('error').hidden = !failed;
+    $('error').textContent = `Partial results: ${failed} of ${sampled} sampled captures could not be loaded. Available previews are shown below.`;
+  }
   $('sensitivity-value').textContent = $('sensitivity').value + '%';
   $('empty-state').hidden = running || indexFailed || visible.length > 0;
   let previous, position = 0;
@@ -145,21 +150,21 @@ function compare(before, after) {
 }
 function finish() {
   clearTimeout(resumeTimer);
-  // A truncated stream must not quietly erase unfinished samples.
+  // Account for unfinished samples even though failed cards are omitted.
   for (const capture of requested) if (!captures.some(result => captureKey(result) === captureKey(capture))) captures.push({ ...capture, error: 'No preview returned for this capture. Try again to load it.' });
   for (const capture of captures) if (capture.textPending) { capture.textPending = false; capture.comparisonUnavailable = !capture.text?.trim(); capture.textError = 'HTML lookup did not finish. Preview remains available.'; }
   running = false; $('search-button').disabled = false; $('progress').hidden = true; render();
   if (captures.some(c => !c.error && !c.pending)) analytics.ready();
   else analytics.failed();
   const failed = captures.filter(c => c.error).length;
-  if (failed && $('error').hidden) { $('error').textContent = `Partial results: ${failed} of ${sampled} sampled captures could not be loaded. Available previews are shown below.`; $('error').hidden = false; }
+  if (failed && $('error').hidden) { $('error').dataset.partialResults = 'true'; $('error').textContent = `Partial results: ${failed} of ${sampled} sampled captures could not be loaded. Available previews are shown below.`; $('error').hidden = false; }
 }
 function onEvent(event) {
   if (event.type === 'status') $('status').textContent = event.message;
   if (event.type === 'index') {
     indexed = true; total = event.total; sampled = event.sampled; capped = event.capped;
     if (event.timeSampled) indexLabel = 'Time-sampled index';
-    if (event.indexWarning) { $('error').textContent = event.indexWarning; $('error').hidden = false; }
+    if (event.indexWarning) { delete $('error').dataset.partialResults; $('error').textContent = event.indexWarning; $('error').hidden = false; }
     requested = event.captures || [];
     if (event.firstTimestamp) $('from').placeholder = event.firstTimestamp.slice(0, 4);
     if (event.lastTimestamp) $('to').placeholder = event.lastTimestamp.slice(0, 4);
@@ -176,7 +181,7 @@ function onEvent(event) {
     render();
   }
   if (event.type === 'done') { stream?.close(); finish(); if (screenshotPath) warmScreenshots(screenshotPath, generation); }
-  if (event.type === 'error') { analytics.failed(/quota|allowance|budget|429/i.test(event.message || '')); indexFailed = !indexed; stream?.close(); $('error').textContent = event.message + (Number.isFinite(event.retryAfter) && event.retryAfter > 0 ? ` Try again in ${Math.ceil(event.retryAfter / 60)} minutes.` : ''); $('error').hidden = false; finish(); }
+  if (event.type === 'error') { analytics.failed(/quota|allowance|budget|429/i.test(event.message || '')); indexFailed = !indexed; stream?.close(); delete $('error').dataset.partialResults; $('error').textContent = event.message + (Number.isFinite(event.retryAfter) && event.retryAfter > 0 ? ` Try again in ${Math.ceil(event.retryAfter / 60)} minutes.` : ''); $('error').hidden = false; finish(); }
 }
 function connectStream(path, current, attempts = 0) {
   if (current !== generation || !running) return;
@@ -222,7 +227,9 @@ function warmScreenshots(path, current, attempts = 0) {
       if (index >= 0 && !captures[index].image && !entries.get(captureKey(captures[index]))?.querySelector('.is-interacting')) {
         // Keep HTML comparisons homogeneous. A screenshot is a poster, not a
         // reason to replace comparison text or lose its pending/error status.
-        captures[index] = { ...captures[index], image: event.capture.image, preview: 'image', timestamp: event.capture.timestamp, requestedTimestamp: event.capture.requestedTimestamp || event.capture.timestamp, archiveUrl: event.capture.archiveUrl };
+        captures[index] = captures[index].error
+          ? { ...event.capture, preview: 'image', previewUrl: captures[index].previewUrl || event.capture.archiveUrl, textSource: 'rendered', textPending: false }
+          : { ...captures[index], image: event.capture.image, preview: 'image', timestamp: event.capture.timestamp, requestedTimestamp: event.capture.requestedTimestamp || event.capture.timestamp, archiveUrl: event.capture.archiveUrl };
         render();
       }
     }
@@ -245,6 +252,7 @@ function begin(mode, source) {
   generation++; captures = []; requested = []; indexed = false; entries.clear(); $('timeline').replaceChildren(); total = 0; sampled = 0; capped = false; running = true; stream?.close();
   indexLabel = null;
   $('search-button').disabled = true; $('results').hidden = false; $('explainer').hidden = true; $('error').hidden = true; $('progress').hidden = false; $('progress-fill').style.width = '0%'; $('status').textContent = 'Finding archived captures…';
+  delete $('error').dataset.partialResults;
   $('from').placeholder = 'Earliest'; $('to').placeholder = 'Latest';
   samplingNote();
   $('site-title').textContent = $('url').value; render();

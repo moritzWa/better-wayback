@@ -46,12 +46,16 @@ try {
   assert.equal(popups, 0);
   await firstFrame.evaluate(frame => { window.originalFrame = frame; });
   const ready = captures.map((capture, i) => ({ ...capture, textPending: false, comparisonUnavailable: i >= 4, text: i >= 4 ? '' : i < 2 ? 'The same meaningful archived text for adjacent capture grouping.' : `A different unique archived statement from year ${2000 + i} changes entirely.`, title: 'Updated HTML title', textError: i >= 4 ? 'JavaScript-only content is not available in HTML.' : undefined }));
+  ready[5] = { ...ready[5], replayUnavailable: true, error: 'Incomplete archive capture.' };
   await page.evaluate(ready => { for (const capture of ready) window.emit({ type: 'capture', capture }); }, ready);
+  assert.equal(await page.locator('.timeline-entry').count(), 5, 'Confirmed broken source disappears before the stream finishes');
+  assert.equal(await page.locator('.timeline-entry[data-capture^="2005"]').count(), 0);
   assert.equal(await firstFrame.evaluate(frame => frame === window.originalFrame), true, 'title/text updates must not reload active frames');
   await page.evaluate(() => window.emit({ type: 'done' }));
-  assert.equal(await page.locator('.timeline-entry').count(), 5, 'unknown text must remain separate');
-  assert.equal(await page.locator('.text-status').count(), 2);
+  assert.equal(await page.locator('.timeline-entry').count(), 4, 'unknown text remains separate, failed captures do not');
+  assert.equal(await page.locator('.text-status').count(), 1);
   await page.locator('#all-view').click();
+  assert.equal(await page.locator('.timeline-entry').count(), 5, 'All sampled never resurrects failed captures');
   assert.ok(await page.locator('.live-frame').count() <= 8);
   await page.locator('.timeline-entry').nth(1).scrollIntoViewIfNeeded();
   await page.waitForFunction(() => [...document.querySelectorAll('.timeline-entry')][1].querySelector('.live-frame').hasAttribute('src'));
@@ -107,6 +111,28 @@ try {
   await page.locator('#search-form').evaluate(form => form.requestSubmit());
   await page.waitForFunction(() => !document.querySelector('#search-button').disabled);
   assert.equal(await page.evaluate(() => window.testStreams.at(-1).closed), true);
+  const beforeFailures = await page.evaluate(() => window.testStreams.length);
+  await page.route('**/api/jobs', route => route.fulfill({ json: { id: 'd'.repeat(24), url: 'https://fixture.invalid/', screenshotCache: true } }));
+  await page.locator('#url').fill('fixture.invalid/all-broken');
+  await page.locator('#search-form').evaluate(form => form.requestSubmit());
+  await page.waitForFunction(n => window.testStreams.length === n + 1, beforeFailures);
+  await page.evaluate(captures => {
+    window.emit({ type: 'index', total: 2, sampled: 2, captures: captures.slice(0, 2) });
+    for (const capture of captures.slice(0, 2)) window.emit({ type: 'capture', capture: { ...capture, textPending: false, error: 'Incomplete archive capture.' } });
+    window.emit({ type: 'done' });
+  }, captures);
+  assert.equal(await page.locator('.timeline-entry').count(), 0);
+  assert.equal(await page.locator('.timeline-nav-points a').count(), 0);
+  assert.equal(await page.locator('.live-frame').count(), 0);
+  assert.equal(await page.locator('#empty-state').isVisible(), true);
+  assert.match(await page.locator('#stats').innerText(), /2 unavailable/);
+  await page.waitForFunction(n => window.testStreams.length === n + 2, beforeFailures);
+  await page.evaluate(capture => window.emit({ type: 'capture', capture: { ...capture, textPending: false, textSource: 'rendered', text: 'A genuine later successful rendered capture.', image: '/cache/' + 'c'.repeat(24) + '.png' } }), captures[0]);
+  assert.equal(await page.locator('.timeline-entry').count(), 1, 'A successful screenshot can recover a previously omitted HTML failure');
+  assert.equal(await page.locator('#empty-state').isVisible(), false);
+  assert.match(await page.locator('#stats').innerText(), /1 unavailable/);
+  assert.match(await page.locator('#error').innerText(), /1 of 2/);
+  await page.evaluate(() => window.emit({ type: 'done' }));
   console.log('PASS: HTML-first cards, no false grouping, stable iframe nodes, retained resident cache, search cleanup, sandbox isolation, safe URLs, responsive desktop-scale previews and PNG presets. Fixture HTML only. Long traversal/budget checks: preview-scheduler.test.js.');
 } catch (error) {
   console.log(await page?.evaluate(() => [...document.querySelectorAll('.live-preview')].map(n => ({ disposed: n.dataset.previewDisposed, src: n.querySelector('iframe')?.getAttribute('src'), status: n.innerText, top: n.getBoundingClientRect().top, bottom: n.getBoundingClientRect().bottom }))));

@@ -86,12 +86,13 @@ try {
   await sse.evaluate(({ index, first, second }) => { window.emit(index); window.emit({ type: 'capture', capture: first }); window.emit({ type: 'capture', capture: second }); window.emit({ type: 'done' }); }, { index, first: capture(2000), second: capture(2010) });
   assert.match(await sse.locator('#stats').innerText(), /2\/2 sampled/);
   assert.equal(await sse.locator('.timeline-entry').count(), 2);
-  // Quota errors keep the first preview and visibly label the unfinished capture.
+  // Quota errors keep the first preview and omit the unfinished card.
   await sse.locator('#search-form').evaluate(form => form.requestSubmit());
   await sse.waitForFunction(() => window.connections.length === 5);
   await sse.evaluate(({ index, first }) => { window.emit(index); window.emit({ type: 'capture', capture: first }); window.emit({ type: 'error', message: 'Daily free quota reached.', retryAfter: 600 }); }, { index, first: capture(2000) });
   assert.equal(await sse.locator('.timeline-entry img').count(), 1);
-  assert.equal(await sse.locator('.entry-error').count(), 1);
+  assert.equal(await sse.locator('.entry-error').count(), 0);
+  assert.equal(await sse.locator('.timeline-entry').count(), 1);
   assert.match(await sse.locator('#error').innerText(), /10 minutes/);
   await sse.clock.fastForward(3600000);
   assert.equal(await sse.evaluate(() => window.connections.length), 5);

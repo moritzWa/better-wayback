@@ -87,10 +87,13 @@ try {
   assert.equal(await points.first().evaluate(n => n === window.savedPoint && n === document.activeElement), true, 'Metadata updates preserve nav DOM and focus');
   assert.equal(await page.locator('.timeline-entry').first().evaluate(n => n === window.savedCard && n.querySelector('img') === window.savedPoster && n.querySelector('.preview-interact-button') === window.savedInteract), true);
   await emit({ type: 'capture', capture: { ...selected[1], error: 'Fixture unavailable' } });
-  assert.match(await points.nth(1).getAttribute('aria-label'), /Jan 1, 2002.*unavailable/);
+  assert.equal(await points.count(), 3, 'Confirmed failure leaves the date navigation immediately');
+  assert.equal(await page.locator('.timeline-entry[data-capture^="2002"]').count(), 0);
+  assert.equal(await page.locator('.entry-pending').count(), 2, 'Unresolved captures remain visible');
   await emit({ type: 'capture', capture: selected[2] });
   await emit({ type: 'done' });
-  assert.equal(await page.locator('.timeline-nav-points a[data-state="unavailable"]').count(), 2, 'Missing terminal capture remains an honest unavailable point');
+  assert.equal(await page.locator('.timeline-nav-points a[data-state="unavailable"]').count(), 0);
+  assert.equal(await points.count(), 2, 'Failed and unfinished captures have no date points after completion');
 
   // Every action is in the date row. The original preview button still toggles.
   const entry = page.locator('.timeline-entry').first();
@@ -105,7 +108,7 @@ try {
   for (const width of [320, 390]) {
     await page.setViewportSize({ width, height: 900 });
     await page.locator('#timeline').evaluate(n => scrollTo(0, n.offsetTop));
-    await page.locator('.timeline-year-picker select').selectOption({ index: 3 });
+    await page.locator('.timeline-year-picker select').selectOption({ index: 1 });
     await lastDestinationSettled(76);
     await compactBottom();
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${width}px overflow`);

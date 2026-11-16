@@ -118,14 +118,14 @@ try {
   assert.equal(await page.locator('.timeline-entry').evaluateAll(nodes => nodes.every((n, i) => n === window.originalSlots[i])), true);
   assert.equal(await page.locator('img').last().evaluate(n => n === window.originalPreview), true);
   await snapshots('streaming');
-  // A terminal event without the last result must expose the missing date.
+  // A terminal event without the last result omits its card, not the failure count.
   await emit({ type: 'done' });
-  assert.equal(await page.locator('.timeline-entry').count(), 3);
-  assert.equal(await page.locator('.entry-error').count(), 1);
+  assert.equal(await page.locator('.timeline-entry').count(), 2);
+  assert.equal(await page.locator('.entry-error').count(), 0);
   assert.match(await page.locator('#error').innerText(), /Partial results/);
   assert.match(await page.locator('#stats').innerText(), /2 text versions.*1 unavailable/);
   await page.getByRole('button', { name: 'All sampled', exact: true }).click();
-  assert.equal(await page.locator('.timeline-entry').count(), 4);
+  assert.equal(await page.locator('.timeline-entry').count(), 3);
   await page.getByRole('button', { name: 'Text changes', exact: true }).click();
   assert.equal(await page.locator('img').last().evaluate(n => n === window.originalPreview), true);
   await page.getByText('Settings', { exact: true }).click();

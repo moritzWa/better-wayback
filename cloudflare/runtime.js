@@ -134,7 +134,8 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
       async start(controller) {
         const emit = event => { if (!stopped && !abort.signal.aborted) controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(event)}\n\n`)); };
         const compose = (capture, png, html) => {
-          if (html?.comparisonUnavailable && png) return { ...png, preview: 'image', previewUrl: iframeUrl(capture), textSource: 'rendered', textPending: false, textError: 'HTML comparison unavailable; using cached screenshot text.' };
+          if ((html?.comparisonUnavailable || html?.replayUnavailable) && png) return { ...png, preview: 'image', previewUrl: iframeUrl(capture), textSource: 'rendered', textPending: false, textError: 'HTML comparison unavailable; using cached screenshot text.' };
+          if (html?.replayUnavailable) return { ...capture, requestedTimestamp: capture.timestamp, ...html, error: 'Incomplete archive capture.' };
           return { ...capture, requestedTimestamp: capture.timestamp, archiveUrl: replayUrl(capture.timestamp, capture.original), preview: 'iframe', previewUrl: iframeUrl(capture), text: '', textSource: 'html', comparisonUnavailable: true, ...html, ...(png ? { title: png.title || html?.title, image: png.image, preview: 'image' } : {}) };
         };
         const htmlKey = capture => `html:${HTML_VERSION}:${captureKey(capture)}`;
@@ -188,14 +189,16 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
               if (abort.signal.aborted) return;
               const actualTimestamp = url.match(/\/web\/(\d{14})/)?.[1] || item.capture.timestamp;
               metadata = { ...await extractHtml(html), timestamp: actualTimestamp, archiveUrl: replayUrl(actualTimestamp, item.capture.original), htmlVersion: HTML_VERSION, textSource: 'html', textPending: false, timing: { htmlMs: Date.now() - started } };
-              if (isArchiveErrorPage(metadata.title, metadata.text)) throw new Error('Archived page is an error/interstitial, not usable comparison text.');
-              if (/Your IP address has reached|Rate limit exceeded|Wayback Machine has not archived that URL|This URL has been excluded/i.test(metadata.text)) throw new Error('Archive replay is unavailable.');
+              if (/Your IP address has reached|Rate limit exceeded/i.test(metadata.text)) { const error = new Error('Archive rate limit exceeded.'); error.status = 429; throw error; }
+              if (isArchiveErrorPage(metadata.title, metadata.text) || /Wayback Machine has not archived that URL|This URL has been excluded/i.test(metadata.text)) metadata.replayUnavailable = true;
+              // Broken source is retryable, not a successful long-retention HTML record.
+              if (metadata.replayUnavailable) { ttl = 300; metadata.failureExpiresAt = Date.now() + ttl * 1000; }
               if (new TextEncoder().encode(JSON.stringify(metadata)).byteLength > MAX_JSON) metadata = { htmlVersion: HTML_VERSION, textSource: 'html', textPending: false, text: '', comparisonUnavailable: true, textError: 'HTML text exceeds the comparison limit.' };
             } catch (error) {
               if (abort.signal.aborted) return;
               if (error.status === 429 || error.status === 503 || /rate limit/i.test(error.message)) { terminal = { error: 'The Internet Archive is throttling text lookups. Live previews remain accessible.', retryAfter: 90 }; return; }
               ttl = 300;
-              metadata = { htmlVersion: HTML_VERSION, textSource: 'html', textPending: false, text: '', comparisonUnavailable: true, textError: String(error.message).slice(0, 500), failureExpiresAt: Date.now() + ttl * 1000 };
+              metadata = { htmlVersion: HTML_VERSION, textSource: 'html', textPending: false, text: '', comparisonUnavailable: true, ...([404, 410].includes(error.status) ? { replayUnavailable: true } : {}), textError: String(error.message).slice(0, 500), failureExpiresAt: Date.now() + ttl * 1000 };
             }
             if (abort.signal.aborted || terminal) return;
             metadata = retained(metadata, ttl);
