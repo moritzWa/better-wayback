@@ -121,7 +121,14 @@ export async function renderPage(page, capture, screenshotPath, { readinessTimeo
     const response = await page.goto(replayUrl(capture.timestamp, capture.original), { waitUntil: 'domcontentloaded', timeout: 35000 });
     if (response && response.status() >= 400) throw new Error(`Archive returned HTTP ${response.status()}`);
     const navigationMs = Date.now() - started;
-    await page.addStyleTag({ content: ARCHIVE_CHROME_CSS });
+    // addStyleTag listens for any CSP console error, including unrelated blocked
+    // analytics requests racing this injection. Append our fixed CSS directly;
+    // the document's style policy still applies normally.
+    await page.evaluate(css => {
+      const style = document.createElement('style');
+      style.textContent = css;
+      document.head.append(style);
+    }, ARCHIVE_CHROME_CSS);
     const readiness = await waitForCaptureReady(page, activity, { timeoutMs: readinessTimeoutMs });
     const text = cleanText(await page.locator('body').innerText({ timeout: 5000 }));
     if (/Your IP address has reached|Rate limit exceeded/i.test(text)) throw new Error('Archive rate limit exceeded. Try again later.');

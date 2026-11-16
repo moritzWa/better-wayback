@@ -4,7 +4,11 @@ Visual Wayback uses Workers Free with static assets, a Browser Run binding, one 
 
 ## Current HTML-first mode
 
-`PREVIEW_MODE=html` is the public default. `ENABLE_RENDERING=false` disables new server screenshots. The retained Browser Run binding is for the optional legacy screenshot mode, not normal searches. Cached PNGs keep their existing keys and remain usable.
+`PREVIEW_MODE=html` is the public default. `ENABLE_RENDERING=false` keeps the main timeline stream HTML-first. `ENABLE_SCREENSHOT_CACHE=true` enables a separate optional connected screenshot stream after HTML comparison finishes. Cached PNGs keep their existing keys and remain usable.
+
+The optional `/api/jobs/:id/screenshots` stream uses the existing atomic browser and write reservations, with newest missing captures first. The client attempts at most three batches, closes on quota denial or network error, and cancels on pagehide or a new search. It never blocks HTML previews or overwrites their comparison text with a different text source. No browser work runs after the connected response ends. Screenshots and their metadata expire after seven days. Complete PNG/text pairs are reused across visitors, settings and jobs for the same capture. Cache limits or archive failures can leave some captures as direct replays.
+
+The homepage runs Worker-first so `?url=` links can return server-rendered Open Graph/Twitter metadata. Unfurls read only existing cache or packaged assets. A separate quota-counted `social:<job-id>` pointer keeps the share image discoverable for seven days even after the one-day job expires. Missing image bodies never produce a broken OG image. Invalid queries fall through to static HTML; cold valid queries use the app icon. Existing Slack unfurls may need re-sharing to refresh.
 
 The server streams direct replay links immediately, then extracts text using native HTMLRewriter. It does not execute archived scripts. Each request reads up to eight HTML documents, two concurrently, with a shared 12-second deadline per document including redirects and body download. HTML bodies are capped at 1 MiB; normalized text at 12,000 characters. Redirects remain on timestamped HTTPS web.archive.org replay URLs. Native parser output is cached under `html:html-v1:` keys for seven days; failed lookups expire after five minutes. Screenshot failure markers never block this path.
 
@@ -47,13 +51,15 @@ Set `SUPPORT_EMAIL` and `TURNSTILE_SECRET_KEY` with `wrangler secret put`. `TURN
 
 ## Free limits
 
-Cloudflare publishes 10 browser minutes per day on Workers Free, shared across the account. HTML-first searches and static examples do not consume this allowance. For optional legacy screenshots, the app caps its budget at 540 seconds. A launch reserves 90 seconds for the first capture and 25 seconds for each additional capture, up to eight. The coordinator shrinks batches to the remaining time/write budget. A confirmed browser closure refunds the unused time, retaining elapsed seconds plus a two-second margin. Failed or unconfirmed closures keep the full reservation. Atomic reservations and single-use refund tokens prevent concurrent requests from overspending that budget. Platform limits can still reject requests earlier if other applications use the same account.
+Cloudflare publishes 10 browser minutes per day on Workers Free, shared across the account. HTML comparisons, unfurls and static examples do not consume this allowance. Optional screenshot caching and legacy rendering share the app's 540-second budget. A launch reserves 90 seconds for the first capture and 25 seconds for each additional capture, up to eight. The coordinator shrinks batches to the remaining time/write budget. A confirmed browser closure refunds the unused time, retaining elapsed seconds plus a two-second margin. Failed or unconfirmed closures keep the full reservation. Atomic reservations and single-use refund tokens prevent concurrent requests from overspending that budget. Platform limits can still reject requests earlier if other applications use the same account.
 
 `RENDER_BATCH_SIZE=8` reuses a browser across sequential captures, with a fresh isolated context for each. Each capture still has a 25-second deadline. The whole connected request has a deadline of 25 seconds times its reserved capture count. A timed-out capture closes the browser; later captures resume in a new request. There is no 20-second launch pause within a batch. No work depends on `waitUntil` or a disconnected client.
 
 The app limits new jobs to 100 per UTC day and KV writes to 400 per day. Previews expire after seven days; jobs expire after one day. Unavailable captures get separate one-hour failure markers, remain visible and do not block later dates. These markers never count as successful screenshots. Images are limited to 2 MiB and metadata to 64 KiB. New rendering fails closed without the quota binding. Keep the account on Workers Free; never upgrade it automatically.
 
 ## Verified remotely
+
+On November 16, 2026, the exact shared Inductive URL returned site-specific initial HTML with a genuine cached March 2026 screenshot as its Open Graph image. Four of eight sampled screenshots were cached successfully. A repeat timeline finished with eight cached comparison records and four cached PNG posters in 819 ms. The other four captures still use direct archive replays. Timings, archive limitations and the inspected PNG are recorded in [the shared-search evidence](../test/evidence/inductive-share/README.md). No paid plan or service was provisioned.
 
 For the HTML-first rollout on November 15, 2026, a real Rogo 2026 timeline returned its first replay link 0.46 seconds after connecting to SSE and completed eight HTML comparisons in 7.05 seconds. That excludes the earlier CDX lookup. The test Worker had no Browser Run binding, so those lookups could not launch server browsers.
 

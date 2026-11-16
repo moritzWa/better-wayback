@@ -6,7 +6,7 @@ A visual Wayback Machine timeline that folds consecutive captures with similar t
 
 ## Public hosting
 
-The public site runs on Cloudflare Workers Free. New searches fetch and compare archived HTML on the server while the visitor's browser renders direct Wayback replays. Existing genuine screenshot caches and the packaged examples remain available. Normal public searches no longer launch a server browser or use the Browser Run quota. The app never upgrades the plan or charges visitors.
+The public site runs on Cloudflare Workers Free. New searches fetch and compare archived HTML on the server while the visitor's browser renders direct Wayback replays. After comparisons finish, an optional connected stream saves genuine screenshots within the hard free browser/write limits, newest first. Later visitors reuse those screenshots without loading archive pages until they choose Interact. The app never upgrades the plan or charges visitors.
 
 The edge runtime publishes preview links before HTML comparisons finish. It reads at most two archived HTML pages concurrently, eight per connected request, with one-second continuation between batches. HTML metadata is cached separately for seven days. The browser preloads iframe documents roughly two viewport heights ahead, with at most two loads in flight. Loaded pages stay mounted through ordinary back-and-forth scrolling, with pressure-only eviction at eight resident documents on reported higher-memory devices, four on devices reporting at most 4 GB or Data Saver, and six when memory is unknown. Starting another search or leaving the page cleans them up. Live timelines can be incomplete when the archive is unavailable or the free cache quota is exhausted.
 
@@ -19,6 +19,8 @@ By default, scrolling over a preview moves the outer timeline. Choose **Interact
 Loading replays shimmer with or without a screenshot poster. After 20 seconds, on-screen pages stay mounted and offer **Retry preview**, since slow assets can delay the load event after content has painted. Stalled offscreen loads release their slots. A failed card automatically retries once when it enters the viewport; further retries require a click. Ordinary scrolling and minimap jumps both prioritize visible cards over unrelated offscreen preloads. Retrying a preview does not create another server job. **Text changes** groups page text, including collapsed sections, not visual designs.
 
 Submitted searches update the address bar, for example `/?url=rogo.ai`. Links preserve date/sample settings, reload the same search, and work with Back/Forward. Typing alone does not start archive jobs.
+
+Shared search links serve site-specific Open Graph and Twitter metadata in the initial HTML. Unfurls reuse a genuine cached archive screenshot or a packaged example; an uncached search uses the app icon until a screenshot exists. Crawler requests never contact the target site, query the archive or launch a browser. Slack may retain an earlier unfurl after the site metadata changes.
 
 Deployment, quotas and verification are documented in [the Cloudflare deployment guide](docs/cloudflare-deployment.md). The [support link](SUPPORT.md) reveals a server-held email only after a click and Turnstile verification. This deters simple scraping, not bots that complete the challenge.
 
