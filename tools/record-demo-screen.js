@@ -9,6 +9,8 @@ const hires=resolve('/Users/m/Documents/visual-wayback/demo-video/high-res');
 await mkdir(resolve(root,'frames'),{recursive:true});
 const sources=JSON.parse(await readFile(resolve(hires,'capture.json'),'utf8')).sources;
 sources.push(...JSON.parse(await readFile(resolve('/Users/m/Documents/visual-wayback/demo-video/apple','capture.json'),'utf8')).sources);
+const latest=JSON.parse(await readFile(resolve('/Users/m/Documents/visual-wayback/demo-video/latest','capture.json'),'utf8')).sources;
+sources.push(...latest);
 const browser=await chromium.connectOverCDP(process.env.DEMO_CDP||'http://localhost:19832');
 let context,session,started,error;
 const frames=[],writes=[],scenes=[];
@@ -44,8 +46,14 @@ try{
     if(await page.locator('iframe').count())throw new Error('Archived iframe must not be scrolled or recorded');
   }
   async function position(name,timestamp){
-    const source=sources.find(s=>s.name===name&&s.timestamp===timestamp);
-    return page.locator(`img[src="${source.image}"]`).evaluate(n=>n.closest('.timeline-entry').getBoundingClientRect().top+scrollY-72);
+    return page.locator(`img[src^="/demos/${name}/${timestamp}-"]`).evaluate(n=>n.closest('.timeline-entry').getBoundingClientRect().top+scrollY-72);
+  }
+  async function timestamps(name,from){
+    const result=await page.locator('#timeline img').evaluateAll(images=>images.map(n=>n.getAttribute('src').match(/\/(\d{14})-/)?.[1]).filter(Boolean));
+    const selected=result.filter(t=>!from||t>=from);
+    if(selected.length!==4)throw new Error(`Expected four consecutive ${name} cards, got ${selected.length}`);
+    if(selected.at(-1)!==latest.find(s=>s.name===name)?.timestamp)throw new Error(`${name} does not end at its newest verified capture`);
+    return selected;
   }
   for(const name of ['openai','apple','nvidia'])await ready(name);
   await page.evaluate(()=>scrollTo(0,0));await page.mouse.move(140,1100);await page.waitForTimeout(350);
@@ -77,13 +85,18 @@ try{
       });return trace;
     },{y,ms});
   }
-  let start=elapsed();await page.waitForTimeout(350);
-  let trace=await scroll(await position('nvidia','20130211005742'),2450);await page.waitForTimeout(800);
-  scenes.push({name:'intro',site:'nvidia',start,end:elapsed(),trace,outerPageOnly:true});
-  for(const [name,first,last]of [['openai','20190107133421','20230101012158'],['apple','19990208003341','20120101003100']]){
-    await ready(name);await page.evaluate(y=>scrollTo(0,y),await position(name,first));await page.waitForTimeout(300);
-    start=elapsed();await page.waitForTimeout(600);trace=await scroll(await position(name,last),1800);await page.waitForTimeout(500);
-    scenes.push({name,site:name,start,end:elapsed(),trace,outerPageOnly:true});
+  let start=elapsed();await page.waitForTimeout(250);
+  const introDates=await timestamps('nvidia');let trace=[];
+  for(const timestamp of introDates){trace.push(...await scroll(await position('nvidia',timestamp),540));await page.waitForTimeout(220)}
+  await page.waitForTimeout(300);
+  scenes.push({name:'intro',site:'nvidia',start,end:elapsed(),trace,timestamps:introDates,outerPageOnly:true});
+  for(const name of ['openai','apple']){
+    await ready(name);const dates=await timestamps(name,name==='openai'?'20220101000000':null);
+    await page.evaluate(y=>scrollTo(0,y),await position(name,dates[0]));await page.waitForTimeout(300);
+    start=elapsed();trace=[];await page.waitForTimeout(220);
+    for(const timestamp of dates.slice(1)){trace.push(...await scroll(await position(name,timestamp),640));await page.waitForTimeout(220)}
+    await page.waitForTimeout(150);
+    scenes.push({name,site:name,start,end:elapsed(),trace,timestamps:dates,outerPageOnly:true});
   }
   await session.send('Page.stopScreencast');session.removeAllListeners('Page.screencastFrame');await Promise.all(writes);
   if(error)throw error;
