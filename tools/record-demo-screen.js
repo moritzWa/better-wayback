@@ -93,16 +93,19 @@ try{
   for(const name of ['openai','apple']){
     await ready(name);const dates=await timestamps(name,name==='openai'?'20220101000000':null);
     await page.evaluate(y=>scrollTo(0,y),await position(name,dates[0]));await page.waitForTimeout(300);
-    start=elapsed();trace=[];await page.waitForTimeout(220);
-    for(const timestamp of dates.slice(1)){trace.push(...await scroll(await position(name,timestamp),640));await page.waitForTimeout(220)}
-    await page.waitForTimeout(150);
-    scenes.push({name,site:name,start,end:elapsed(),trace,timestamps:dates,outerPageOnly:true});
+    start=elapsed();trace=[];await page.waitForTimeout(300);let finalSettledAt;
+    for(const timestamp of dates.slice(1)){
+      trace.push(...await scroll(await position(name,timestamp),900));
+      if(timestamp===dates.at(-1))finalSettledAt=elapsed();
+      await page.waitForTimeout(timestamp===dates.at(-1)?1200:200);
+    }
+    scenes.push({name,site:name,start,end:elapsed(),trace,timestamps:dates,endpointHoldSeconds:elapsed()-finalSettledAt,outerPageOnly:true});
   }
   await session.send('Page.stopScreencast');session.removeAllListeners('Page.screencastFrame');await Promise.all(writes);
   if(error)throw error;
   for(const scene of scenes){
     if(scene.trace.some(p=>p.innerScrolled))throw new Error('An inner preview scrolled; only the Visual Wayback page should move.');
-    if(new Set(scene.trace.map(p=>p.outerY)).size<30)throw new Error('Outer page did not scroll continuously.');
+    if(new Set(scene.trace.map(p=>p.outerY)).size<30)throw new Error(`${scene.name}: only ${new Set(scene.trace.map(p=>p.outerY)).size} distinct outer-page scroll positions.`);
     const movingFrames=frames.filter(f=>f.seconds>=scene.start&&f.seconds<=scene.end);
     if(movingFrames.length<24)throw new Error(`Too few live screencast frames for ${scene.name}: ${movingFrames.length}`);
   }

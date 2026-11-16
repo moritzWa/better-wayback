@@ -1,6 +1,6 @@
 """Edit continuous browser footage directly, without sliding, framing or zooming it."""
 import argparse,bisect,json,pathlib,shutil,subprocess
-from PIL import Image
+from PIL import Image,ImageDraw,ImageFont
 
 parser=argparse.ArgumentParser();parser.add_argument('--input',default='/Users/m/Documents/visual-wayback/demo-video/screen-record');parser.add_argument('--overwrite',action='store_true')
 parser.add_argument('--speed',type=float,default=1.25)
@@ -12,7 +12,14 @@ recording=json.loads((root/'recording.json').read_text());assert recording['mode
 assert recording['viewport']==[3840,2160] and all(f['pixels']==[3840,2160] for f in recording['frames'])
 frames=recording['frames'];times=[f['seconds'] for f in frames]
 directory=root/'edit-frames';directory.mkdir(exist_ok=True);selected=[];timeline=[];index=0
-for name,count in [('intro',108),('problem',102),('openai',87),('apple',87),('cta',108)]:
+closing=Image.new('RGB',(3840,2160),'white')
+logo=Image.open(pathlib.Path(__file__).resolve().parents[1]/'public/logo.png').convert('RGBA')
+logo.thumbnail((1900,420),Image.Resampling.LANCZOS);closing.paste(logo,((3840-logo.width)//2,560),logo)
+draw=ImageDraw.Draw(closing)
+draw.text((1920,1120),'visualwayback.com',font=ImageFont.truetype('/System/Library/Fonts/Supplemental/Arial Bold.ttf',150),fill='#252528',anchor='mm')
+draw.text((1920,1510),'Try it out now · Free and open source',font=ImageFont.truetype('/System/Library/Fonts/Supplemental/Arial.ttf',58),fill='#6e6e73',anchor='mm')
+closing_path=root/'branded-closing.jpg';closing.save(closing_path,quality=98,subsampling=0)
+for name,count in [('intro',108),('problem',102),('openai',105),('apple',105),('cta',72)]:
     timeline.append({'name':name,'start':index/30,'duration':count/30})
     scene=next((s for s in recording['scenes'] if s['name']==name),None)
     for i in range(count):
@@ -22,9 +29,9 @@ for name,count in [('intro',108),('problem',102),('openai',87),('apple',87),('ct
             raw=frames[max(0,bisect.bisect_right(times,t)-1)]
             source=root/raw['file'];kind='live-screen'
         else:
-            # Retain the approved Archive-logo problem and URL end card; no UI footage here.
-            offset=108 if name=='problem' else 384
-            source=graphics/'edit-frames'/f'{offset+i:04d}.jpg';kind='graphic'
+            # Retain the approved Archive-logo problem; close on the original product logo.
+            source=graphics/'edit-frames'/f'{108+i:04d}.jpg' if name=='problem' else closing_path
+            kind='graphic'
         assert Image.open(source).size==(3840,2160)
         destination=directory/f'{index:04d}.jpg'
         if destination.is_symlink():destination.unlink()

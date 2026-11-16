@@ -12,12 +12,16 @@ for scene in record['scenes']:
     assert all(p['innerScrolled']==0 for p in scene['trace'])
     assert len(scene['timestamps'])==4
     assert scene['timestamps'][-1]>='20261001000000'
+    if(scene['name']!='intro'):assert scene['endpointHoldSeconds']>=1.15
 assert all(f['pixels']==[3840,2160] for f in record['frames'])
 probe=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration,size:stream=codec_name,codec_type,width,height,nb_frames','-of','json',video],text=True))
 stream=next(s for s in probe['streams'] if s['codec_type']=='video')
 speed=edit.get('speed',1);expected_frames=round(492/speed)
 assert(stream['width'],stream['height'],int(stream['nb_frames']))==(3840,2160,expected_frames)
 assert abs(float(probe['format']['duration'])-expected_frames/30)<.01
+assert next(s for s in edit['baseTimeline'] if s['name']=='openai')['duration']==3.5
+assert next(s for s in edit['baseTimeline'] if s['name']=='apple')['duration']==3.5
+assert next(s for s in edit['baseTimeline'] if s['name']=='cta')['duration']==2.4
 # Frame-level identity: final UI is just encoded browser pixels, not a moved/scaled panel.
 errors={}
 for index in [round(n/speed)for n in [15,76,238,280,315,370]]:

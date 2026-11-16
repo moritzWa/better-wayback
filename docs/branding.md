@@ -13,3 +13,5 @@ The original mark pairs a rewind symbol with a condensed red-and-charcoal wordma
 The website keeps its existing minimal layout and colors. The new logo does not add fonts, trackers or runtime services. Blog CSP allows only self-hosted images so the logo can render without permitting external images or scripts.
 
 To regenerate the assets, install Pillow and fonttools in a local environment, then run `python tools/build-brand.py` through the heavy-job queue. The SVG wordmark uses outlined glyphs. The PNG is drawn from the same licensed font and geometry. Check the mark at 16, 32 and 180 pixels and the full lock-up on white before publishing.
+
+Production checks verified matching asset hashes, working app/blog logos, favicon declarations and no horizontal overflow at 320 pixels. A platform-injected Cloudflare analytics beacon was separately blocked by the strict CSP. It is not required by the branding; no analytics permission was added. The saved live-check report keeps those warnings rather than claiming a completely empty console.
