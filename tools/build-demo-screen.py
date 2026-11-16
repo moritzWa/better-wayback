@@ -9,7 +9,7 @@ recording=json.loads((root/'recording.json').read_text());assert recording['mode
 assert recording['viewport']==[3840,2160] and all(f['pixels']==[3840,2160] for f in recording['frames'])
 frames=recording['frames'];times=[f['seconds'] for f in frames]
 directory=root/'edit-frames';directory.mkdir(exist_ok=True);selected=[];timeline=[];index=0
-for name,count in [('intro',108),('problem',102),('openai',87),('nvidia',87),('cta',108)]:
+for name,count in [('intro',108),('problem',102),('openai',87),('apple',87),('cta',108)]:
     timeline.append({'name':name,'start':index/30,'duration':count/30})
     scene=next((s for s in recording['scenes'] if s['name']==name),None)
     for i in range(count):
@@ -30,7 +30,8 @@ for name,count in [('intro',108),('problem',102),('openai',87),('nvidia',87),('c
 assert index==492
 if output.exists() and not(root/'previous-demo.mp4').exists():shutil.copy2(output,root/'previous-demo.mp4')
 temporary=output.with_name(output.stem+'.rendering.mp4')
-command=['ffmpeg','-hide_banner','-y','-framerate','30','-i',str(directory/'%04d.jpg'),'-i',str(graphics/'voiceover-paced.wav'),'-vf','setsar=1,format=yuv420p','-af','loudnorm=I=-16:TP=-1.5:LRA=11,adelay=80:all=1,apad,atrim=duration=16.4','-frames:v','492','-t','16.4','-c:v','libx264','-preset','fast','-crf','16','-threads','4','-c:a','aac','-b:a','192k','-ar','48000','-ac','2','-movflags','+faststart',str(temporary)]
+clean_audio=root.parent/'apple'/'clean-narration.wav'
+command=['ffmpeg','-hide_banner','-y','-framerate','30','-i',str(directory/'%04d.jpg'),'-i',str(clean_audio),'-vf','setsar=1,format=yuv420p','-frames:v','492','-t','16.4','-c:v','libx264','-preset','fast','-crf','16','-threads','4','-c:a','aac','-b:a','192k','-ar','48000','-ac','2','-movflags','+faststart',str(temporary)]
 run=subprocess.run(command,capture_output=True,text=True,timeout=600);(root/'render.log').write_text(run.stderr)
 if run.returncode:print(run.stderr[-2500:]);raise SystemExit(run.returncode)
 probe=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration,size:stream=codec_name,codec_type,width,height,nb_frames','-of','json',str(temporary)],text=True))

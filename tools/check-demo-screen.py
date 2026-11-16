@@ -6,6 +6,7 @@ root=pathlib.Path('/Users/m/Documents/visual-wayback/demo-video/screen-record')
 record=json.loads((root/'recording.json').read_text());edit=json.loads((root/'edit.json').read_text());video=edit['output']
 assert record['mode']=='continuous-live-CDP-screencast' and edit['noEditingCameraTransforms']
 assert edit['introSite']=='nvidia' and record['scenes'][0]['site']=='nvidia'
+assert {s['name'] for s in record['scenes']}=={'intro','openai','apple'}, 'Do not repeat Nvidia after its opening scene.'
 for scene in record['scenes']:
     assert len(set(p['outerY'] for p in scene['trace']))>=30
     assert all(p['innerScrolled']==0 for p in scene['trace'])

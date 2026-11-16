@@ -8,6 +8,7 @@ const root=resolve(process.env.DEMO_OUTPUT||'/Users/m/Documents/visual-wayback/d
 const hires=resolve('/Users/m/Documents/visual-wayback/demo-video/high-res');
 await mkdir(resolve(root,'frames'),{recursive:true});
 const sources=JSON.parse(await readFile(resolve(hires,'capture.json'),'utf8')).sources;
+sources.push(...JSON.parse(await readFile(resolve('/Users/m/Documents/visual-wayback/demo-video/apple','capture.json'),'utf8')).sources);
 const browser=await chromium.connectOverCDP(process.env.DEMO_CDP||'http://localhost:19832');
 let context,session,started,error;
 const frames=[],writes=[],scenes=[];
@@ -46,7 +47,7 @@ try{
     const source=sources.find(s=>s.name===name&&s.timestamp===timestamp);
     return page.locator(`img[src="${source.image}"]`).evaluate(n=>n.closest('.timeline-entry').getBoundingClientRect().top+scrollY-72);
   }
-  for(const name of ['openai','nvidia'])await ready(name);
+  for(const name of ['openai','apple','nvidia'])await ready(name);
   await page.evaluate(()=>scrollTo(0,0));await page.mouse.move(140,1100);await page.waitForTimeout(350);
   session=await context.newCDPSession(page);
   let first;const firstFrame=new Promise(resolve=>{first=resolve});
@@ -79,7 +80,7 @@ try{
   let start=elapsed();await page.waitForTimeout(350);
   let trace=await scroll(await position('nvidia','20130211005742'),2450);await page.waitForTimeout(800);
   scenes.push({name:'intro',site:'nvidia',start,end:elapsed(),trace,outerPageOnly:true});
-  for(const [name,first,last]of [['openai','20190107133421','20230101012158'],['nvidia','20130211005742','20250101074126']]){
+  for(const [name,first,last]of [['openai','20190107133421','20230101012158'],['apple','19990208003341','20120101003100']]){
     await ready(name);await page.evaluate(y=>scrollTo(0,y),await position(name,first));await page.waitForTimeout(300);
     start=elapsed();await page.waitForTimeout(600);trace=await scroll(await position(name,last),1800);await page.waitForTimeout(500);
     scenes.push({name,site:name,start,end:elapsed(),trace,outerPageOnly:true});
