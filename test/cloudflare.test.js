@@ -4,6 +4,8 @@ import { createRuntime, MAX_IMAGE } from '../cloudflare/runtime.js';
 import { QuotaCoordinator, LIMITS, reserve, release } from '../cloudflare/quota.js';
 import { keyFor, RENDER_VERSION } from '../lib.js';
 import { timelineId } from '../cloudflare/social.js';
+import { searchRetention } from '../cloudflare/cache.js';
+import { DAY, CACHE_LIMITS } from '../cloudflare/cache-policy.js';
 
 class FakeKV {
   values = new Map();
@@ -130,6 +132,70 @@ test('later warm batches cannot replace the latest share screenshot with an olde
   assert.equal(env.CACHE.puts.filter(put => put.key === `social:${id}`).length, 1);
 });
 
+test('repeated successful searches promote existing PNGs without launching a browser or rewriting them every view', async () => {
+  const env = environment(); env.PREVIEW_MODE = 'html'; env.ENABLE_SCREENSHOT_CACHE = 'true';
+  const handle = createRuntime({ fetchArchive: indexFetch, launch: () => assert.fail('Renewal must reuse the existing PNG') });
+  const request = jobRequest({ url: 'example.com', previewMode: 'html' });
+  const { id } = await (await handle(request, env)).json();
+  for (const capture of captures) await save(env, capture);
+  for (let i = 1; i < 30; i++) await handle(jobRequest({ url: 'example.com', previewMode: 'html' }), env);
+  assert.equal(await searchRetention(env, 'https://www.example.com/'), 90 * DAY, 'www and bare host share demand');
+  const warm = new Request(`https://visualwayback.com/api/jobs/${id}/screenshots`);
+  assert.equal((await parse(await handle(warm, env))).at(-1).type, 'done');
+  for (const capture of captures) {
+    const stored = await env.CACHE.get(`capture:${key(capture)}`, 'json');
+    assert.equal(stored.cacheRetentionTtl, 90 * DAY);
+    assert.ok(env.CACHE.puts.some(put => put.key === `image:${key(capture)}` && put.options.expirationTtl === 90 * DAY));
+  }
+  const puts = env.CACHE.puts.length;
+  await parse(await handle(warm, env));
+  assert.equal(env.CACHE.puts.length, puts, 'Frequent visits do not each rewrite images or social pointers');
+  assert.equal(env.CACHE.puts.findLast(put => put.key === `social:${id}`).options.expirationTtl, 90 * DAY);
+});
+
+test('unfurls, image hits and known automated searches do not inflate popularity', async () => {
+  const env = environment(); env.PREVIEW_MODE = 'html';
+  const handle = createRuntime({ fetchArchive: indexFetch });
+  for (let i = 0; i < 35; i++) {
+    const request = jobRequest({ url: 'example.com', previewMode: 'html' });
+    request.headers.set('User-Agent', 'VisualWaybackVerification');
+    await handle(request, env);
+    await handle(new Request('https://visualwayback.com/?url=example.com'), env);
+    await handle(new Request(`https://visualwayback.com/cache/${key(captures[0])}.png`), env);
+  }
+  assert.equal(await searchRetention(env, 'https://example.com/'), 7 * DAY);
+});
+
+test('renewed share pointers retain requested cache identity after an archive timestamp redirect', async () => {
+  const env = environment(); env.PREVIEW_MODE = 'html'; env.ENABLE_SCREENSHOT_CACHE = 'true';
+  const handle = createRuntime({ fetchArchive: indexFetch, launch: () => assert.fail('Already cached') });
+  const { id } = await (await handle(jobRequest({ url: 'example.com', previewMode: 'html' }), env)).json();
+  for (const capture of captures) await save(env, capture);
+  const capture = captures[1];
+  const saved = await env.CACHE.get(`capture:${key(capture)}`, 'json');
+  env.CACHE.values.set(`capture:${key(capture)}`, JSON.stringify({ ...saved, requestedTimestamp: capture.timestamp, timestamp: '20200202000000' }));
+  await parse(await handle(new Request(`https://visualwayback.com/api/jobs/${id}/screenshots`), env));
+  env.CACHE.values.delete(`job:${id}`);
+  env.ASSETS.fetch = async () => new Response('<head></head>');
+  const html = await (await handle(new Request('https://visualwayback.com/?url=example.com'), env)).text();
+  assert.ok(html.includes(`/cache/${key(capture)}.png`));
+  assert.match(html, /archived 2020-02-02/);
+});
+
+test('full storage blocks new renders before browser launch and still serves old cached results', async () => {
+  const env = environment(); env.ENABLE_SCREENSHOT_CACHE = 'true';
+  const handle = createRuntime({ fetchArchive: indexFetch, launch: () => assert.fail('Storage full') });
+  const { id } = await (await handle(jobRequest(), env)).json();
+  await save(env, captures[0]);
+  const original = env.QUOTAS.get;
+  env.QUOTAS.get = name => ({ fetch: (url, init) => url.endsWith('/storage') ? Response.json({ ok: false, error: 'Free cache storage allowance exhausted', retryAfter: DAY }, { status: 429 }) : original(name).fetch(url, init) });
+  const events = await parse(await handle(new Request(`https://visualwayback.com/api/jobs/${id}/screenshots`), env));
+  assert.equal(events.at(-1).type, 'error');
+  assert.match(events.at(-1).message, /storage allowance/);
+  assert.ok(events.some(e => e.type === 'capture' && e.cached && e.capture.image));
+  assert.ok(CACHE_LIMITS.bytes < 1024 ** 3);
+});
+
 test('dense 24-capture jobs cache bounded index across sample sizes without monthly full scans', async () => {
   const env = environment(); env.PREVIEW_MODE = 'html';
   const calls = [];
@@ -180,7 +246,7 @@ test('quota reservations survive reset, serialize launches, and never refund fai
   assert.equal(results.filter(r => r.status === 200).length, 1);
 });
 
-test('all KV writes share an atomic 400/day cap; jobs cap at 100/day', () => {
+test('all KV writes share an atomic 900/day cap; jobs cap at 250/day', () => {
   const now = Date.parse('2026-11-15T12:00:00Z');
   let state;
   for (let i = 0; i < LIMITS.writes; i++) state = reserve(state, 'write', now).state;
@@ -204,7 +270,7 @@ test('batches reserve deadlines and writes atomically, shrink to budget, and ref
   assert.equal(release(closed.state, first.body.token, now + 46000).state, undefined);
   const low = { ...closed.state, browserMs: 430000, nextLaunch: now };
   assert.equal(reserve(low, 'render', now + 50000, 8).body.captures, 1);
-  const fewWrites = { ...closed.state, writes: 396, nextLaunch: now };
+  const fewWrites = { ...closed.state, writes: LIMITS.writes - 4, nextLaunch: now };
   assert.equal(reserve(fewWrites, 'render', now + 50000, 8).body.captures, 2);
 });
 

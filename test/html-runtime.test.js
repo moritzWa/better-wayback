@@ -67,10 +67,10 @@ test('HTML metadata is cached separately and replays without extraction or quota
   assert.equal(first.at(-1).type, 'done');
   assert.equal(fetches, 8);
   assert.ok(first.filter(e => e.capture?.htmlVersion === HTML_VERSION).every(e => e.capture.textSource === 'html'));
-  const writes = env.puts.length, quotas = env.calls.length;
+  const writes = env.puts.length, quotas = env.calls.filter(path => path !== '/site').length;
   const second = await parse(await handle(events(id), env));
   assert.equal(second.filter(e => e.type === 'capture').length, 8);
-  assert.equal(fetches, 8); assert.equal(env.puts.length, writes); assert.equal(env.calls.length, quotas);
+  assert.equal(fetches, 8); assert.equal(env.puts.length, writes); assert.equal(env.calls.filter(path => path !== '/site').length, quotas);
 });
 
 test('cached genuine PNGs stay available and failed screenshot markers never block iframe previews', async () => {
@@ -94,9 +94,9 @@ test('fully photographed timelines retain instant rendered-text comparisons with
     env.values.set(`image:${key(c)}`, new Uint8Array([1]));
   }
   const { id } = await (await handle(request(), env)).json();
-  const quotas = env.calls.length;
+  const quotas = env.calls.filter(path => path !== '/site').length;
   const returned = await parse(await handle(events(id), env));
-  assert.equal(fetched, 0); assert.equal(env.calls.length, quotas);
+  assert.equal(fetched, 0); assert.equal(env.calls.filter(path => path !== '/site').length, quotas);
   assert.equal(returned.at(-1).type, 'done');
   assert.ok(returned.some(e => e.type === 'index' && e.previewMode === 'cached'));
   assert.ok(returned.filter(e => e.type === 'capture' && !e.capture.textPending).every(e => e.capture.textSource === 'rendered' && e.capture.image));

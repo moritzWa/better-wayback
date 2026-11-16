@@ -3,10 +3,11 @@ import { quota } from './quota.js';
 import { HTML_VERSION, MAX_HTML, iframeUrl, archiveHtmlAllowed } from './html.js';
 import { lookupCaptureIndex } from '../archive-index.js';
 import { socialPage, timelineId } from './social.js';
+import { searchRetention, storeCache } from './cache.js';
+import { needsRefresh, retained, DAY } from './cache-policy.js';
 
 export const MAX_IMAGE = 2 * 1024 * 1024;
 const MAX_JSON = 65536;
-const TTL = 7 * 86400;
 const FAILURE_TTL = 3600;
 const json = (status, body) => Response.json(body, { status, headers: { 'Cache-Control': 'no-store', ...(body.retryAfter ? { 'Retry-After': String(body.retryAfter) } : {}) } });
 const captureKey = capture => keyFor(capture.timestamp + capture.original + ':' + RENDER_VERSION);
@@ -48,6 +49,22 @@ async function cached(env, capture, ignoreFailures = false) {
 }
 
 export function createRuntime({ launch, render, extractHtml, fetchArchive = fetch }) {
+  const recordSearch = (request, env, url) => searchRetention(env, url, !/bot|crawler|spider|headless|playwright|visualwaybackverification/i.test(request.headers.get('User-Agent') || ''));
+  async function refreshCapture(env, capture, saved, ttl) {
+    if (!saved.image || !needsRefresh(saved, ttl)) return saved;
+    const key = captureKey(capture), png = await env.CACHE.get(`image:${key}`, 'arrayBuffer');
+    if (!png) return saved;
+    const renewed = retained(saved, ttl);
+    const stored = await storeCache(env, [[`image:${key}`, png], [`capture:${key}`, JSON.stringify(renewed)]], ttl, 2);
+    return stored.ok ? renewed : saved;
+  }
+  async function rememberShare(env, id, capture, ttl) {
+    if (!capture) return;
+    const reference = { timestamp: capture.requestedTimestamp || capture.timestamp, original: capture.original };
+    const previous = await env.CACHE.get(`social:${id}`, 'json');
+    if (previous && (previous.timestamp > reference.timestamp || (previous.timestamp === reference.timestamp && !needsRefresh(previous, ttl)))) return;
+    await storeCache(env, [[`social:${id}`, JSON.stringify(retained(reference, ttl))]], ttl, 1);
+  }
   async function createJob(request, env) {
     if (request.headers.get('origin') && request.headers.get('origin') !== new URL(request.url).origin) return json(403, { error: 'Cross-origin requests are not allowed.' });
     let input, url;
@@ -60,7 +77,10 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
     const id = timelineId(url, from, to, count, env.PREVIEW_MODE === 'html');
     if (!env.CACHE) return json(503, { error: 'Archive cache is not configured. Packaged examples still work.' });
     const screenshotCache = env.ENABLE_SCREENSHOT_CACHE === 'true';
-    if (await env.CACHE.get(`job:${id}`)) return json(200, { id, url, screenshotCache });
+    if (await env.CACHE.get(`job:${id}`)) {
+      await recordSearch(request, env, url);
+      return json(200, { id, url, screenshotCache });
+    }
     const allowance = await quota(env, 'job');
     if (!allowance.ok) return json(429, allowance);
     try {
@@ -86,7 +106,7 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
         const encodedIndex = JSON.stringify({ rows, metadata: { indexTotal: total, indexCapped: capped, indexSampled: rows.indexSampled } });
         if (new TextEncoder().encode(encodedIndex).byteLength <= 512 * 1024) {
           const write = await quota(env, 'write');
-          if (write.ok) await env.CACHE.put(indexKey, encodedIndex, { expirationTtl: 86400 });
+          if (write.ok) await storeCache(env, [[indexKey, encodedIndex]], DAY);
         }
       }
       const captures = selectCaptures(rows, count);
@@ -94,7 +114,9 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
       const job = { url, captures, index: { type: 'index', total, capped, timeSampled: Boolean(rows.indexSampled), indexWarning: rows.indexWarning || '', sampled: captures.length, captures, firstTimestamp: rows[0]?.timestamp, lastTimestamp: rows.at(-1)?.timestamp } };
       const encoded = JSON.stringify(job);
       if (new TextEncoder().encode(encoded).byteLength > MAX_JSON) return json(413, { error: 'Timeline exceeds the free runtime size limit.' });
-      await env.CACHE.put(`job:${id}`, encoded, { expirationTtl: rows.indexWarning ? 300 : 86400 });
+      const stored = await storeCache(env, [[`job:${id}`, encoded]], rows.indexWarning ? 300 : DAY);
+      if (!stored.ok) return json(429, { error: stored.error, retryAfter: stored.retryAfter || DAY });
+      await recordSearch(request, env, url);
       return json(202, { id, url, screenshotCache });
     } catch (error) { return json(502, { error: error.name === 'TimeoutError' ? 'The Internet Archive index is responding too slowly. Retry later; this is not evidence that the page has no captures.' : error.message, retryAfter: 60 }); }
   }
@@ -102,6 +124,7 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
   async function htmlEvents(request, env, id) {
     const job = await env.CACHE?.get(`job:${id}`, 'json');
     if (!job) return json(404, { error: 'Timeline expired. Search again; cached previews are kept.' });
+    const retentionTtl = await searchRetention(env, job.url);
     const abort = new AbortController();
     const onAbort = () => abort.abort();
     request.signal.addEventListener('abort', onAbort, { once: true });
@@ -120,8 +143,12 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
           emit({ ...job.index, textSource: 'html', previewMode: 'html' });
           const items = await Promise.all(job.captures.map(async capture => {
             const [png, saved] = await Promise.all([cached(env, capture, true), env.CACHE.get(htmlKey(capture), 'json')]);
-            const html = saved?.htmlVersion === HTML_VERSION && typeof saved.text === 'string' && (!saved.failureExpiresAt || saved.failureExpiresAt > Date.now()) ? saved : null;
+            let html = saved?.htmlVersion === HTML_VERSION && typeof saved.text === 'string' && (!saved.failureExpiresAt || saved.failureExpiresAt > Date.now()) ? saved : null;
             emit({ type: 'capture', capture: html ? compose(capture, png, html) : { ...compose(capture, png), ...(png ? { text: png.text, textSource: 'rendered', comparisonUnavailable: false } : {}), textPending: true }, cached: Boolean(png || html), completed: ++completed });
+            if (html && !html.failureExpiresAt && needsRefresh(html, retentionTtl)) {
+              const renewed = retained(html, retentionTtl);
+              if ((await storeCache(env, [[htmlKey(capture), JSON.stringify(renewed)]], retentionTtl, 1)).ok) html = renewed;
+            }
             return { capture, png, html };
           }));
           // A fully photographed timeline already has one consistent text source.
@@ -141,7 +168,7 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
           const read = async item => {
             const allowance = await quota(env, 'write');
             if (!allowance.ok) { terminal = allowance; return; }
-            let metadata, ttl = TTL;
+            let metadata, ttl = retentionTtl;
             try {
               const started = Date.now();
               const signal = AbortSignal.any([abort.signal, AbortSignal.timeout(12000)]);
@@ -171,7 +198,8 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
               metadata = { htmlVersion: HTML_VERSION, textSource: 'html', textPending: false, text: '', comparisonUnavailable: true, textError: String(error.message).slice(0, 500), failureExpiresAt: Date.now() + ttl * 1000 };
             }
             if (abort.signal.aborted || terminal) return;
-            await env.CACHE.put(htmlKey(item.capture), JSON.stringify(metadata), { expirationTtl: ttl });
+            metadata = retained(metadata, ttl);
+            await storeCache(env, [[htmlKey(item.capture), JSON.stringify(metadata)]], ttl);
             emit({ type: 'capture', capture: compose(item.capture, item.png, metadata), cached: false, completed });
           };
           await Promise.all(Array.from({ length: 2 }, async () => {
@@ -193,6 +221,7 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
   async function events(request, env, id, warming = false) {
     const job = await env.CACHE?.get(`job:${id}`, 'json');
     if (!job) return json(404, { error: 'Timeline expired. Search again; cached captures are kept.' });
+    const retentionTtl = await searchRetention(env, job.url);
     let browser, cancelled = false, reservationToken, closeConfirmed = false;
     const close = async () => {
       const owned = browser;
@@ -219,7 +248,7 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
         const saveFailure = async capture => {
           const failed = { ...capture, requestedTimestamp: capture.timestamp, archiveUrl: replayUrl(capture.timestamp, capture.original), error: String(capture.failureMessage).slice(0, 1000), renderVersion: RENDER_VERSION, failureExpiresAt: Date.now() + FAILURE_TTL * 1000 };
           delete failed.failureMessage;
-          await env.CACHE.put(`failure:${captureKey(capture)}`, JSON.stringify(failed), { expirationTtl: FAILURE_TTL });
+          await storeCache(env, [[`failure:${captureKey(capture)}`, JSON.stringify(failed)]], FAILURE_TTL);
           emit({ type: 'capture', capture: failed, cached: false, completed: ++completed });
         };
         const platformFailure = error => error.status === 429 || /\b(?:429|503)\b|rate limit|cooling|browser.*limit|browser.*closed|Target.*closed/i.test(error.message);
@@ -227,15 +256,22 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
           emit(job.index);
           const cachedCaptures = await Promise.all(job.captures.map(capture => cached(env, capture)));
           for (let i = 0; i < job.captures.length; i++) {
-            const capture = job.captures[i], saved = cachedCaptures[i];
-            if (saved) emit({ type: 'capture', capture: saved, cached: true, completed: ++completed });
+            const capture = job.captures[i];
+            let saved = cachedCaptures[i];
+            if (saved) {
+              emit({ type: 'capture', capture: saved, cached: true, completed: ++completed });
+              if (warming) saved = await refreshCapture(env, capture, saved, retentionTtl);
+            }
             else missing.push(capture);
           }
+          if (warming) await rememberShare(env, id, cachedCaptures.filter(c => c?.image).sort((a, b) => (b.requestedTimestamp || b.timestamp).localeCompare(a.requestedTimestamp || a.timestamp))[0], retentionTtl);
           if (!missing.length) { emit({ type: 'done' }); return; }
           // Warm the newest capture first so a shared search gets an image early.
           if (warming) missing.reverse();
           // Missing captures remain in the index, not silently hidden by grouping.
           if (env.ENABLE_RENDERING !== 'true' || !env.BROWSER) { emit({ type: 'error', message: 'New rendering is disabled. Cached previews and packaged examples remain available.' }); return; }
+          const capacity = await quota(env, 'storage', { bytes: MAX_IMAGE + MAX_JSON, ttl: retentionTtl, check: true });
+          if (!capacity.ok) { emit({ type: 'error', message: capacity.error, retryAfter: capacity.retryAfter }); return; }
           const requestedBatch = Math.max(1, Math.min(8, Number(env.RENDER_BATCH_SIZE) || 1));
           const allowance = await quota(env, 'render', { count: Math.min(requestedBatch, missing.length) });
           if (!allowance.ok) { emit({ type: 'error', message: allowance.error, retryAfter: allowance.retryAfter }); return; }
@@ -270,18 +306,14 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
               const { png, ...metadata } = result;
               if (!png || png.byteLength > MAX_IMAGE) throw new Error('Screenshot exceeds the 2 MiB free cache limit.');
               const key = captureKey(capture);
-              const saved = { ...metadata, text: metadata.text.slice(0, 48000), image: `/cache/${key}.png`, renderVersion: RENDER_VERSION };
+              const saved = retained({ ...metadata, text: metadata.text.slice(0, 48000), image: `/cache/${key}.png`, renderVersion: RENDER_VERSION }, retentionTtl);
               const encoded = JSON.stringify(saved);
               if (new TextEncoder().encode(encoded).byteLength > MAX_JSON) throw new Error('Capture metadata exceeds the free cache limit.');
-              await env.CACHE.put(`image:${key}`, png, { expirationTtl: TTL });
-              await env.CACHE.put(`capture:${key}`, encoded, { expirationTtl: TTL });
+              const stored = await storeCache(env, [[`image:${key}`, png], [`capture:${key}`, encoded]], retentionTtl);
+              if (!stored.ok) throw new Error(stored.error);
               if (warming && !socialSaved) {
                 socialSaved = true;
-                const previous = await env.CACHE.get(`social:${id}`, 'json');
-                if (!previous || previous.timestamp <= capture.timestamp) {
-                  const write = await quota(env, 'write');
-                  if (write.ok) await env.CACHE.put(`social:${id}`, JSON.stringify(capture), { expirationTtl: TTL });
-                }
+                await rememberShare(env, id, capture, retentionTtl);
               }
               if (cancelled || attemptFinished) return;
               emit({ type: 'capture', capture: saved, cached: false, completed: ++completed });
