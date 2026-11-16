@@ -1,4 +1,4 @@
-export const HTML_VERSION = 'html-v1';
+export const HTML_VERSION = 'html-v2';
 export const MAX_HTML = 1024 * 1024;
 
 export function decodeEntities(text) {
@@ -20,18 +20,33 @@ export function normalizeHtmlText(input) {
   return { text: text.slice(0, 12000), textTruncated: text.length > 12000 };
 }
 
+// Look only for a script swallowed by EOF, not arbitrary malformed legacy HTML.
+// A closed JavaScript-only shell can still render and must not be rejected.
+export function hasUnterminatedScript(html) {
+  const tokens = /<!--[\s\S]*?(?:-->|$)|<script\b[^>]*>[\s\S]*?(?:<\/script\s*>|$)/gi;
+  for (const [token] of html.matchAll(tokens)) {
+    if (/^<script\b/i.test(token) && !/<\/script\s*>$/i.test(token)) return true;
+  }
+  return false;
+}
+
 // Cloudflare's native streaming parser. Archived scripts are removed, never run.
 export async function extractHtml(html) {
-  let title = '', text = '';
+  let title = '', text = '', bodyElements = 0, mediaElements = 0;
   const source = new HTMLRewriter()
     .on('title', { text(chunk) { if (title.length < 1000) title += chunk.text; } })
+    .on('img,picture,svg,video,canvas,iframe,object,embed', { element() { mediaElements++; } })
     .on('script,style,noscript,template,svg,[hidden],[aria-hidden="true"],#wm-ipp-base,#donato', { element(e) { e.remove(); } })
     .on('h1,h2,h3,h4,h5,h6,p,div,section,article,li,button,nav,header,footer', { element(e) { e.onEndTag(end => end.after('\n')); } })
     .on('br', { element(e) { e.after('\n'); } })
     .transform(new Response(html));
-  await new HTMLRewriter().on('body', { text(chunk) { text += chunk.text; } }).transform(source).text();
+  await new HTMLRewriter()
+    .on('body', { text(chunk) { text += chunk.text; } })
+    .on('body *', { element() { bodyElements++; } })
+    .transform(source).text();
   const normalized = normalizeHtmlText(text);
-  return { ...normalized, title: decodeEntities(title).replace(/\s+/g, ' ').trim().slice(0, 300), comparisonUnavailable: normalized.text.length < 40 || normalized.textTruncated };
+  const replayUnavailable = !normalized.text && !bodyElements && !mediaElements && hasUnterminatedScript(html);
+  return { ...normalized, title: decodeEntities(title).replace(/\s+/g, ' ').trim().slice(0, 300), comparisonUnavailable: normalized.text.length < 40 || normalized.textTruncated, ...(replayUnavailable ? { replayUnavailable: true } : {}) };
 }
 
 export function iframeUrl(capture) {

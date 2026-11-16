@@ -73,6 +73,50 @@ test('HTML metadata is cached separately and replays without extraction or quota
   assert.equal(fetches, 8); assert.equal(env.puts.length, writes); assert.equal(env.calls.filter(path => path !== '/site').length, quotas);
 });
 
+test('confirmed broken HTML becomes a short-lived failure, including on cached replay', async () => {
+  const env = environment(); let fetched = 0;
+  const handle = runtime(async () => { fetched++; return source(); }, async () => ({ title: '', text: '', comparisonUnavailable: true, replayUnavailable: true }));
+  const { id } = await (await handle(request(), env)).json();
+  const first = await parse(await handle(events(id), env));
+  const failed = first.filter(e => e.capture?.error);
+  assert.equal(failed.length, 8);
+  assert.ok(failed.every(e => e.capture.replayUnavailable && !e.capture.textPending));
+  assert.ok(env.puts.filter(p => p.key.startsWith('html:')).every(p => p.options.expirationTtl === 300));
+  const second = await parse(await handle(events(id), env));
+  assert.equal(second.filter(e => e.capture?.error).length, 8);
+  assert.equal(fetched, 8, 'Cached broken HTML is not refetched until its short failure TTL expires');
+});
+
+test('a valid cached screenshot survives broken HTML and sparse HTML alone is not a failure', async () => {
+  const env = environment(), capture = captures[0];
+  env.values.set(`capture:${key(capture)}`, JSON.stringify({ ...capture, text: 'Existing rendered text', image: `/cache/${key(capture)}.png`, renderVersion: RENDER_VERSION }));
+  env.values.set(`image:${key(capture)}`, new Uint8Array([1]));
+  const handle = runtime(undefined, async () => ({ text: '', comparisonUnavailable: true, replayUnavailable: true }));
+  const { id } = await (await handle(request(), env)).json();
+  const returned = await parse(await handle(events(id), env));
+  assert.ok(returned.filter(e => e.capture?.requestedTimestamp === capture.timestamp).every(e => e.capture.image && !e.capture.error));
+  const sparseEnv = environment(), sparse = runtime(undefined, async () => ({ text: '', comparisonUnavailable: true }));
+  const job = await (await sparse(request(), sparseEnv)).json();
+  assert.ok(!(await parse(await sparse(events(job.id), sparseEnv))).some(e => e.capture?.error));
+});
+
+test('confirmed missing replays and archived crash pages fail, but HTTP 200 throttling stays global', async () => {
+  for (const status of [404, 410]) {
+    const env = environment(), handle = runtime(async () => new Response('Missing', { status }));
+    const { id } = await (await handle(request(), env)).json();
+    assert.equal((await parse(await handle(events(id), env))).filter(e => e.capture?.error).length, 8);
+  }
+  const env = environment(), handle = runtime(undefined, async () => ({ title: 'Application error', text: 'Application error: a client-side exception has occurred', comparisonUnavailable: false }));
+  const { id } = await (await handle(request(), env)).json();
+  assert.equal((await parse(await handle(events(id), env))).filter(e => e.capture?.error).length, 8);
+  const throttledEnv = environment(), throttled = runtime(undefined, async () => ({ title: '', text: 'Your IP address has reached the rate limit.', comparisonUnavailable: false }));
+  const job = await (await throttled(request(), throttledEnv)).json();
+  const result = await parse(await throttled(events(job.id), throttledEnv));
+  assert.equal(result.at(-1).type, 'error');
+  assert.ok(!result.some(e => e.capture?.error));
+  assert.ok(!throttledEnv.puts.some(p => p.key.startsWith('html:')));
+});
+
 test('cached genuine PNGs stay available and failed screenshot markers never block iframe previews', async () => {
   const env = environment(), capture = captures[0];
   env.values.set(`capture:${key(capture)}`, JSON.stringify({ ...capture, text: 'Existing rendered text', title: 'Existing title', image: `/cache/${key(capture)}.png`, renderVersion: RENDER_VERSION }));

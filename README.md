@@ -53,8 +53,8 @@ Apple's `Current` card is a genuine live-site screenshot on the displayed captur
 - Two concurrent renders, 24-hour CDX cache, cached previews first, stable chronological preview DOM.
 - Readiness checks for delayed CSS/JavaScript reveals, fonts, visible images and stable content. Animations are not cancelled before screenshots.
 - Changes-only/all-sampled views and before/after text comparison.
-- Mobile layout, explicit partial-history warnings, and failed captures visible in both timeline views.
-- Pending capture skeletons and unavailable cards remain visible while a search runs, including in the grouped view. Grouping, sample count and automatic date bounds live in Settings.
+- Mobile layout and concise partial-history counts. Confirmed failed captures are omitted from both timeline views and date navigation.
+- Pending capture skeletons remain visible until resolved, including in the grouped view. Empty truncated-script captures are rejected; sparse or JavaScript-only HTML is not rejected for low text alone. Grouping, sample count and automatic date bounds live in Settings.
 - The optional server screenshot renderer restricts traffic to HTTPS web.archive.org and blocks WebSockets, with Chromium's OS sandbox and separate contexts. Live client iframes are cross-origin and sandboxed, with no forms, popups, downloads or top navigation. The app never uses srcdoc or serves archived scripts on its own origin. The archive's own policy governs iframe subresource traffic; it is not the server renderer's stricter network sandbox.
 - Minimal design matching agent-view.app, plus a static blog with researched alternatives and history articles, source notes, metadata, JSON-LD, sitemap and robots routes.
 
