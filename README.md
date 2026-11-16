@@ -54,7 +54,7 @@ Apple's `Current` card is a genuine live-site screenshot on the displayed captur
 
 ## Limits
 
-This is a **sampled** history, not a claim to find every change. Initial CDX lookup is capped at 1,200 digest-distinct entries. If that cap is hit, a second query gets one candidate per month across the requested span, so recent years aren't lost. The UI identifies this fallback and shows the indexed count as a lower bound. A later version should paginate the complete index and adaptively sample around transitions.
+This is a **sampled** history, not a claim to find every change. Initial CDX lookup is capped at 1,200 digest-distinct entries. If that cap is hit or the query times out, bounded date-window queries and CDX's indexed fast-latest lookup cover the requested span without a slow full-history monthly-collapse scan. At most two archive queries run concurrently, with a 10-second per-query and 55-second overall deadline. The UI identifies a time-sampled index instead of inventing a full capture count; individual timed-out windows keep available results with a partial-index warning. Complete fallback indexes are cached for a day across sample sizes. Similarity changes stay local, reuse bounded text-comparison caches and render at most once per animation frame. They never restart the index search.
 
 Grouping compares rendered text, not layout or image pixels. A redesign with unchanged text can be folded. Similarity uses word-trigram overlap, not semantic understanding. Clock times and whitespace are normalized, but dates, ads, ordering, and minor dynamic text can still produce false changes. Comparison highlights lines absent from the other version; it is not a sequence-aligned diff.
 

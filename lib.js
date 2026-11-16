@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { lookupCaptureIndex } from './archive-index.js';
 export { cleanText, similarity, groupCaptures } from './group.js';
 
 // Shared by screenshot AND completed-job keys. Old black previews cannot leak through either cache.
@@ -15,13 +16,14 @@ export function selectCaptures(rows, count = 8) {
   const sorted = [...rows].sort((a, b) => a.timestamp.localeCompare(b.timestamp));
   if (sorted.length <= count) return sorted;
   if (count <= 1) return sorted.slice(0, 1);
-  const first = captureTime(sorted[0].timestamp), span = captureTime(sorted.at(-1).timestamp) - first;
+  const times = sorted.map(row => captureTime(row.timestamp));
+  const first = times[0], span = times.at(-1) - first;
   const chosen = [0];
   for (let i = 1; i < count - 1; i++) {
     const target = first + span * i / (count - 1);
     let best = chosen.at(-1) + 1;
     const end = sorted.length - (count - i);
-    for (let j = best + 1; j <= end; j++) if (Math.abs(captureTime(sorted[j].timestamp) - target) < Math.abs(captureTime(sorted[best].timestamp) - target)) best = j;
+    for (let j = best + 1; j <= end; j++) if (Math.abs(times[j] - target) < Math.abs(times[best] - target)) best = j;
     chosen.push(best);
   }
   chosen.push(sorted.length - 1);
@@ -50,33 +52,24 @@ export async function fetchCaptures(url, from, to, { cacheDir, maxAgeMs = 864000
     try {
       const saved = JSON.parse(await readFile(cachePath, 'utf8'));
       if (Date.now() - saved.savedAt < maxAgeMs && Array.isArray(saved.rows)) {
-        return Object.assign(saved.rows, { indexTotal: saved.indexTotal, indexCapped: saved.indexCapped });
+        return Object.assign(saved.rows, saved.metadata || { indexTotal: saved.indexTotal, indexCapped: saved.indexCapped });
       }
     } catch {}
   }
-  const params = new URLSearchParams({ url, output: 'json', filter: 'statuscode:200', collapse: 'digest', fl: 'timestamp,original,digest', limit: '1200' });
-  if (from) params.set('from', from);
-  if (to) params.set('to', to);
-  const request = async () => {
-    const response = await fetch(`https://web.archive.org/cdx/search/cdx?${params}`, { headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(90000) });
+  const deadline = AbortSignal.timeout(55000);
+  const request = async options => {
+    const params = new URLSearchParams({ url, output: 'json', filter: 'statuscode:200', fl: 'timestamp,original,digest' });
+    for (const [key, value] of Object.entries(options)) if (value) params.set(key, value);
+    const response = await fetch(`https://web.archive.org/cdx/search/cdx?${params}`, { headers: { 'User-Agent': USER_AGENT }, redirect: 'manual', signal: AbortSignal.any([deadline, AbortSignal.timeout(10000)]) });
     if (!response.ok) throw new Error(`Wayback returned ${response.status}. Please try again later.`);
     const data = await response.json();
     if (!Array.isArray(data)) throw new Error('Unexpected response from Wayback.');
     return data.slice(1).filter(row => /^\d{14}$/.test(row[0]) && /^https?:\/\//.test(row[1])).map(([timestamp, original, digest]) => ({ timestamp, original, digest }));
   };
-  let rows = await request();
-  const total = rows.length, capped = total === 1200;
-  if (capped) {
-    // A dense site's first 1,200 captures may cover only its early years.
-    // One candidate per month covers the requested span without huge queries.
-    params.set('collapse', 'timestamp:6');
-    rows = await request();
-  }
-  rows.indexTotal = total;
-  rows.indexCapped = capped;
-  if (cachePath) {
+  const rows = await lookupCaptureIndex(request, from, to || String(new Date().getUTCFullYear()));
+  if (cachePath && !rows.indexWarning) {
     await mkdir(cacheDir, { recursive: true });
-    await writeJsonAtomic(cachePath, { savedAt: Date.now(), rows, indexTotal: total, indexCapped: capped });
+    await writeJsonAtomic(cachePath, { savedAt: Date.now(), rows, metadata: { indexTotal: rows.indexTotal, indexCapped: rows.indexCapped, indexSampled: rows.indexSampled } });
   }
   return rows;
 }
