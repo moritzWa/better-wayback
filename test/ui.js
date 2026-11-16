@@ -165,7 +165,7 @@ try {
       assert.ok(Math.abs(footer.bottom - (900 - 32)) < 2, `Footer at bottom: ${path} ${width}`);
       assert.equal(footer.position, 'static');
       assert.equal(await page.getByRole('link', { name: 'Built by Moritz Wallawitsch' }).getAttribute('href'), 'https://moritzw.com/');
-      assert.equal(await page.getByRole('link', { name: 'GitHub', exact: true }).getAttribute('href'), 'https://github.com/moritzWa/better-wayback');
+      assert.equal(await page.getByRole('link', { name: 'GitHub', exact: true }).getAttribute('href'), 'https://github.com/moritzWa/visual-wayback');
       await page.screenshot({ path: `test-output/ui-${path === '/' ? 'short-home' : 'short-blog'}-${width}.png`, fullPage: true });
     }
   }
