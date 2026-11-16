@@ -59,6 +59,8 @@ The app limits new jobs to 100 per UTC day and KV writes to 400 per day. Preview
 
 ## Verified remotely
 
+On November 16, 2026, the exact shared Inductive URL returned site-specific initial HTML with a genuine cached March 2026 screenshot as its Open Graph image. Four of eight sampled screenshots were cached successfully. A repeat timeline finished with eight cached comparison records and four cached PNG posters in 819 ms. The other four captures still use direct archive replays. Timings, archive limitations and the inspected PNG are recorded in [the shared-search evidence](../test/evidence/inductive-share/README.md). No paid plan or service was provisioned.
+
 For the HTML-first rollout on November 15, 2026, a real Rogo 2026 timeline returned its first replay link 0.46 seconds after connecting to SSE and completed eight HTML comparisons in 7.05 seconds. That excludes the earlier CDX lookup. The test Worker had no Browser Run binding, so those lookups could not launch server browsers.
 
 On the public domain, a fresh muted Linux browser context opened the same timeline with cached HTML metadata. Metadata was complete at 1.58 seconds, an iframe was attached at 1.69 seconds, first iframe content painted at 3.38 seconds and a visible hero heading appeared at 9.33 seconds. Archive asset caching was not controlled. At most two iframe documents were active; switching to Stripe removed the live frames and retained its four genuine cached captures. These are observations of one timeline, not an instant-render guarantee.

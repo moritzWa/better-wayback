@@ -1,0 +1,77 @@
+{
+  "checkedAt": "2026-11-16",
+  "url": "https://visualwayback.com/?url=https%3A%2F%2Fwww.inductive.bio%2F",
+  "ogImage": "https://visualwayback.com/cache/a76a3854deffdb0272aff962.png",
+  "metadataMs": 859,
+  "imageMs": 362,
+  "imageBytes": 375857,
+  "imageSha256": "476d3d48dc58bd5128bfc442f77cce85e77589f316802ffdeb495f7044f6e23b",
+  "timelineMs": 819,
+  "terminal": "done",
+  "captures": [
+    {
+      "timestamp": "20220707021802",
+      "image": null,
+      "cached": true,
+      "preview": "iframe",
+      "textPending": false,
+      "textError": null
+    },
+    {
+      "timestamp": "20231129073717",
+      "image": null,
+      "cached": true,
+      "preview": "iframe",
+      "textPending": false,
+      "textError": null
+    },
+    {
+      "timestamp": "20241201061323",
+      "image": "/cache/5e8900836f21ee51df0c9e18.png",
+      "cached": true,
+      "preview": "image",
+      "textPending": false,
+      "textError": null
+    },
+    {
+      "timestamp": "20260315041421",
+      "image": "/cache/a76a3854deffdb0272aff962.png",
+      "cached": true,
+      "preview": "image",
+      "textPending": false,
+      "textError": null
+    },
+    {
+      "timestamp": "20261009111450",
+      "image": null,
+      "cached": true,
+      "preview": "iframe",
+      "textPending": false,
+      "textError": null
+    },
+    {
+      "timestamp": "20240420060423",
+      "image": "/cache/483e09c37ed63aac0cb945b5.png",
+      "cached": true,
+      "preview": "image",
+      "textPending": false,
+      "textError": null
+    },
+    {
+      "timestamp": "20230626040243",
+      "image": null,
+      "cached": true,
+      "preview": "iframe",
+      "textPending": false,
+      "textError": null
+    },
+    {
+      "timestamp": "20250713070114",
+      "image": "/cache/a57cda085d335dd939363a21.png",
+      "cached": true,
+      "preview": "image",
+      "textPending": false,
+      "textError": null
+    }
+  ]
+}
