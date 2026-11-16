@@ -1,0 +1,69 @@
+{
+  "checkedAt": "2026-11-16T22:08:07Z",
+  "workerVersion": "07fe0425-d27e-4102-800e-48a7189a5de2",
+  "job": "633bfee51b65d124b75c7f6b",
+  "streamSeconds": 0.93,
+  "terminal": {
+    "type": "done"
+  },
+  "captures": [
+    {
+      "timestamp": "20220707021802",
+      "cached": true,
+      "image": null,
+      "error": "Incomplete or unavailable archive replay"
+    },
+    {
+      "timestamp": "20230626040243",
+      "cached": true,
+      "image": null,
+      "error": "Incomplete or unavailable archive replay"
+    },
+    {
+      "timestamp": "20231129073717",
+      "cached": true,
+      "image": "/cache/6bf9b84a8bdf5b2849a4edfc.png",
+      "error": null
+    },
+    {
+      "timestamp": "20240420060423",
+      "cached": true,
+      "image": "/cache/483e09c37ed63aac0cb945b5.png",
+      "error": null
+    },
+    {
+      "timestamp": "20241201061323",
+      "cached": true,
+      "image": "/cache/5e8900836f21ee51df0c9e18.png",
+      "error": null
+    },
+    {
+      "timestamp": "20250713070114",
+      "cached": true,
+      "image": "/cache/a57cda085d335dd939363a21.png",
+      "error": null
+    },
+    {
+      "timestamp": "20260315041421",
+      "cached": true,
+      "image": "/cache/a76a3854deffdb0272aff962.png",
+      "error": null
+    },
+    {
+      "timestamp": "20261009111450",
+      "cached": true,
+      "image": null,
+      "error": "Archive did not finish revealing and settling visible content before the render deadline (hidden headings: 0, animations: 0, pending assets: 0)"
+    }
+  ],
+  "renewedCapture": {
+    "key": "a76a3854deffdb0272aff962",
+    "retentionDays": 7,
+    "expiresAt": 1795471329869,
+    "kvImageExpiration": 1795471330,
+    "imageSha256Unchanged": "476d3d48dc58bd5128bfc442f77cce85e77589f316802ffdeb495f7044f6e23b"
+  },
+  "renewedHtmlRetentionDays": 7,
+  "shareImageStillValid": true,
+  "automatedChecksExcludedFromPopularity": true
+}
