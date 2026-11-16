@@ -1,6 +1,7 @@
 import { normalizeUrl, keyFor, selectCaptures, replayUrl, RENDER_VERSION, USER_AGENT, isArchiveErrorPage } from '../lib.js';
 import { quota } from './quota.js';
 import { HTML_VERSION, MAX_HTML, iframeUrl, archiveHtmlAllowed } from './html.js';
+import { lookupCaptureIndex } from '../archive-index.js';
 
 export const MAX_IMAGE = 2 * 1024 * 1024;
 const MAX_JSON = 65536;
@@ -61,29 +62,39 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
     const allowance = await quota(env, 'job');
     if (!allowance.ok) return json(429, allowance);
     try {
-      const params = new URLSearchParams({ url, output: 'json', filter: 'statuscode:200', collapse: 'digest', fl: 'timestamp,original,digest', limit: '1200' });
-      if (from) params.set('from', from);
-      params.set('to', to);
-      const query = async () => {
+      const deadline = AbortSignal.any([request.signal, AbortSignal.timeout(55000)]);
+      const query = async options => {
+        const params = new URLSearchParams({ url, output: 'json', filter: 'statuscode:200', fl: 'timestamp,original,digest' });
+        for (const [key, value] of Object.entries(options)) if (value) params.set(key, value);
         // Workers supports follow/manual, not Node's redirect:'error'. Manual keeps
         // archive redirects from reaching any other host; non-2xx fails below.
-        const response = await fetchArchive(`https://web.archive.org/cdx/search/cdx?${params}`, { headers: { 'User-Agent': USER_AGENT }, redirect: 'manual', signal: AbortSignal.timeout(10000) });
+        const signal = AbortSignal.any([deadline, AbortSignal.timeout(10000)]);
+        const response = await fetchArchive(`https://web.archive.org/cdx/search/cdx?${params}`, { headers: { 'User-Agent': USER_AGENT }, redirect: 'manual', signal });
         if (!response.ok) throw new Error(`Wayback returned ${response.status}. Please retry later.`);
         const data = JSON.parse(await boundedText(response, 512 * 1024));
         if (!Array.isArray(data)) throw new Error('Unexpected archive index response');
         return data.slice(1, 1201).filter(row => Array.isArray(row) && /^\d{14}$/.test(row[0]) && /^https?:\/\//.test(row[1]) && row[1].length <= 4096).map(([timestamp, original, digest]) => ({ timestamp, original, digest }));
       };
-      let rows = await query();
-      const total = rows.length, capped = total === 1200;
-      if (capped) { params.set('collapse', 'timestamp:6'); rows = await query(); }
+      const indexKey = `index:bounded-v1:${keyFor(JSON.stringify([url, from, to]))}`;
+      const savedIndex = await env.CACHE.get(indexKey, 'json');
+      const rows = savedIndex?.rows ? Object.assign(savedIndex.rows, savedIndex.metadata) : await lookupCaptureIndex(query, from, to);
+      if (request.signal.aborted) throw request.signal.reason;
+      const total = rows.indexTotal, capped = rows.indexCapped;
+      if (!savedIndex && rows.indexSampled && rows.length && !rows.indexWarning) {
+        const encodedIndex = JSON.stringify({ rows, metadata: { indexTotal: total, indexCapped: capped, indexSampled: rows.indexSampled } });
+        if (new TextEncoder().encode(encodedIndex).byteLength <= 512 * 1024) {
+          const write = await quota(env, 'write');
+          if (write.ok) await env.CACHE.put(indexKey, encodedIndex, { expirationTtl: 86400 });
+        }
+      }
       const captures = selectCaptures(rows, count);
       if (!captures.length) return json(404, { error: 'No successful captures found for this URL and date range.' });
-      const job = { url, captures, index: { type: 'index', total, capped, monthly: capped, sampled: captures.length, captures, firstTimestamp: rows[0]?.timestamp, lastTimestamp: rows.at(-1)?.timestamp } };
+      const job = { url, captures, index: { type: 'index', total, capped, timeSampled: Boolean(rows.indexSampled), indexWarning: rows.indexWarning || '', sampled: captures.length, captures, firstTimestamp: rows[0]?.timestamp, lastTimestamp: rows.at(-1)?.timestamp } };
       const encoded = JSON.stringify(job);
       if (new TextEncoder().encode(encoded).byteLength > MAX_JSON) return json(413, { error: 'Timeline exceeds the free runtime size limit.' });
-      await env.CACHE.put(`job:${id}`, encoded, { expirationTtl: 86400 });
+      await env.CACHE.put(`job:${id}`, encoded, { expirationTtl: rows.indexWarning ? 300 : 86400 });
       return json(202, { id, url });
-    } catch (error) { return json(502, { error: error.message, retryAfter: 60 }); }
+    } catch (error) { return json(502, { error: error.name === 'TimeoutError' ? 'The Internet Archive index is responding too slowly. Retry later; this is not evidence that the page has no captures.' : error.message, retryAfter: 60 }); }
   }
 
   async function htmlEvents(request, env, id) {

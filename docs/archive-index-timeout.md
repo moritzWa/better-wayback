@@ -1,0 +1,15 @@
+# Dense archive index timeout
+
+The reported Amazon search used 24 captures and 98% text similarity. Production returned HTTP 502 after 10.8 seconds, before publishing any capture dates. The similarity slider did not cause the network timeout.
+
+The old lookup fetched at most 1,200 digest-distinct rows, then collapsed the whole history by month. A small monthly response can still require a large scan upstream. Real probes returned the initial Amazon rows in about 1.5 seconds, but the monthly collapse exceeded 30 seconds.
+
+Dense or initially timed-out indexes now use small date-window queries. CDX's documented `fastLatest=true&limit=-1` query finds the recent endpoint without scanning the full history. Twenty-four positive-limit windows supply candidates across the span. At most two requests run concurrently. Each has a ten-second deadline; the whole lookup has a 55-second deadline. The final sampler still preserves the earliest and latest candidates. A real local lookup selected 24 Amazon dates from 1999 through November 2026 in 17.2 seconds.
+
+Complete fallback indexes are cached for a day and reused across sample sizes. The optional index-cache write reserves the same shared free-tier write budget. Existing PNGs, completed jobs and compatible local index caches remain usable. Timed-out windows keep other results with an explicit partial warning. Partial jobs expire after five minutes and partial indexes are not cached as complete. Throttling, unsafe redirects and malformed responses still fail explicitly. No browser rendering, paid service or quota increase was added.
+
+The results label says “Time-sampled index” rather than claiming an exact capture count. A failed lookup no longer says “No readable captures” or suggests widening the date range. New searches cancel superseded lookup requests. Similarity changes never submit another search. Slider renders are coalesced to one animation frame, text shingles and pair scores use bounded caches, and sampling parses timestamps once rather than repeatedly inside each target scan.
+
+Regression coverage includes initial timeout recovery, bounded concurrency, 24-date endpoint sampling, partial failures, throttling/cancellation, cross-count index reuse and legacy cache compatibility. A browser fixture reproduces the 24-capture search and slider changes both before and after indexing. One hundred slider updates took 13 milliseconds in that run, preserved the mounted iframe and submitted no extra lookup. Timeout UI remains distinct from an empty archive history. All 85 tests and eight UI checks passed; the final timestamp-sampling change also passed its 37 targeted tests.
+
+CDX query semantics: [Internet Archive CDX documentation](https://github.com/internetarchive/wayback/tree/master/wayback-cdx-server#query-result-limits).

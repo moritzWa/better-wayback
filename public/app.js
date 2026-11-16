@@ -7,6 +7,7 @@ const $ = id => document.getElementById(id);
 let captures = [], changesOnly = true, total = 0, sampled = 0, capped = false, running = false, stream;
 let requested = [], indexed = false, generation = 0;
 let resumeTimer;
+let lookupAbort, indexFailed = false;
 let indexLabel;
 const entries = new Map();
 const navigation = timelineNavigation($('timeline'), prioritizePreview);
@@ -24,9 +25,9 @@ function render() {
   const failed = captures.filter(c => c.error).length;
   const knownGroups = groups.filter(c => comparableText(c, c)).length;
   const unCompared = captures.filter(c => !c.error && !comparableText(c, c)).length;
-  $('stats').textContent = indexed ? `${indexLabel || (capped ? '1,200+ indexed' : `${total.toLocaleString()} indexed`)} · ${captures.length}/${sampled} sampled · ${knownGroups} text versions${unCompared ? ` · ${unCompared} not compared` : ''}${running ? ` · ${Math.max(0, sampled - captures.length)} pending` : ''}${failed ? ` · ${failed} unavailable` : ''}` : 'Finding archived captures…';
+  $('stats').textContent = indexed ? `${indexLabel || (capped ? '1,200+ indexed' : `${total.toLocaleString()} indexed`)} · ${captures.length}/${sampled} sampled · ${knownGroups} text versions${unCompared ? ` · ${unCompared} not compared` : ''}${running ? ` · ${Math.max(0, sampled - captures.length)} pending` : ''}${failed ? ` · ${failed} unavailable` : ''}` : indexFailed ? 'Archive index lookup failed.' : 'Finding archived captures…';
   $('sensitivity-value').textContent = $('sensitivity').value + '%';
-  $('empty-state').hidden = running || visible.length > 0;
+  $('empty-state').hidden = running || indexFailed || visible.length > 0;
   let previous, position = 0;
   const visibleKeys = new Set(), navItems = [];
   for (const capture of visible) {
@@ -139,6 +140,8 @@ function onEvent(event) {
   if (event.type === 'status') $('status').textContent = event.message;
   if (event.type === 'index') {
     indexed = true; total = event.total; sampled = event.sampled; capped = event.capped;
+    if (event.timeSampled) indexLabel = 'Time-sampled index';
+    if (event.indexWarning) { $('error').textContent = event.indexWarning; $('error').hidden = false; }
     requested = event.captures || [];
     if (event.firstTimestamp) $('from').placeholder = event.firstTimestamp.slice(0, 4);
     if (event.lastTimestamp) $('to').placeholder = event.lastTimestamp.slice(0, 4);
@@ -154,7 +157,7 @@ function onEvent(event) {
     render();
   }
   if (event.type === 'done') { stream?.close(); finish(); }
-  if (event.type === 'error') { stream?.close(); $('error').textContent = event.message + (Number.isFinite(event.retryAfter) && event.retryAfter > 0 ? ` Try again in ${Math.ceil(event.retryAfter / 60)} minutes.` : ''); $('error').hidden = false; finish(); }
+  if (event.type === 'error') { indexFailed = !indexed; stream?.close(); $('error').textContent = event.message + (Number.isFinite(event.retryAfter) && event.retryAfter > 0 ? ` Try again in ${Math.ceil(event.retryAfter / 60)} minutes.` : ''); $('error').hidden = false; finish(); }
 }
 function connectStream(path, current, attempts = 0) {
   if (current !== generation || !running) return;
@@ -185,6 +188,7 @@ function connectStream(path, current, attempts = 0) {
 }
 function begin() {
   clearTimeout(resumeTimer);
+  lookupAbort?.abort(); lookupAbort = null; indexFailed = false;
   resetPreviews();
   navigation.reset();
   generation++; captures = []; requested = []; indexed = false; entries.clear(); $('timeline').replaceChildren(); total = 0; sampled = 0; capped = false; running = true; stream?.close();
@@ -219,12 +223,14 @@ async function search(recordHistory = true) {
   } catch {}
   if (preset && !$('from').value && !$('to').value && $('count').value === '8') { await loadDemo(preset); return; }
   const current = begin();
+  const abort = new AbortController(); lookupAbort = abort;
   try {
-    const response = await fetch('/api/jobs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: $('url').value, from: $('from').value, to: $('to').value, count: $('count').value, previewMode: 'html' }) });
+    const response = await fetch('/api/jobs', { method: 'POST', signal: abort.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: $('url').value, from: $('from').value, to: $('to').value, count: $('count').value, previewMode: 'html' }) });
     const data = await response.json(); if (current !== generation) return; if (!response.ok) throw new Error(data.error);
     $('site-title').textContent = data.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
     connectStream(`/api/jobs/${data.id}/events`, current);
-  } catch (error) { if (current === generation) onEvent({ type: 'error', message: error.message }); }
+   } catch (error) { if (current === generation && !abort.signal.aborted) onEvent({ type: 'error', message: error.message }); }
+  finally { if (lookupAbort === abort) lookupAbort = null; }
 }
 $('search-form').onsubmit = event => { event.preventDefault(); if (!running) void search(); };
 async function loadDemo(site) {
@@ -254,12 +260,13 @@ for (const button of document.querySelectorAll('[data-site]')) button.onclick = 
 $('changes-view').onclick = () => { changesOnly = true; toggle(); };
 $('all-view').onclick = () => { changesOnly = false; toggle(); };
 function toggle() { $('changes-view').classList.toggle('active', changesOnly); $('all-view').classList.toggle('active', !changesOnly); $('changes-view').setAttribute('aria-pressed', String(changesOnly)); $('all-view').setAttribute('aria-pressed', String(!changesOnly)); render(); }
-$('sensitivity').oninput = render;
+let sensitivityFrame;
+$('sensitivity').oninput = () => { $('sensitivity-value').textContent = $('sensitivity').value + '%'; if (!sensitivityFrame) sensitivityFrame = requestAnimationFrame(() => { sensitivityFrame = null; render(); }); };
 $('close-dialog').onclick = () => $('compare-dialog').close();
 $('compare-dialog').onclick = event => { if (event.target === $('compare-dialog')) $('compare-dialog').close(); };
 const currentYear = new Date().getFullYear();
 for (const id of ['from', 'to']) $(id).max = currentYear;
-window.addEventListener('pagehide', () => { clearTimeout(resumeTimer); stream?.close(); resetPreviews(); });
+window.addEventListener('pagehide', () => { clearTimeout(resumeTimer); lookupAbort?.abort(); stream?.close(); resetPreviews(); });
 window.addEventListener('pageshow', event => { if (event.persisted) restoreSearch(); });
 function restoreSearch() {
   const params = new URLSearchParams(location.search);

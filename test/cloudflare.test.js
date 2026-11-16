@@ -29,6 +29,34 @@ const eventRequest = id => new Request(`https://visualwayback.com/api/jobs/${id}
 const parse = async response => (await response.text()).split('\n\n').filter(Boolean).map(line => JSON.parse(line.slice(6)));
 const indexFetch = async () => Response.json([['timestamp', 'original', 'digest'], ...captures.map(c => [c.timestamp, c.original, c.digest])]);
 const key = c => keyFor(c.timestamp + c.original + ':' + RENDER_VERSION);
+
+test('dense 24-capture jobs cache bounded index across sample sizes without monthly full scans', async () => {
+  const env = environment(); env.PREVIEW_MODE = 'html';
+  const calls = [];
+  const handle = createRuntime({ fetchArchive: async (url, options) => {
+    const p = new URL(url).searchParams; calls.push(p);
+    assert.equal(options.redirect, 'manual'); assert.ok(options.signal);
+    const stamps = p.get('collapse') ? Array.from({ length: 1200 }, () => '20000101000000') : [p.get('fastLatest') ? '20260101000000' : p.get('from')];
+    return Response.json([['timestamp', 'original', 'digest'], ...stamps.map(s => [s, 'https://example.com/', s])]);
+  } });
+  const response = await handle(jobRequest({url:'example.com',count:24,previewMode:'html'}),env);
+  assert.equal(response.status,202); const { id } = await response.json();
+  const job = await env.CACHE.get(`job:${id}`, 'json');
+  assert.equal(job.captures.length,24); assert.equal(job.index.timeSampled,true);
+  assert.equal(job.captures[0].timestamp,'20000101000000'); assert.equal(job.captures.at(-1).timestamp,'20260101000000');
+  assert.equal(calls.length,26); assert.ok(!calls.some(p=>p.get('collapse')==='timestamp:6'));
+  const next = await handle(jobRequest({url:'example.com',count:16,previewMode:'html'}),env);
+  assert.equal(next.status,202); assert.equal(calls.length,26,'Changing count reuses the independently cached index');
+  assert.equal(env.CACHE.puts.filter(p=>p.key.startsWith('index:')).length,1);
+});
+
+test('index timeout has a useful error and never fabricates an empty timeline or caches failure', async () => {
+  const env = environment();
+  const handle = createRuntime({ fetchArchive: async () => {throw new DOMException('The operation was aborted due to timeout','TimeoutError');} });
+  const response = await handle(jobRequest(),env);
+  assert.equal(response.status,502); assert.match((await response.json()).error,/index is responding too slowly/);
+  assert.equal(env.CACHE.puts.length,0);
+});
 async function save(env, capture) {
   const value = { ...capture, text: 'Archived text', image: `/cache/${key(capture)}.png`, renderVersion: RENDER_VERSION };
   await env.CACHE.put(`capture:${key(capture)}`, JSON.stringify(value), { expirationTtl: 604800 });

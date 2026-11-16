@@ -53,7 +53,7 @@ test('raw replay URLs preserve source and validate timestamps', () => {
   assert.equal(replayUrl('20200101000000', 'https://example.com/', true), 'https://web.archive.org/web/20200101000000id_/https://example.com/');
   assert.throws(() => replayUrl('../bad', 'https://example.com'));
 });
-test('dense index falls back to monthly candidates rather than losing recent years', async () => {
+test('dense index uses bounded date queries rather than a full monthly collapse scan', async () => {
   const originalFetch = globalThis.fetch;
   const requests = [];
   globalThis.fetch = async url => {
@@ -63,8 +63,9 @@ test('dense index falls back to monthly candidates rather than losing recent yea
   };
   try {
     const rows = await fetchCaptures('https://example.com/', '2012', '2026');
-    assert.equal(requests.length, 2);
-    assert.equal(requests[1].searchParams.get('collapse'), 'timestamp:6');
+    assert.equal(requests.length, 26);
+    assert.ok(requests.slice(1).every(url => !url.searchParams.has('collapse')));
+    assert.equal(requests[1].searchParams.get('fastLatest'), 'true');
     assert.equal(rows.at(-1).timestamp, '20260101000000');
     assert.equal(rows.indexCapped, true); assert.equal(rows.indexTotal, 1200);
   } finally { globalThis.fetch = originalFetch; }

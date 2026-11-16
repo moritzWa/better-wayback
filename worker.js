@@ -12,7 +12,7 @@ try {
   emit({ type: 'status', message: 'Finding archived captures…' });
   const rows = await fetchCaptures(url, from, to, { cacheDir: cache });
   const selected = selectCaptures(rows, Number(countArg));
-  emit({ type: 'index', total: rows.indexTotal, capped: rows.indexCapped, monthly: rows.indexCapped, sampled: selected.length, captures: selected, firstTimestamp: rows[0]?.timestamp, lastTimestamp: rows.at(-1)?.timestamp });
+  emit({ type: 'index', total: rows.indexTotal, capped: rows.indexCapped, timeSampled: Boolean(rows.indexSampled), indexWarning: rows.indexWarning || '', sampled: selected.length, captures: selected, firstTimestamp: rows[0]?.timestamp, lastTimestamp: rows.at(-1)?.timestamp });
   if (!selected.length) throw new Error('No successful captures found for this URL and date range. Try a wider range or the www version.');
   let completed = 0;
   const uncached = [];
