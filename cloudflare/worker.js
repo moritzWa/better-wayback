@@ -3,6 +3,7 @@ import { isolatedContext, renderPage } from '../.cache/cloudflare-runtime/render
 import { handleSupportRequest } from '../support.mjs';
 import { createRuntime } from './runtime.js';
 import { extractHtml } from './html.js';
+import { handleAnalytics } from './analytics.js';
 export { QuotaCoordinator } from './quota.js';
 
 const handle = createRuntime({
@@ -23,6 +24,8 @@ const handle = createRuntime({
 export default {
   async fetch(request, env) {
     try {
+      const analytics = await handleAnalytics(request, env);
+      if (analytics) return analytics;
       const support = await handleSupportRequest(request, env);
       return support || await handle(request, env);
     } catch { return Response.json({ error: 'Runtime unavailable. Packaged examples remain available.' }, { status: 503 }); }

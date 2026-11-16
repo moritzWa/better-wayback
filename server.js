@@ -136,6 +136,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     const files = { '/': ['public/index.html', 'text/html'], '/examples.js': ['public/examples.js', 'text/javascript'], '/previews.js': ['public/previews.js', 'text/javascript'], '/previews.css': ['public/previews.css', 'text/css'], '/timeline-nav.js': ['public/timeline-nav.js', 'text/javascript'], '/timeline-nav.css': ['public/timeline-nav.css', 'text/css'], '/support.js': ['public/support.js', 'text/javascript'], '/app.js': ['public/app.js', 'text/javascript'], '/style.css': ['public/style.css', 'text/css'], '/group.js': ['group.js', 'text/javascript'], '/logo.svg': ['public/logo.svg','image/svg+xml'], '/logo.png': ['public/logo.png','image/png'], '/favicon.svg': ['public/favicon.svg','image/svg+xml'], '/favicon.ico': ['public/favicon.ico','image/x-icon'], '/favicon-32.png': ['public/favicon-32.png','image/png'], '/apple-touch-icon.png': ['public/apple-touch-icon.png','image/png'], '/icon-512.png': ['public/icon-512.png','image/png'] };
+    files['/analytics.js'] = ['public/analytics.js', 'text/javascript'];
     const file = files[path] || (/^\/cache\/[a-f0-9]{24}\.png$/.test(path) ? [`.cache/${path.split('/').at(-1)}`, 'image/png'] : null);
     if (!['GET', 'HEAD'].includes(req.method) || !file) return json(res, 404, { error: 'Not found' });
     const data = await readFile(resolve(root, file[0]));

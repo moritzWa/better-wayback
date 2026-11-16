@@ -2,6 +2,21 @@ import { groupCaptures, similarity, comparableText } from '/group.js';
 import { livePreview, refreshPreviews, resetPreviews, prioritizePreview } from '/previews.js';
 import { timelineNavigation } from '/timeline-nav.js';
 import { exampleForSite } from '/examples.js';
+// A blocked analytics module must not prevent the app itself from loading.
+let tracking;
+const trackingQueue = [];
+const analytics = Object.fromEntries(['begin', 'cache', 'ready', 'failed', 'preview'].map(name => [name, (...args) => {
+  if (tracking) tracking[name]?.(...args);
+  else if (trackingQueue.length < 100) trackingQueue.push([name, args]);
+}]));
+void import('/analytics.js').then(({ createAnalytics }) => {
+  tracking = createAnalytics();
+  for (const [name, args] of trackingQueue) tracking[name](...args);
+  trackingQueue.length = 0;
+}).catch(() => { tracking = {}; trackingQueue.length = 0; });
+document.addEventListener('click', event => {
+  if (event.target.closest?.('#timeline .preview-interact-button, #timeline .preview-interaction-shield, #timeline a[target="_blank"]')) analytics.preview();
+}, true);
 
 const $ = id => document.getElementById(id);
 let captures = [], changesOnly = true, total = 0, sampled = 0, capped = false, running = false, stream;
@@ -134,6 +149,8 @@ function finish() {
   for (const capture of requested) if (!captures.some(result => captureKey(result) === captureKey(capture))) captures.push({ ...capture, error: 'No preview returned for this capture. Try again to load it.' });
   for (const capture of captures) if (capture.textPending) { capture.textPending = false; capture.comparisonUnavailable = !capture.text?.trim(); capture.textError = 'HTML lookup did not finish. Preview remains available.'; }
   running = false; $('search-button').disabled = false; $('progress').hidden = true; render();
+  if (captures.some(c => !c.error && !c.pending)) analytics.ready();
+  else analytics.failed();
   const failed = captures.filter(c => c.error).length;
   if (failed && $('error').hidden) { $('error').textContent = `Partial results: ${failed} of ${sampled} sampled captures could not be loaded. Available previews are shown below.`; $('error').hidden = false; }
 }
@@ -150,6 +167,7 @@ function onEvent(event) {
     render();
   }
   if (event.type === 'capture') {
+    if (typeof event.cached === 'boolean') analytics.cache(event.cached ? 'yes' : 'no');
     const index = captures.findIndex(c => captureKey(c) === captureKey(event.capture));
     if (index < 0) captures.push(event.capture); else captures[index] = event.capture;
     captures.sort((a, b) => captureOrder(a).localeCompare(captureOrder(b)) || captureKey(a).localeCompare(captureKey(b)));
@@ -158,7 +176,7 @@ function onEvent(event) {
     render();
   }
   if (event.type === 'done') { stream?.close(); finish(); if (screenshotPath) warmScreenshots(screenshotPath, generation); }
-  if (event.type === 'error') { indexFailed = !indexed; stream?.close(); $('error').textContent = event.message + (Number.isFinite(event.retryAfter) && event.retryAfter > 0 ? ` Try again in ${Math.ceil(event.retryAfter / 60)} minutes.` : ''); $('error').hidden = false; finish(); }
+  if (event.type === 'error') { analytics.failed(/quota|allowance|budget|429/i.test(event.message || '')); indexFailed = !indexed; stream?.close(); $('error').textContent = event.message + (Number.isFinite(event.retryAfter) && event.retryAfter > 0 ? ` Try again in ${Math.ceil(event.retryAfter / 60)} minutes.` : ''); $('error').hidden = false; finish(); }
 }
 function connectStream(path, current, attempts = 0) {
   if (current !== generation || !running) return;
@@ -217,7 +235,8 @@ function warmScreenshots(path, current, attempts = 0) {
   };
   connection.onerror = () => connection.close();
 }
-function begin() {
+function begin(mode, source) {
+  analytics.begin(mode, source);
   clearTimeout(resumeTimer);
   stopScreenshots();
   lookupAbort?.abort(); lookupAbort = null; indexFailed = false;
@@ -253,8 +272,8 @@ async function search(recordHistory = true) {
     const host = url.hostname.replace(/^www\./, '');
     if (exampleForSite(raw)) preset = host;
   } catch {}
-  if (preset && !$('from').value && !$('to').value && $('count').value === '8') { await loadDemo(preset); return; }
-  const current = begin();
+  if (preset && !$('from').value && !$('to').value && $('count').value === '8') { await loadDemo(preset, recordHistory ? 'user' : 'automatic'); return; }
+  const current = begin('custom', recordHistory ? 'user' : 'automatic');
   const abort = new AbortController(); lookupAbort = abort;
   try {
     const response = await fetch('/api/jobs', { method: 'POST', signal: abort.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: $('url').value, from: $('from').value, to: $('to').value, count: $('count').value, previewMode: 'html' }) });
@@ -266,9 +285,9 @@ async function search(recordHistory = true) {
   finally { if (lookupAbort === abort) lookupAbort = null; }
 }
 $('search-form').onsubmit = event => { event.preventDefault(); if (!running) void search(); };
-async function loadDemo(site) {
+async function loadDemo(site, source = 'user') {
   $('url').value = site;
-  const current = begin();
+  const current = begin('demo', source);
   try {
     const example = exampleForSite(site);
     if (!example) throw new Error('Unknown cached example.');

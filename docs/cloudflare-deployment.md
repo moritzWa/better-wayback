@@ -28,6 +28,7 @@ If every sampled capture already has a valid PNG/text pair, the runtime keeps th
 - Hostnames: `visualwayback.com`, `www.visualwayback.com` and `visual-wayback.moritzw.workers.dev`.
 - DNS: Cloudflare, with `quincy.ns.cloudflare.com` and `yolanda.ns.cloudflare.com` delegated at Porkbun.
 - KV: `visual-wayback-cache`, bound as `CACHE`.
+- D1: `visual-wayback-analytics`, bound as `ANALYTICS`. Capped, optional [usage analytics](usage-analytics.md).
 - Durable Object: `QuotaCoordinator`, bound as `QUOTAS`. The `v1` migration uses `new_sqlite_classes`, supported on Workers Free.
 - Browser: `BROWSER`, using `@cloudflare/playwright`.
 - Static assets: `.cache/cloudflare-assets`, bound as `ASSETS`. Demos and blog pages bypass the Worker where possible.
