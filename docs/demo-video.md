@@ -1,6 +1,16 @@
 # Short product demo
 
-## Latest revision: shorter real-scrolling motion edit
+## Latest revision: continuous screen recording of the outer page
+
+The current recording opens on the actual Visual Wayback header with Nvidia selected and scrolls down the Visual Wayback page into Nvidia results. The OpenAI/Nvidia showcase also scrolls only this outer timeline. Archived pages within the preview cards remain still. There is no title-slide opening, floating screenshot frame, edited camera move or per-frame staged scroll capture.
+
+`tools/record-demo-screen.js` records Chromium's live continuous screencast at a physical 3840×2160 viewport and device scale factor 1. Browser presentation zoom is 300% so the interface remains readable at that physical resolution. Every emitted JPEG is checked to be genuinely 3840×2160. The genuine same-date high-resolution archive assets are reused in the recording browser, without changing the public site. Browser animation frames drive an actual timed outer-page scroll; no screenshots are requested at scripted scroll positions. The recording logs outer scroll positions and verifies all inner preview scroll positions remain zero.
+
+`tools/build-demo-screen.py` uses the recorded full-screen frames directly, with no scaling or translation. It retains the Internet Archive logo problem section, Will narration and spoken closing URL, at 16.4 seconds. `tools/check-demo-screen.py` checks the final decoded UI frames against their corresponding native browser frames, in addition to checking resolution, duration, outer/inner scrolling and full-file decode. Source recordings and verification reports are in `~/Documents/visual-wayback/demo-video/screen-record/`. The output remains the same Desktop MP4.
+
+Verified export: 118 continuously emitted native 3840×2160 browser frames across the source recording. The opening logs 45 distinct outer-page scroll positions, OpenAI 35 and Nvidia 36; all inner-preview scroll positions stay zero. Six decoded UI frames match the corresponding untransformed source frames with average per-channel encoding error below 0.6/255. Full-file decoding, 492-frame/16.400-second checks and independent final-audio transcription passed. The contact sheet shows the Nvidia search/header at the beginning, Nvidia dated cards during the opening scroll, the logo problem scene, both outer timelines and the closing URL.
+
+## Earlier revision: shorter scrolling motion edit
 
 Use the [motion research and production notes](demo-motion-research.md) for the current version. Moritz preferred real scrolling over the static 4K montage, wanted a different narrator, the Internet Archive logo in the problem section and an explicit spoken closing invitation. The new workflow retains native 4K capture, restores actual browser scrolling and targets 16.4 seconds, shorter than both the 17.1-second and 19.2-second cuts.
 
