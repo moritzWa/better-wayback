@@ -16,7 +16,7 @@ test('packaged demos contain only genuine successful, integrity-checked archive 
     assert.ok(demo.captures.length >= (['stripe', 'amazon'].includes(name) ? 4 : 3));
     assert.equal(demo.firstTimestamp, demo.captures[0].timestamp);
     assert.equal(demo.lastTimestamp, demo.captures.at(-1).timestamp);
-    const minimumSpan = { stripe: 8, amazon: 8, openai: 6, anthropic: 2, nvidia: 15 }[name];
+    const minimumSpan = { stripe: 8, amazon: 8, openai: 6, anthropic: 2, nvidia: 15, apple: 12 }[name];
     assert.ok(+demo.to - +demo.from >= minimumSpan, 'history must span meaningful years for this company');
     assert.equal(demo.count, demo.captures.length);
     const seen = new Set();

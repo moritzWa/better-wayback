@@ -3,6 +3,7 @@ export const examples = [
   { id: 'openai', label: 'OpenAI', host: 'openai.com' },
   { id: 'anthropic', label: 'Anthropic', host: 'anthropic.com' },
   { id: 'nvidia', label: 'Nvidia', host: 'nvidia.com' },
+  { id: 'apple', label: 'Apple', host: 'apple.com' },
   { id: 'amazon', label: 'Amazon', host: 'amazon.com' },
 ];
 

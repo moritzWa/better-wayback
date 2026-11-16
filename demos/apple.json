@@ -1,0 +1,99 @@
+{
+  "url": "https://www.apple.com/",
+  "from": "1999",
+  "to": "2012",
+  "firstTimestamp": "19990208003341",
+  "lastTimestamp": "20120101003100",
+  "count": 3,
+  "total": 6,
+  "sampled": 3,
+  "capped": false,
+  "cached": true,
+  "status": "ready",
+  "curated": true,
+  "source": "Internet Archive Wayback Machine",
+  "indexNote": "Curated from year-specific CDX queries, not the complete capture index.",
+  "captures": [
+    {
+      "timestamp": "19990208003341",
+      "original": "http://apple.com:80/",
+      "digest": "D4HERFOIYS6EJVEIMKACTVUZYCQX3QCT",
+      "requestedTimestamp": "19990208003341",
+      "text": "February 7, 1999\nSite Map - Search Tips - Index\nThe Apple Store | Hot News | About Apple | Products | Support\nDesign & Publishing | Education | Developer | Where to Buy | Home\nJob Opportunities at Apple | Apple & Year 2000\nVisit other Apple sites around the world: \nChoose...\nAsia\nAustralia\nAustria\nBangladesh\nBelgium\nBrazil\nBulgaria\nCanada\nChina\nCroatia\nCzech Republic\nDenmark\nEurope\nFinland\nFrance\nGermany\nGreece\nGuam\nHong Kong\nHungary\nIceland\nIndia\nIsrael\nItaly\nJapan\nKorea\nLatin America\nMalaysia\nMexico\nNetherlands\nNorway\nPakistan\nPhilippines\nPoland\nPortugal\nRussia\nSingapore\nSlovakia\nSouth Africa\nSpain\nSweden\nSwitzerland\nTaiwan\nThailand\nTurkey\nUK & Ireland\nUnited Arab Emirates\nUnited States\nVietnam\nContact Us | Privacy Notice\nCopyright © 1999 Apple Computer, Inc. All rights reserved.",
+      "title": "Apple Computer",
+      "archiveUrl": "https://web.archive.org/web/19990208003341/http://apple.com:80/",
+      "timing": {
+        "navigationMs": 2849,
+        "totalMs": 5388,
+        "readiness": {
+          "waitMs": 2062,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 811,
+          "timedOut": false
+        }
+      },
+      "image": "/demos/apple/19990208003341-33bf94b8618767521651f96b.png",
+      "sha256": "33bf94b8618767521651f96b41b433e8acfb036068f7eb87c49d67fea622e237",
+      "renderVersion": "render-v2-ready"
+    },
+    {
+      "timestamp": "20070101144518",
+      "original": "http://www.apple.com:80/",
+      "digest": "7XJCUKHF7UB37NVWXLGRV4CRKWMNK4TE",
+      "requestedTimestamp": "20070101144518",
+      "text": "Hot News Headlines “A Windows expert opts for a Mac life”—Computerworld\nVisit an Apple Store\nSee all Apple Store locations\n Chandler, Chandler Fashion Center\n Phoenix, Biltmore\n Tucson, La Encantada\n Brea, Brea Mall\n Burlingame, Burlingame\n Canoga Park, Topanga\n Chula Vista, Otay Ranch\n Corte Madera, Corte Madera\n Costa Mesa, South Coast Plaza\n Emeryville, Bay Street\n Glendale, Glendale Galleria\n Irvine, Irvine Spectrum Center\n Los Angeles, Century City\n Los Angeles, The Grove\n Los Angeles, Beverly Center\n Manhattan Beach, Manhattan Village\n Mission Viejo, Mission Viejo\n Newport Beach, Fashion Island\n Northridge, Northridge\n Palo Alto, Palo Alto\n Palo Alto, Stanford Shopping Center\n Pasadena, Pasadena\n Pleasanton, Stoneridge Mall\n Rancho Cucamonga, Victoria Gardens\n Sacramento, Arden Fair\n San Diego, Fashion Valley\n San Diego, UTC\n San Francisco, San Francisco\n San Francisco, Stonestown\n San Jose, Oakridge\n Santa Clara, Valley Fair\n Santa Monica, Third Street Promenade\n Santa Rosa, Santa Rosa Plaza\n Sherman Oaks, Sherman Oaks\n Simi Valley, Simi Valley\n Thousand Oaks, The Oaks\n Walnut Creek, Walnut Creek\n Boulder, Twenty Ninth Street\n Broomfield, FlatIron Crossing\n Denver, Cherry Creek\n Littleton, Aspen Grove\n Danbury, Danbury Fair Mall\n Farmington, Westfarms\n Stamford, Stamford\n Newark, Christiana Mall\n Aventura, Aventura\n Boca Raton, Boca Raton\n Jacksonville, St. Johns Town Center\n Miami, The Falls\n Miami Beach, Lincoln Road\n Orlando, Florida Mall\n Orlando, Millenia\n Palm Beach Gardens, The Gardens Mall\n Tampa, International Plaza\n Wellington, Wellington Green\n Alpharetta, North Point\n Atlanta, Lenox Square\n Atlanta, Perimeter\n Honolulu, Ala Moana\n Chicago, North Michigan Avenue\n Northbrook, Northbrook\n Oak Brook, Oakbrook\n Schaumburg, Woodfield\n Skokie, Old Orchard\n Indianapolis, Keystone\n West Des Moines, Jordan Creek\n Annapolis, Annapolis\n Bethesda, Bethesda Row\n Bethesda, Montgomery Mall\n Columbia, Columbia\n Towson, Towson Town Center\n Braintree, South Shore\n Burlington, Burlington\n Cambridge, CambridgeSide\n Chestnut Hill, Chestnut Hill\n Hingham, Derby Street\n Peabody, Northshore\n Grand Rapids, Woodland\n Novi, Twelve Oaks\n Troy, Somerset\n Bloomington, Mall of America\n Minnetonka, Ridgedale\n Edina, Southdale\n Roseville, Rosedale\n Des Peres, West County\n Kansas City, Country Club Plaza\n St. Louis, St. Louis Galleria\n Omaha, Village Pointe\n Las Vegas, Fashion Show\n Reno, Summit Sierra\n Salem, Rockingham Park\n Atlantic City, The Pier\n Bridgewater, Bridgewater\n Edison, Menlo Park\n Freehold, Freehold Raceway Mall\n Marlton, Sagemore\n Paramus, Garden State Plaza\n Rockaway, Rockaway\n Short Hills, Short Hills\n Woodcliff Lake, Tice’s Corner\n Albuquerque, ABQ Uptown\n Albany, Crossgates\n Buffalo, Walden Galleria\n Garden City, Roosevelt Field\n Huntington Station, Walt Whitman\n Lake Grove, Smith Haven\n New York City, Fifth Avenue\n New York City, SoHo\n Staten Island, Staten Island\n Syracuse, Carousel\n Victor, Eastview\n West Nyack, Palisades\n White Plains, The Westchester\n Charlotte, SouthPark\n Durham, Southpoint\n Raleigh, Crabtree Valley Mall\n Cincinnati, Kenwood Towne Centre\n Columbus, Easton Town Center\n Lyndhurst, Legacy Village\n Oklahoma City, Penn Square\n Portland, Pioneer Place\n Tigard, Washington Square\n Tualatin, Bridgeport Village\n Ardmore, Suburban Square\n King of Prussia, King of Prussia\n Pittsburgh, Shadyside\n Pittsburgh, South Hills Village\n Providence, Providence Place\n Germantown, Saddle Creek\n Knoxville, West Town Mall\n Nashville, Green Hills\n Austin, Barton Creek\n Dallas, NorthPark Center\n Highland Park, Knox Street\n Houston, Houston Galleria\n Houston, Memorial City\n Plano, Willow Bend\n San Antonio, La Cantera\n Southlake Town Square, Southlake\n Sugar Land, First Colony Mall\n The Woodlands, The Woodlands\n Salt Lake City, The Gateway\n Arlington, Clarendon\n Arlington, Pentagon City\n McLean, Tysons Corner\n Norfolk, MacArthur Center\n Richmond, Short Pump Town Center\n Bellevue Square, Bellevue Square\n Lynnwood, Alderwood Mall\n Seattle, University Village\n Tukwila, Southcenter\n Wauwatosa, Mayfair\nInternational Store Locations\n Toronto, Eaton Centre\n Toronto, Sherway Gardens\n Toronto, Yorkdale\n Aichi, Nagoya Sakae\n Fukuoka, Fukuoka Tenjin\n Osaka, Shinsaibashi\n Sendai, Sendai Ichibancho\n Shibuya, Shibuya\n Tokyo, Ginza\n Birmingham, Bullring\n Kent, Bluewater\n London, Brent Cross\n London, Regent Street\n Manchester, Arndale\n Manchester, Trafford Centre\n Sheffield, Meadowhall\n1-800-MY-APPLE | Find a Reseller | Site Map | RSS Feeds | Job Opportunities | Media Info | Terms of Use | Privacy Policy | Contact Us\niBook G4 and PowerBook G4 Battery Recall\nCopyright © 2006 Apple Computer, Inc. All rights reserved.\nApple.com Worldwide\nAsia\nAustralia\nAustria\nBelgium\nBrazil\nCanada\nChina\nDenmark\nEurope\nFinland\nFrance\nGermany\nHong Kong\nIndia\nIreland\nItaly\nJapan\nKorea\nLatin America\nMexico\nNetherlands\nNew Zealand\nNorway\nSingapore\nSouth Africa\nSpain\nSweden\nSwitzerland\nTaiwan\nUK\nUnited States\nPowered by Mac OS X Server",
+      "title": "Apple",
+      "archiveUrl": "https://web.archive.org/web/20070101144518/http://www.apple.com:80/",
+      "timing": {
+        "navigationMs": 8416,
+        "totalMs": 12963,
+        "readiness": {
+          "waitMs": 4099,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 5088,
+          "timedOut": false
+        }
+      },
+      "image": "/demos/apple/20070101144518-ab18c8a078ed4d83a5aecf19.png",
+      "sha256": "ab18c8a078ed4d83a5aecf1932ef0f3c4e7dc12d140221e3af40f02a7c934b7b",
+      "renderVersion": "render-v2-ready"
+    },
+    {
+      "timestamp": "20120101003100",
+      "original": "http://www.apple.com/",
+      "digest": "4OLYBQWYJO3YVX27JHDAJYWSETRAKSCB",
+      "requestedTimestamp": "20120101003100",
+      "text": "Apple\nStore\nMac\niPod\niPhone\niPad\niTunes\nSupport\nWatch the iPhone 4S video\nWatch the iPhone 4S TV ad\nShop the Apple Online Store (1-800-MY-APPLE), visit an Apple Retail Store, or find a reseller.\nSite Map\nHot News\nRSS Feeds\nMedia Info\nEnvironment\nJob Opportunities\nContact Us\nCopyright © 2011 Apple Inc. All rights reserved.\n Terms of Use Privacy Policy Choose your country or region",
+      "title": "Apple",
+      "archiveUrl": "https://web.archive.org/web/20120101003100/http://www.apple.com/",
+      "timing": {
+        "navigationMs": 5686,
+        "totalMs": 11248,
+        "readiness": {
+          "waitMs": 4882,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [
+            ""
+          ],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 401,
+          "timedOut": false
+        }
+      },
+      "image": "/demos/apple/20120101003100-1a9158440e28aa901a05bc53.png",
+      "sha256": "1a9158440e28aa901a05bc538f8cc18864bc8642e5a1f9217ff95054dcc595e0",
+      "renderVersion": "render-v2-ready"
+    }
+  ],
+  "unavailable": []
+}

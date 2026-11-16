@@ -40,7 +40,7 @@ try {
   await page.waitForFunction(() => !document.querySelector('#search-button').disabled);
   assert.equal(await page.locator('#from').inputValue(), '');
   assert.equal(await page.locator('#count').inputValue(), '8');
-  console.log('PASS: all five real packaged examples, decoded PNGs, query URLs, zero archive jobs for presets and live lookup for custom dates.');
+  console.log(`PASS: all ${examples.length} real packaged examples, decoded PNGs, query URLs, zero archive jobs for presets and live lookup for custom dates.`);
 } finally {
   clearTimeout(deadline); await browser?.close(); server.kill('SIGTERM');
   if (server.exitCode == null) await once(server, 'exit');
