@@ -44,6 +44,7 @@ function release(state) {
     state.frame.remove(); state.frame = null;
   }
   state.phase = 'idle'; state.wrapper.dataset.previewState = 'idle';
+  state.wrapper.removeAttribute('aria-busy');
   if (state.poster) state.poster.hidden = false;
   status(state);
 }
@@ -58,6 +59,7 @@ function destroy(state) {
 function activate(state) {
   state.phase = 'loading'; state.priority = false; state.used = ++clock;
   state.wrapper.dataset.previewState = 'loading';
+  state.wrapper.setAttribute('aria-busy', 'true');
   const generation = ++state.generation;
   const frame = document.createElement('iframe'); state.frame = frame;
   frame.className = 'live-frame'; frame.title = state.label;
@@ -73,6 +75,7 @@ function activate(state) {
     state.priority = false;
     if (failed) { interaction(state, false); release(state); }
     state.phase = failed ? 'error' : 'ready'; state.wrapper.dataset.previewState = state.phase;
+    state.wrapper.removeAttribute('aria-busy');
     if (!failed && state.poster) state.poster.hidden = true;
     status(state, failed ? 'Replay could not load here. Use Open archive.' : ''); schedule();
   };
@@ -143,6 +146,7 @@ export function livePreview(capture, label, { poster, manual = false } = {}) {
   const wrapper = document.createElement('div'); wrapper.className = 'live-preview';
   const stage = document.createElement('div'); stage.className = 'live-stage';
   const message = document.createElement('p'); message.className = 'live-status'; message.hidden = true;
+  message.setAttribute('role', 'status');
   const url = safeReplay(capture.previewUrl || capture.archiveUrl);
   if (!url) { message.hidden = false; message.textContent = 'Invalid archive preview URL. Use Open archive.'; wrapper.append(message); return wrapper; }
   const button = document.createElement('button'); button.type = 'button'; button.className = 'preview-interact-button'; button.textContent = 'Interact'; button.setAttribute('aria-pressed', 'false'); button.setAttribute('aria-label', `Interact with ${label}`);

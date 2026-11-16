@@ -1,6 +1,6 @@
 // Deterministic browser fixtures, not evidence of real Archive rendering fidelity.
 import { chromium } from 'playwright';
-import { readFile } from 'node:fs/promises';
+import { readFile, mkdir } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
 const browser = await chromium.launch({ headless: true });
@@ -15,7 +15,7 @@ try {
     const css = await readFile('public/previews.css', 'utf8');
     await page.route('https://fixture.invalid/**', route => {
       if (route.request().url().endsWith('previews.js')) return route.fulfill({ contentType: 'text/javascript', body: js });
-      return route.fulfill({ contentType: 'text/html', body: `<style>${css}body{margin:0}.live-preview{width:800px;margin-bottom:200px}</style><div id="actions"></div><main></main><script type="module">import * as api from '/previews.js';window.api=api;window.make=(n,manual=false)=>{const w=api.livePreview({previewUrl:'https://web.archive.org/web/'+(2000+n)+'0101000000if_/https://example.invalid/'},'Fixture '+n,{manual,poster:manual?'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg"/%3E':undefined});w.id='p'+n;document.querySelector('main').append(w);return w};window.ready=true;</script>` });
+      return route.fulfill({ contentType: 'text/html', body: `<style>${css}body{margin:0}.live-preview{width:800px;margin-bottom:200px}</style><div id="actions"></div><main></main><script type="module">import * as api from '/previews.js';window.api=api;window.make=(n,manual=false)=>{const w=api.livePreview({previewUrl:'https://web.archive.org/web/'+(2000+n)+'0101000000if_/https://example.invalid/'},'Fixture '+n,{manual,poster:manual?'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800"><rect width="1280" height="800" fill="#28476b"/><text x="90" y="180" fill="white" font-family="sans-serif" font-size="48">Archived screenshot fixture</text><rect x="90" y="260" width="760" height="22" fill="#9cb4cf"/><rect x="90" y="310" width="600" height="22" fill="#9cb4cf"/></svg>'):undefined});w.id='p'+n;document.querySelector('main').append(w);return w};window.ready=true;</script>` });
     });
     let active = 0, peak = 0, requests = 0, popups = 0;
     page.on('popup', p => { popups++; void p.close(); });
@@ -75,10 +75,37 @@ try {
     const before = requests;
     await page.waitForTimeout(250);
     assert.equal(await page.locator('iframe').count(), 0); assert.equal(requests, before, 'manual posters never request archive before click');
+    const manualPattern = 'https://web.archive.org/web/20200101000000if_/**';
+    let releaseManual;
+    const manualRequested = new Promise(resolve => { releaseManual = resolve; });
+    await page.route(manualPattern, route => releaseManual(route));
+    assert.equal(await page.locator('#p20 .live-stage').evaluate(n => getComputedStyle(n, '::after').content), 'none', 'Idle poster never shimmers');
     await page.locator('#p20 .preview-interaction-shield').click();
+    const manualRequest = await manualRequested;
     assert.equal(await page.locator('#p20 .preview-poster').isVisible(), true, 'poster remains during delayed load');
+    assert.equal(await page.locator('#p20').getAttribute('aria-busy'), 'true');
+    assert.match(await page.locator('#p20 [role="status"]').textContent(), /Loading from the Internet Archive/);
+    const shimmer = await page.locator('#p20 .live-stage').evaluate(n => { const s = getComputedStyle(n, '::after'); return { name: s.animationName, pointer: s.pointerEvents }; });
+    assert.equal(shimmer.name, 'preview-loading-shimmer', 'Loading interactivity shimmers over the screenshot');
+    assert.equal(shimmer.pointer, 'none', 'Loading shimmer cannot trap clicks/scrolls');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    assert.equal(await page.locator('#p20 .live-stage').evaluate(n => getComputedStyle(n, '::after').animationName), 'none', 'Reduced motion uses a static loading wash');
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    if (memory === 8 && !saveData) {
+      await mkdir('test-output', { recursive: true });
+      await page.locator('#p20 .live-stage').evaluate(async n => {
+        const animations = n.getAnimations({ subtree: true });
+        for (const a of animations) { a.pause(); await a.ready; a.currentTime = 800; }
+      });
+      assert.ok(await page.locator('#p20 .live-stage').evaluate(n => Math.abs(new DOMMatrixReadOnly(getComputedStyle(n, '::after').transform).m41) < 1), 'Shimmer visibly crosses the screenshot at animation midpoint');
+      await page.screenshot({ path: 'test-output/preview-loading-shimmer.png' });
+    }
+    await manualRequest.fulfill({ contentType: 'text/html', body: '<!doctype html><p>Interactive archive fixture</p>' });
+    await page.unroute(manualPattern);
     await page.waitForFunction(() => manual.dataset.previewState === 'ready');
     assert.equal(await page.locator('#p20 .preview-poster').isVisible(), false);
+    assert.equal(await page.locator('#p20').getAttribute('aria-busy'), null);
+    assert.equal(await page.locator('#p20 .live-stage').evaluate(n => getComputedStyle(n, '::after').content), 'none', 'Ready replay removes shimmer');
     // Only one archive can capture input, even when its control was relocated.
     await page.evaluate(() => { window.other = window.make(21, true); other.scrollIntoView(); });
     await page.locator('#p21 .preview-interact-button').click();

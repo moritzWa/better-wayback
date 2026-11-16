@@ -84,8 +84,6 @@
 .wayback-ui #error { border-left: 2px solid var(--rule); padding: 12px; font-size: 13px; }
 .wayback-ui .empty-state { padding: 32px 0; color: var(--gray); }
 .wayback-ui .timeline-entry { padding: 24px 0 40px; }
-/* Give the final destination enough scroll room to align beneath the picker. */
-.wayback-ui .timeline-entry:last-child { min-height: calc(100dvh - 24px); }
 .wayback-ui .entry-meta { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; margin-bottom: 14px; }
 .wayback-ui .entry-details { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; flex: 1 1 310px; min-width: 0; }
 .wayback-ui .entry-date { font-size: 20px; font-weight: 600; }

@@ -34,6 +34,15 @@ try {
   const emit = event => page.evaluate(event => window.emit(event), event);
   const points = page.locator('.timeline-nav-points a');
   const settled = () => page.waitForFunction(() => !document.querySelector('#search-button').disabled);
+  const lastDestinationSettled = offset => page.waitForFunction(offset => {
+    const last = document.querySelector('#timeline').lastElementChild;
+    const target = Math.min(last.getBoundingClientRect().top + scrollY - offset, document.documentElement.scrollHeight - innerHeight);
+    return Math.abs(scrollY - target) < 2;
+  }, offset);
+  const compactBottom = async () => {
+    const gap = await page.locator('#timeline').evaluate(n => document.querySelector('.support-banner').getBoundingClientRect().top - n.lastElementChild.querySelector('.entry-card').getBoundingClientRect().bottom);
+    assert.ok(gap <= 81, `No viewport-sized spacer after final preview (gap ${gap}px)`);
+  };
   await page.goto(base); await settled();
   assert.equal(jobs, 0); assert.equal(replays, 0);
   assert.equal(await page.locator('iframe').count(), 0, 'PNG presets stay instant without iframe DOM/network');
@@ -47,9 +56,12 @@ try {
   const railGeometry = await page.locator('.timeline-nav').boundingBox();
   assert.ok(railGeometry.x + railGeometry.width < pageGeometry.x, 'Rail does not squeeze/overlap centered page');
   const beforeUrl = page.url(), beforeHistory = await page.evaluate(() => history.length);
+  await page.setViewportSize({ width: 1440, height: 1800 });
+  await compactBottom();
   await points.last().click();
-  await page.waitForFunction(() => Math.abs(document.querySelector('#timeline').lastElementChild.getBoundingClientRect().top - 24) < 2);
+  await lastDestinationSettled(24);
   await page.waitForFunction(() => document.querySelector('.timeline-nav-points a:last-child').getAttribute('aria-current') === 'location');
+  await page.setViewportSize({ width: 1440, height: 900 });
   assert.equal(page.url(), beforeUrl); assert.equal(await page.evaluate(() => history.length), beforeHistory);
   assert.equal(jobs, 0); assert.equal(replays, 0, 'Jump never activates a manual poster');
   await page.locator('.timeline-entry').nth(3).evaluate(n => scrollTo(0, n.getBoundingClientRect().top + scrollY - 24));
@@ -94,7 +106,8 @@ try {
     await page.setViewportSize({ width, height: 900 });
     await page.locator('#timeline').evaluate(n => scrollTo(0, n.offsetTop));
     await page.locator('.timeline-year-picker select').selectOption({ index: 3 });
-    await page.waitForFunction(() => Math.abs(document.querySelector('#timeline').lastElementChild.getBoundingClientRect().top - 76) < 2);
+    await lastDestinationSettled(76);
+    await compactBottom();
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${width}px overflow`);
     assert.equal(await page.locator('.timeline-nav-points').isVisible(), false);
   }

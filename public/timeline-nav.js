@@ -27,6 +27,9 @@ export function timelineNavigation(timeline, prioritizePreview) {
       if (item.entry.getBoundingClientRect().top > offset() + 30) break;
       current = item;
     }
+    // The final card may not have enough content below it to reach the top.
+    // At the natural page end, highlight it without adding artificial space.
+    if (Math.ceil(scrollY + innerHeight) >= document.documentElement.scrollHeight && items.at(-1).entry.getBoundingClientRect().top < innerHeight) current = items.at(-1);
     if (active !== current.entry.id) {
       active = current.entry.id;
       for (const [id, point] of points) {
