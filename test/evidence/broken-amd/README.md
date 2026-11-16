@@ -26,3 +26,27 @@ recovery. Those UI fixtures are not real Archive rendering evidence.
 Cloudflare's deploy dry run passed with unchanged resource bindings and free-tier
 budgets. Broken HTML uses a five-minute failure TTL rather than successful-cache
 retention. Existing valid PNGs remain available.
+
+## Production
+
+Merged as #5 (Omit failed captures from the visual timeline) and deployed as
+Worker version `925d39ed-c310-4f86-b492-9087c8a849f3`.
+
+The public 2008 timeline for `http://www1.amd.com/` finished its metadata stream
+in 2.212 seconds. It returned July 23 as available and the exact August 28
+timestamp `20080828141224` as `replayUnavailable: true`, with
+`error: "Incomplete archive capture."` and `htmlVersion: "html-v2"`.
+This measured metadata lookup, not screenshot rendering.
+
+The deployed `/app.js` matched merged main byte-for-byte, SHA-256
+`46727292fc4e03a268abc41c85fc920d999ef8d9d81af8c5eac41b8f471a347d`.
+
+A headless check of that public search confirmed one visible card in both views
+and no August 28 navigation entry. Stats retained `1 unavailable`. It used the
+real public job and metadata stream, blocked Archive iframes and stubbed the
+optional screenshot stream to avoid new rendering work. This verifies omission
+in the deployed app, not the surviving July capture's visual completeness.
+
+Readable pages with missing images, styles or other assets can still pass.
+Cross-origin iframe loading does not establish visual completeness. This change
+does not claim to detect or repair every partially rendered archive page.
