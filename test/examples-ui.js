@@ -29,6 +29,15 @@ try {
     assert.equal(await page.locator('#timeline img').count(), expected.captures.length);
     await page.locator('#timeline img').evaluateAll(images => Promise.all(images.map(img => { img.loading = 'eager'; return img.decode(); })));
     assert.equal(await page.locator('.live-frame').count(), 0);
+    if(expected.captures.some(c=>c.sourceType==='live')){
+      const current=page.locator('.timeline-entry').last();
+      assert.equal(await current.locator('.entry-date').innerText(),'Current');
+      assert.match(await current.locator('.entry-badge').innerText(),/NOT AN ARCHIVE REPLAY/);
+      assert.equal(await current.getByRole('link',{name:'Open current site ↗',exact:true}).getAttribute('href'),'https://www.apple.com/');
+      assert.equal(await current.locator('.compare-button').isVisible(),false);
+      assert.match(await current.locator('img').getAttribute('alt'),/live site captured/);
+      assert.match(await page.locator('#sampling-note').innerText(),/not an Internet Archive replay/);
+    }
     assert.equal(jobs, 0);
   }
   await page.locator('#settings').evaluate(n => { n.open = true; });

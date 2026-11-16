@@ -1,18 +1,18 @@
 {
   "url": "https://openai.com/",
   "from": "2016",
-  "to": "2025",
+  "to": "2026",
   "firstTimestamp": "20160504224904",
-  "lastTimestamp": "20250201023703",
-  "count": 5,
+  "lastTimestamp": "20261113060514",
+  "count": 6,
   "total": 12,
-  "sampled": 5,
+  "sampled": 6,
   "capped": false,
   "cached": true,
   "status": "ready",
   "curated": true,
   "source": "Internet Archive Wayback Machine",
-  "indexNote": "Curated from year-specific CDX queries and historical homepage paths, not the complete capture index.",
+  "indexNote": "Curated historical captures plus a recent capture verified through the Internet Archive availability API. Not a complete capture index.",
   "captures": [
     {
       "timestamp": "20160504224904",
@@ -157,6 +157,31 @@
       },
       "image": "/demos/openai/20250201023703-8a7bd01a66981b095a1fb6ea.png",
       "sha256": "8a7bd01a66981b095a1fb6ead7488518213a7700f2163db7df739ff7ecf51b52",
+      "renderVersion": "render-v2-ready"
+    },
+    {
+      "timestamp": "20261113060514",
+      "original": "https://openai.com/",
+      "requestedTimestamp": "20261113060514",
+      "text": "Skip to main content\nResearch\nProducts\nBusiness\nDevelopers\nCompany\nFoundation\n(opens in a new window)\nLog in\nTalk to us\nTry ChatGPT\n(opens in a new window)\nOpenAI\nWhat can I help with?\nMessage ChatGPT\nLearn about ChatGPT Business\nTalk with ChatGPT\n(opens in a new window)\nResearch\nAPI Platform\nMore\nOur latest Daybreak announcements\nEvent\nNov 12, 2026\nWatch the recording\nIntroducing GPT-6.1 Terra\nProduct\nOct 26, 2026\n6 min read\nIntroducing Images 2.6\nProduct\nNov 4, 2026\nMeasuring AI progress on the tasks that matter in everyday life\nResearch\nNov 2, 2026\nRecent news\nView more\nAn updated Model Spec for more capable and beneficial AI\nSafety\nOct 29, 2026\nHow we detect frontier model misalignment\nSecurity\nOct 29, 2026\nPatch the Planet: global response coordination as agents uncover critical vulnerabilities\nSecurity\nOct 21, 2026\nUsing thousands of AI agents to uncover new leads in biological data\nPublication\nOct 21, 2026\nOpenAI acquires Orchestra Bio\nCompany\nOct 20, 2026\nIntroducing MentalHealthBench\nPublication\nSep 23, 2026\nStories\nView all\nUsing ChatGPT to grow ATV Big Air Tour\nSep 9, 2026\nSupporting the blind community with ChatGPT\nSep 9, 2026\nAccelerating antibiotic discovery with ChatGPT\nSep 9, 2026\nLatest research\nView all\nAn OpenAI model proposes a solution to the Navier–Stokes problem\nResearch\nSep 8, 2026\nResearch acceleration: The view inside OpenAI\nResearch\nSep 6, 2026\nTen advances in mathematics and theoretical computer science\nPublication\nAug 1, 2026\nOpenAI for business\nView all\nModel ML completes finance work more efficiently with GPT-5.6 Sol\nStartup\nAug 10, 2026\nVirgin Atlantic sharpens customer journeys with ChatGPT Work\nAug 10, 2026\nHow Zapier transformed core marketing processes with ChatGPT Work\nAug 10, 2026\nGet started with ChatGPT\nDownload\nResearch\nResearch Index\nResearch Overview\nEconomic Research\nLatest Advancements\nGPT-6.1 Sol\nGPT-6 Astra\nGPT-5.6\nGPT-5.5\nSafety\nSafety Approach\nDeployment Safety\n(opens in a new window)\nSecurity & Privacy\nTrust & Transparency\nProducts\nChatGPT\n(opens in a new window)\nChatGPT Business\n(opens in a new window)\nChatGPT Enterprise\n(opens in a new window)\nChatGPT for Education\n(opens in a new window)\nCodex\nDots\n(opens in a new window)\nRelease Notes\nAPI Platform\nOverview\nAPI Log In\n(opens in a new window)\nDocs\n(opens in a new window)\nBusiness\nOverview\nSolutions\nResources\nPlugins\nCustomer Stories\nPartner Network\nContact Sales\nDevelopers\nPlugins\n(opens in a new window)\nModels\n(opens in a new window)\nDocs\n(opens in a new window)\nResources\n(opens in a new window)\nDeveloper Forum\n(opens in a new window)\nCompany\nAbout Us\nOur Charter\nCareers\nNews\nSupport\nHelp Center\n(opens in a new window)\nOpenAI Status\n(opens in a new window)\nMore\nStories\nAcademy\nSupply Co.\nLivestreams\nPodcast\nRSS\nTerms & Policies\nTerms of Use\nPrivacy Policy\nOther Policies\n(opens in a new window)\n(opens in a new window)\n(opens in a new window)\n(opens in a new window)\n(opens in a new window)\n(opens in a new window)\n(opens in a new window)\nOpenAI © 2015–2026\nYour privacy choices\nEnglish\nUnited States",
+      "title": "OpenAI | Research & Deployment",
+      "archiveUrl": "https://web.archive.org/web/20261113060514/https://openai.com/",
+      "timing": {
+        "navigationMs": 7327,
+        "totalMs": 16932,
+        "readiness": {
+          "waitMs": 8931,
+          "finiteAnimations": 0,
+          "hiddenHeadings": 0,
+          "visibleHeadings": [],
+          "imagesPending": 0,
+          "fontsReady": true,
+          "textLength": 3090,
+          "timedOut": false
+        }
+      },
+      "image": "/demos/openai/20261113060514-b833566b06fba54cc55bf1b5.png",
+      "sha256": "b833566b06fba54cc55bf1b56946854a2f785dec371a77caef9eba9d51cf0e73",
       "renderVersion": "render-v2-ready"
     }
   ],

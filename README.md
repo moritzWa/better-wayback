@@ -28,7 +28,9 @@ Open http://localhost:4317. Rendering uses the optional local resource queue whe
 
 The homepage opens a packaged Stripe example immediately. Stripe, OpenAI, Anthropic, Nvidia, Apple and Amazon examples use checked-in screenshot and text data, not a live browser or an Internet Archive request. Custom searches still query and render the archive.
 
-The examples are curated, not complete histories: four Stripe captures from 2012–2026, five OpenAI captures from 2016–2025, four Anthropic captures from 2021–2025, three Nvidia captures from 2007–2025, three Apple captures from 1999–2012, and six Amazon captures from 1999–2019. Historical homepage paths and redirects can differ from today's root URL. Unavailable rendering attempts are disclosed. Archived assets may be incomplete even in successful captures. Application-crash and 404 pages are rejected rather than packaged as previews.
+The examples are curated, not complete histories: four Stripe captures from 2012–2026, six OpenAI captures from 2016–2026, four Anthropic captures from 2021–2025, four Nvidia captures from 2007–2026, three archived Apple captures from 1999–2012 plus an explicitly labelled current-site capture, and six Amazon captures from 1999–2019. Historical homepage paths and redirects can differ from today's root URL. Unavailable rendering attempts are disclosed. Archived assets may be incomplete even in successful captures. Application-crash and 404 pages are rejected rather than packaged as previews.
+
+Apple's `Current` card is a genuine live-site screenshot on the displayed capture date, not a Wayback replay. It links to Apple, states its live provenance in the timeline and image alt text, and uses a separate text source so it is never silently grouped or compared with archived text. It is a packaged example asset, not a new public live-site fetching service. Nvidia and OpenAI's newest archive endpoints were captured on November 13, 2026.
 
 ## What works
 

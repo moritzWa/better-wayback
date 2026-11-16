@@ -9,7 +9,7 @@ import { resolve } from 'node:path';
 import { demoNames, loadDemo, demoAsset } from '../demos.js';
 import { examples, exampleForSite } from '../public/examples.js';
 
-test('packaged demos contain only genuine successful, integrity-checked archive screenshots', async () => {
+test('packaged demos contain genuine integrity-checked captures with explicit archive/live provenance', async () => {
   for (const name of demoNames) {
     const demo = await loadDemo(name);
     assert.equal(demo.status, 'ready');
@@ -24,7 +24,12 @@ test('packaged demos contain only genuine successful, integrity-checked archive 
       assert.equal(capture.error, undefined);
       assert.doesNotMatch(capture.title + '\n' + capture.text.slice(0, 300), /^404(?:\s|$)|application error:|client-side exception has occurred|just a moment/i);
       assert.ok(capture.text.length > 60);
-      assert.match(capture.archiveUrl, new RegExp(`/web/${capture.timestamp}/`));
+      if(capture.sourceType==='live'){
+        assert.equal(capture.archiveUrl,capture.sourceUrl);
+        assert.equal(capture.sourceUrl,capture.original);
+        assert.equal(capture.textSource,'live-rendered');
+        assert.equal(capture.capturedAt.replace(/\D/g,'').slice(0,14),capture.timestamp);
+      }else assert.match(capture.archiveUrl, new RegExp(`/web/${capture.timestamp}/`));
       assert.equal(new URL(capture.original).hostname.replace(/^www\./, ''), `${name}.com`);
       assert.ok(!seen.has(capture.timestamp)); seen.add(capture.timestamp);
       const png = await demoAsset(capture.image);

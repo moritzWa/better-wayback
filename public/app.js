@@ -27,6 +27,7 @@ function render() {
   let previous, position = 0;
   const visibleKeys = new Set();
   for (const capture of visible) {
+    const currentSite = capture.sourceType === 'live';
     const key = capture.timestamp ? captureKey(capture) : `finding-${capture.slot}`;
     visibleKeys.add(key);
     let entry = entries.get(key);
@@ -36,13 +37,13 @@ function render() {
       entries.set(key, entry);
     }
     const meta = el('div', 'entry-meta');
-    meta.append(el('div', 'entry-date', capture.timestamp ? capture.timestamp.slice(0, 4) : 'Finding capture'), el('div', 'entry-month', capture.timestamp ? date(capture.timestamp) : `Sample ${capture.slot + 1}`));
+    meta.append(el('div', 'entry-date', currentSite ? 'Current' : capture.timestamp ? capture.timestamp.slice(0, 4) : 'Finding capture'), el('div', 'entry-month', capture.timestamp ? date(capture.timestamp) : `Sample ${capture.slot + 1}`));
     const difference = comparableText(previous, capture) && !capture.error && !capture.pending ? Math.round((1 - similarity(previous.text, capture.text)) * 100) : null;
     const noDifference = !previous ? 'FIRST SEEN' : (previous.textSource || 'rendered') !== (capture.textSource || 'rendered') ? 'DIFFERENT TEXT SOURCES' : 'NO PREVIOUS TEXT';
-    meta.append(el('div', 'entry-badge', capture.pending ? 'PENDING' : capture.error ? 'UNAVAILABLE' : capture.textPending ? 'READING HTML' : capture.comparisonUnavailable || capture.textTruncated ? 'TEXT UNAVAILABLE' : difference === null ? noDifference : `${difference}% TEXT DIFFERENCE`));
+    meta.append(el('div', 'entry-badge', currentSite ? 'LIVE SITE CAPTURE · NOT AN ARCHIVE REPLAY' : capture.pending ? 'PENDING' : capture.error ? 'UNAVAILABLE' : capture.textPending ? 'READING HTML' : capture.comparisonUnavailable || capture.textTruncated ? 'TEXT UNAVAILABLE' : difference === null ? noDifference : `${difference}% TEXT DIFFERENCE`));
     if (capture.count > 1) meta.append(el('div', 'entry-count', `${capture.count} similar sampled captures\nthrough ${date(capture.lastTimestamp)}`));
     // Only rebuild a preview when its own data changes, never for another SSE result.
-    const signature = JSON.stringify([capture.pending, capture.image, capture.previewUrl, capture.error, capture.original]);
+    const signature = JSON.stringify([capture.pending, capture.image, capture.previewUrl, capture.error, capture.original, capture.sourceType]);
     let card = entry.querySelector('.entry-card');
     if (!card || entry.dataset.signature !== signature || card.querySelector('[data-preview-disposed]')) {
       card = el('div', 'entry-card');
@@ -63,12 +64,12 @@ function render() {
         entry.removeAttribute('aria-busy');
         if (capture.image) {
           const link = el('a', 'preview-link'); link.href = capture.archiveUrl; link.target = '_blank'; link.rel = 'noopener';
-          const image = el('img'); image.src = capture.image; image.alt = `${capture.title || capture.original}, archived ${date(capture.timestamp)}`; image.loading = 'lazy'; link.append(image); card.append(link);
+          const image = el('img'); image.src = capture.image; image.alt = `${capture.title || capture.original}, ${currentSite ? 'live site captured' : 'archived'} ${date(capture.timestamp)}`; image.loading = 'lazy'; link.append(image); card.append(link);
         } else card.append(livePreview(capture, `${capture.title || capture.original}, archived ${date(capture.timestamp)}`));
         const bottom = el('div', 'card-bottom'); bottom.append(el('span', 'entry-title', capture.title || 'Archived page'));
         const actions = el('div', 'card-actions');
         const button = el('button', 'compare-button', 'Compare text'); button.type = 'button'; actions.append(button);
-        const open = el('a', '', 'Open archive ↗'); open.href = capture.archiveUrl; open.target = '_blank'; open.rel = 'noopener'; actions.append(open); bottom.append(actions); card.append(bottom);
+        const open = el('a', '', currentSite ? 'Open current site ↗' : 'Open archive ↗'); open.href = capture.archiveUrl; open.target = '_blank'; open.rel = 'noopener'; actions.append(open); bottom.append(actions); card.append(bottom);
       }
       entry.replaceChildren(meta, card);
       entry.dataset.signature = signature;
@@ -220,6 +221,7 @@ async function loadDemo(site) {
     indexed = true; total = data.total; sampled = data.sampled; capped = data.capped; captures = data.captures;
     indexLabel = data.curated ? 'Curated example' : null;
     $('sampling-note').textContent = 'Cached example. A selection of archived previews, not every capture or change. Dates show when a page was archived, not when it launched.';
+    if(data.captures.some(c=>c.sourceType==='live')) $('sampling-note').textContent += ' The Current card is a separately labelled live-site capture on the date shown, not an Internet Archive replay.';
     $('site-title').textContent = data.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
     const first = data.firstTimestamp || captures[0].timestamp, last = data.lastTimestamp || captures.at(-1).timestamp;
     $('from').placeholder = first.slice(0, 4); $('to').placeholder = last.slice(0, 4);
