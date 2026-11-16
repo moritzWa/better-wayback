@@ -59,7 +59,7 @@ const server = http.createServer(async (req, res) => {
       if (blog) {
         res.writeHead(blog.status, {
           'Content-Type': blog.contentType,
-          'Content-Security-Policy': `default-src 'none'; style-src 'self'; script-src 'self' https://challenges.cloudflare.com ${blogScriptHashes.join(' ')}; connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; base-uri 'none'; frame-ancestors 'none'; form-action 'none'`,
+          'Content-Security-Policy': `default-src 'none'; img-src 'self'; style-src 'self'; script-src 'self' https://challenges.cloudflare.com ${blogScriptHashes.join(' ')}; connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; base-uri 'none'; frame-ancestors 'none'; form-action 'none'`,
         });
         res.end(req.method === 'HEAD' ? undefined : blog.body);
         return;
@@ -135,7 +135,7 @@ const server = http.createServer(async (req, res) => {
       res.on('finish', () => clearInterval(heartbeat));
       return;
     }
-    const files = { '/': ['public/index.html', 'text/html'], '/examples.js': ['public/examples.js', 'text/javascript'], '/previews.js': ['public/previews.js', 'text/javascript'], '/support.js': ['public/support.js', 'text/javascript'], '/app.js': ['public/app.js', 'text/javascript'], '/style.css': ['public/style.css', 'text/css'], '/group.js': ['group.js', 'text/javascript'] };
+    const files = { '/': ['public/index.html', 'text/html'], '/examples.js': ['public/examples.js', 'text/javascript'], '/previews.js': ['public/previews.js', 'text/javascript'], '/support.js': ['public/support.js', 'text/javascript'], '/app.js': ['public/app.js', 'text/javascript'], '/style.css': ['public/style.css', 'text/css'], '/group.js': ['group.js', 'text/javascript'], '/logo.svg': ['public/logo.svg','image/svg+xml'], '/logo.png': ['public/logo.png','image/png'], '/favicon.svg': ['public/favicon.svg','image/svg+xml'], '/favicon.ico': ['public/favicon.ico','image/x-icon'], '/favicon-32.png': ['public/favicon-32.png','image/png'], '/apple-touch-icon.png': ['public/apple-touch-icon.png','image/png'], '/icon-512.png': ['public/icon-512.png','image/png'] };
     const file = files[path] || (/^\/cache\/[a-f0-9]{24}\.png$/.test(path) ? [`.cache/${path.split('/').at(-1)}`, 'image/png'] : null);
     if (!['GET', 'HEAD'].includes(req.method) || !file) return json(res, 404, { error: 'Not found' });
     const data = await readFile(resolve(root, file[0]));

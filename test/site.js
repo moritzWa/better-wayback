@@ -21,6 +21,12 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error' && /Content Security Policy|Refused to/.test(message.text())) errors.push(message.text()); });
   await page.goto(base + '/');
+  await page.locator('.brand img').evaluate(n=>n.decode());
+  assert.ok(await page.locator('.brand img').evaluate(n=>n.naturalWidth>0));
+  for(const path of ['/logo.svg','/logo.png','/favicon.svg','/favicon.ico','/favicon-32.png','/apple-touch-icon.png']){
+    const response=await page.request.get(base+path);assert.equal(response.status(),200,path);
+    const head=await page.request.head(base+path);assert.equal(head.status(),200);assert.equal((await head.body()).length,0);
+  }
   assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'), 'https://visualwayback.com/');
   await page.waitForFunction(() => document.getElementById('progress').hidden);
   const demoResponse = await page.request.get(base + '/api/demos/stripe');
@@ -61,11 +67,13 @@ try {
   }
   await page.getByRole('link', { name: 'Blog', exact: true }).first().click();
   assert.ok(page.url().endsWith('/blog/'));
+  await page.locator('.brand img').evaluate(n=>n.decode());
   await page.screenshot({ path: 'test-output/blog-index-desktop.png', fullPage: true });
   for (const slug of ['wayback-machine-alternatives', 'history-of-the-wayback-machine']) {
     const path = `/blog/${slug}/`;
     const response = await page.goto(base + path);
     assert.equal(response.status(), 200);
+    await page.locator('.brand img').evaluate(n=>n.decode());
     assert.equal(await page.locator('h1').count(), 1);
     assert.ok(await page.locator('script[type="application/ld+json"]').count());
     for (const script of await page.locator('script[type="application/ld+json"]').all()) JSON.parse(await script.textContent());

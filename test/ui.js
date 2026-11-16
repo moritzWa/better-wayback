@@ -10,7 +10,7 @@ const server = createServer(async (req, res) => {
   const path = new URL(req.url, 'http://localhost').pathname;
   const blog = handleBlogRequest(path);
   if (blog) { res.writeHead(blog.status, { 'Content-Type': blog.contentType }); res.end(blog.body); return; }
-  const files = { '/': ['public/index.html', 'text/html'], '/app.js': ['public/app.js', 'text/javascript'], '/examples.js': ['public/examples.js', 'text/javascript'], '/previews.js': ['public/previews.js', 'text/javascript'], '/style.css': ['public/style.css', 'text/css'], '/group.js': ['group.js', 'text/javascript'] };
+  const files = { '/': ['public/index.html', 'text/html'], '/app.js': ['public/app.js', 'text/javascript'], '/examples.js': ['public/examples.js', 'text/javascript'], '/previews.js': ['public/previews.js', 'text/javascript'], '/style.css': ['public/style.css', 'text/css'], '/group.js': ['group.js', 'text/javascript'], '/logo.svg': ['public/logo.svg','image/svg+xml'], '/favicon.svg': ['public/favicon.svg','image/svg+xml'], '/favicon-32.png': ['public/favicon-32.png','image/png'], '/favicon.ico': ['public/favicon.ico','image/x-icon'], '/apple-touch-icon.png': ['public/apple-touch-icon.png','image/png'] };
   if (!files[path]) { res.writeHead(404); res.end(); return; }
   res.writeHead(200, { 'Content-Type': files[path][1] }); res.end(await readFile(files[path][0]));
 });

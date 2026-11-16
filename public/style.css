@@ -30,6 +30,7 @@
 .wayback-ui main { flex: 1; }
 .wayback-ui .masthead { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 72px; }
 .wayback-ui .brand { color: var(--ink); font-size: 20px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; }
+.wayback-ui .brand img { display: block; width: 188px; height: auto; }
 .wayback-ui nav { display: flex; gap: 24px; font-size: 13px; }
 .wayback-ui .eyebrow { font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--gray); font-weight: 600; margin-bottom: 10px; }
 .wayback-ui h1 { font-size: 44px; line-height: 1.1; font-weight: 700; letter-spacing: -.01em; margin: 0 0 18px; }
@@ -123,6 +124,7 @@
 @media (max-width: 640px) {
   .wayback-ui .page { padding: 32px 20px; }
   .wayback-ui .masthead { margin-bottom: 48px; gap: 16px; }
+  .wayback-ui .brand img { width: 154px; }
   .wayback-ui nav { gap: 16px; }
   .wayback-ui nav a:last-child { display: none; }
   .wayback-ui h1 { font-size: 32px; }

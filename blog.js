@@ -43,6 +43,7 @@ function page({ title, description, path, content, schema, article, noindex = fa
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${html(title)} | ${html(BRAND)}</title>
 <meta name="description" content="${html(description)}">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32"><link rel="shortcut icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
 ${noindex ? '<meta name="robots" content="noindex, follow">' : `<link rel="canonical" href="${html(BLOG_ORIGIN + path)}">`}
 <meta property="og:type" content="${article ? 'article' : 'website'}">
 <meta property="og:site_name" content="${html(BRAND)}">
@@ -55,7 +56,7 @@ ${article ? `<meta property="article:published_time" content="${html(article.pub
 <script type="module" src="/support.js"></script>
 ${schema ? structuredData(schema) : ''}
 </head><body><a class="skip" href="#main">Skip to content</a><div class="page">
-<header class="site-header"><a class="brand" href="/">${html(BRAND)}</a><nav aria-label="Main"><a href="/">Home</a><a href="/blog/"${path === '/blog/' ? ' aria-current="page"' : ''}>Blog</a></nav></header>
+<header class="site-header"><a class="brand" href="/" aria-label="Visual Wayback home"><img src="/logo.svg" alt="${html(BRAND)}" width="188" height="40"></a><nav aria-label="Main"><a href="/">Home</a><a href="/blog/"${path === '/blog/' ? ' aria-current="page"' : ''}>Blog</a></nav></header>
 <main id="main">${content}</main>
 <aside class="support-banner" data-support aria-label="Support this project"><button type="button" data-support-open aria-expanded="false" aria-controls="support-panel">Support this project</button><span>Help keep Visual Wayback free.</span><div id="support-panel" data-support-panel hidden><p role="status" aria-live="polite"></p><div data-support-widget></div><button type="button" data-support-cancel>Cancel</button></div><noscript>Enable JavaScript to reveal the support email.</noscript></aside>
 <footer><span>Not affiliated with the Internet Archive.</span><div class="footer-links"><a href="https://moritzw.com/">Built by Moritz Wallawitsch</a><a href="https://github.com/moritzWa/better-wayback">GitHub</a><a href="/blog/">All articles</a></div></footer>

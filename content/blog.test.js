@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
 import { handleBlogRequest, blogScriptHashes, blogSitemapEntries, BLOG_ORIGIN } from '../blog.js';
 import { articles } from './articles.js';
 
@@ -26,7 +27,7 @@ test('serves only the blog and the two discovery endpoints', () => {
   for (const path of ['/', '/api/jobs', '/public/style.css', '/blogs/', '', null, undefined]) assert.equal(handleBlogRequest(path), null);
   assert.equal(handleBlogRequest('/blog/missing/').status, 404);
   assert.match(handleBlogRequest('/blog/<img src=x>/').body, /noindex, follow/);
-  assert.doesNotMatch(handleBlogRequest('/blog/<img src=x>/').body, /<img/);
+  assert.deepEqual(handleBlogRequest('/blog/<img src=x>/').body.match(/<img\b[^>]*>/g), ['<img src="/logo.svg" alt="Visual Wayback" width="188" height="40">']);
 });
 
 test('articles are substantive, dated, sourced and fully static', () => {
@@ -76,6 +77,7 @@ test('all local article links, anchors and sitemap targets resolve', () => {
     assert.equal(ids.length, new Set(ids).size);
     for (const [, href] of body.matchAll(/href="([^"]+)"/g)) {
       if (href.startsWith('#')) assert.ok(ids.includes(href.slice(1)), `${path}: ${href}`);
+      else if (['/favicon.svg','/favicon-32.png','/favicon.ico','/apple-touch-icon.png'].includes(href)) assert.ok(existsSync(new URL('../public'+href,import.meta.url)),href);
       else if (href.startsWith('/') && href !== '/') assert.equal(handleBlogRequest(href)?.status, 200, href);
     }
   }
@@ -95,7 +97,8 @@ test('metadata, inline content, tables and JSON-LD escape hostile text', async (
   try {
     const fresh = await import(`../blog.js?escape-test=${Date.now()}`);
     const body = fresh.handleBlogRequest(articlePaths[0]).body;
-    assert.doesNotMatch(body, /<img|href="javascript:|href="\/\/evil/);
+    assert.deepEqual(body.match(/<img\b[^>]*>/g), ['<img src="/logo.svg" alt="Visual Wayback" width="188" height="40">']);
+    assert.doesNotMatch(body, /href="javascript:|href="\/\/evil/);
     assert.ok(body.includes('&lt;img src=x onerror=&quot;alert(1)&quot;&gt;'));
     assert.ok(body.includes('href="https://example.com/?a=1&amp;b=2"'));
     const data = body.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1];
