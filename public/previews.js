@@ -45,6 +45,7 @@ function release(state) {
   }
   state.phase = 'idle'; state.wrapper.dataset.previewState = 'idle';
   state.wrapper.removeAttribute('aria-busy');
+  state.retry.hidden = true;
   if (state.poster) state.poster.hidden = false;
   status(state);
 }
@@ -54,10 +55,12 @@ function destroy(state) {
   state.resize?.disconnect();
   state.button.removeEventListener('click', state.toggle);
   state.shield.removeEventListener('click', state.enter);
+  state.retry.removeEventListener('click', state.restart);
   previews.delete(state.wrapper);
 }
 function activate(state) {
   state.phase = 'loading'; state.priority = false; state.used = ++clock;
+  state.retry.hidden = true;
   state.wrapper.dataset.previewState = 'loading';
   state.wrapper.setAttribute('aria-busy', 'true');
   const generation = ++state.generation;
@@ -76,8 +79,9 @@ function activate(state) {
     if (failed) { interaction(state, false); release(state); }
     state.phase = failed ? 'error' : 'ready'; state.wrapper.dataset.previewState = state.phase;
     state.wrapper.removeAttribute('aria-busy');
+    state.retry.hidden = !failed;
     if (!failed && state.poster) state.poster.hidden = true;
-    status(state, failed ? 'Replay could not load here. Use Open archive.' : ''); schedule();
+    status(state, failed ? 'Replay could not load here. Retry or open the archive.' : ''); schedule();
   };
   frame.onload = () => finish(false); frame.onerror = () => finish(true);
   status(state, 'Loading from the Internet Archive…');
@@ -86,12 +90,15 @@ function activate(state) {
     // Archives can paint and accept input long before slow subresources finish.
     // Never discard a usable on-screen document merely for lacking a load event.
     const rect = state.wrapper.getBoundingClientRect();
+    state.retry.hidden = false;
     if (state.interacting || (rect.bottom > 0 && rect.top < window.innerHeight)) {
+      status(state, 'The archive is still loading. You can wait, retry, or open the archive.');
       state.timer = setTimeout(checkDeadline, 10000);
       return;
     }
     interaction(state, false); release(state); state.phase = 'error'; state.wrapper.dataset.previewState = 'error';
-    status(state, 'The archive took too long. Use Open archive or Interact to retry.'); schedule();
+    state.retry.hidden = false;
+    status(state, 'The archive took too long. Retry or open the archive.'); schedule();
   };
   state.timer = setTimeout(checkDeadline, 20000);
   frame.src = state.url; state.stage.prepend(frame);
@@ -104,7 +111,14 @@ export function refreshPreviews() {
   for (const state of previews.values()) {
     const r = state.wrapper.getBoundingClientRect();
     state.distance = Math.max(0, -r.bottom, r.top - height);
+    const wasVisible = state.visible;
     state.visible = r.bottom > 0 && r.top < height;
+    // An offscreen preload timeout must not become a permanent blank card.
+    // Retry once on entering the viewport, never in a scroll/resize retry loop.
+    if (state.phase === 'error' && state.visible && !wasVisible && state.automaticRetries < 1) {
+      state.automaticRetries++;
+      state.priority = true;
+    }
     state.near = r.bottom > -(direction < 0 ? 2 : .5) * height && r.top < height * (direction > 0 ? 3 : 1.5);
     if (state.visible) state.used = ++clock;
   }
@@ -114,8 +128,9 @@ export function refreshPreviews() {
     if (state.frame || (state.phase === 'error' && !state.priority)) continue;
     const loading = [...previews.values()].filter(s => s.phase === 'loading');
     if (loading.length >= 2) {
-      // A deliberate destination jump need not wait for unrelated offscreen loads.
-      const stale = state.priority && loading.filter(s => !s.visible && !s.interacting)
+      // Scrolling onto a card, like a deliberate jump, must not wait behind
+      // two stalled offscreen preloads. Never cancel an on-screen document.
+      const stale = (state.priority || state.visible) && loading.filter(s => !s.visible && !s.interacting)
         .sort((a, b) => b.distance - a.distance || a.used - b.used)[0];
       if (!stale) break;
       release(stale);
@@ -144,21 +159,31 @@ export function resetPreviews() {
 }
 export function livePreview(capture, label, { poster, manual = false } = {}) {
   const wrapper = document.createElement('div'); wrapper.className = 'live-preview';
+  wrapper.dataset.previewState = 'idle';
   const stage = document.createElement('div'); stage.className = 'live-stage';
   const message = document.createElement('p'); message.className = 'live-status'; message.hidden = true;
   message.setAttribute('role', 'status');
   const url = safeReplay(capture.previewUrl || capture.archiveUrl);
   if (!url) { message.hidden = false; message.textContent = 'Invalid archive preview URL. Use Open archive.'; wrapper.append(message); return wrapper; }
   const button = document.createElement('button'); button.type = 'button'; button.className = 'preview-interact-button'; button.textContent = 'Interact'; button.setAttribute('aria-pressed', 'false'); button.setAttribute('aria-label', `Interact with ${label}`);
+  const retry = document.createElement('button'); retry.type = 'button'; retry.className = 'preview-retry-button'; retry.textContent = 'Retry preview'; retry.hidden = true; retry.setAttribute('aria-label', `Retry preview of ${label}`);
   const shield = document.createElement('button'); shield.type = 'button'; shield.className = 'preview-interaction-shield'; shield.tabIndex = -1; shield.setAttribute('aria-label', `Interact with ${label}`);
-  const state = { wrapper, stage, status: message, button, shield, label, url, manual, generation: 0, phase: 'idle', used: 0 };
+  const state = { wrapper, stage, status: message, button, retry, shield, label, url, manual, generation: 0, phase: 'idle', used: 0, automaticRetries: 0 };
   if (poster) {
     const image = document.createElement('img'); image.className = 'preview-poster'; image.loading = 'lazy'; image.decoding = 'async'; image.src = poster; image.alt = label;
     state.poster = image; stage.append(image);
   }
   state.toggle = () => interaction(state, !state.interacting); state.enter = () => interaction(state, true);
+  state.restart = () => {
+    interaction(state, false); release(state);
+    state.manual = false; state.priority = true;
+    status(state, 'Waiting for an archive loading slot…'); refreshPreviews();
+  };
   button.addEventListener('click', state.toggle); shield.addEventListener('click', state.enter);
-  stage.append(shield); wrapper.append(stage, message, button);
+  retry.addEventListener('click', state.restart);
+  const feedback = document.createElement('div'); feedback.className = 'live-feedback'; feedback.append(message, retry);
+  stage.append(shield); wrapper.append(stage, feedback, button);
+  if (!manual) status(state, 'Preview queued. Loads as you scroll closer…');
   if (typeof ResizeObserver === 'function') {
     state.resize = new ResizeObserver(() => {
       if (state.frame) state.frame.style.transform = `scale(${stage.clientWidth / 1280})`;

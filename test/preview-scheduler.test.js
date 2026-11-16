@@ -126,6 +126,7 @@ try {
       const paintedMarker = await painted.evaluate(() => window.marker);
       await page.clock.fastForward(20001);
       assert.equal(await page.locator('#p22').getAttribute('data-preview-state'), 'loading', 'visible interacting document survives slow load event');
+      assert.equal(await page.locator('#p22 .preview-retry-button').isVisible(), true, 'slow on-screen load offers retry without discarding painted content');
       assert.equal(await painted.locator('input').inputValue(), 'visible unfinished document state');
       assert.equal(await painted.evaluate(() => window.marker), paintedMarker);
       await page.locator('#p22 .preview-interact-button').click();
@@ -143,12 +144,14 @@ try {
       assert.match(await page.locator('#p22 .live-status').textContent(), /too long/);
       assert.equal(await page.locator('#p22 .preview-interact-button').getAttribute('aria-pressed'), 'false');
       assert.equal(await page.locator('#p22 .preview-interaction-shield').isVisible(), true);
+      assert.equal(await page.locator('#p22 .preview-retry-button').isVisible(), true, 'timeout has a direct retry action');
       await stalled?.abort().catch(() => {});
       await page.unroute('https://slow.invalid/image');
       await page.unroute('https://web.archive.org/web/20220101000000if_/**');
       await page.evaluate(() => { document.querySelector('main').style.minHeight = ''; });
       await page.locator('#p22 .preview-interact-button').click();
       await page.waitForFunction(() => slow.dataset.previewState === 'ready');
+      assert.equal(await page.locator('#p22 .preview-retry-button').isVisible(), false);
       await page.evaluate(() => { api.resetPreviews(); window.failure = window.make(23, true); failure.scrollIntoView(); });
       await page.locator('#p23 .preview-interact-button').click();
       await page.evaluate(() => failure.querySelector('iframe').dispatchEvent(new Event('error')));
@@ -156,7 +159,7 @@ try {
       assert.equal(await page.locator('#p23 iframe').count(), 0);
       assert.equal(await page.locator('#p23 .preview-interact-button').getAttribute('aria-pressed'), 'false');
       assert.equal(await page.locator('#p23 .preview-interaction-shield').isVisible(), true);
-      await page.locator('#p23 .preview-interact-button').click();
+      await page.locator('#p23 .preview-retry-button').click();
       await page.waitForFunction(() => failure.dataset.previewState === 'ready');
       await page.evaluate(() => { api.resetPreviews(); document.querySelector('main').replaceChildren(); scrollTo(0, 0); });
       const held = [];
@@ -164,6 +167,7 @@ try {
       await page.route(delayedPattern, route => { held.push(route); });
       await page.evaluate(() => { for (const n of [24,25,26]) window.make(n).style.marginBottom = '400px'; api.refreshPreviews(); });
       await page.waitForFunction(() => document.querySelectorAll('[data-preview-state="loading"]').length === 2);
+      assert.equal(await page.locator('#p24 .live-stage').evaluate(n => getComputedStyle(n, '::after').animationName), 'preview-loading-shimmer', 'live previews without screenshot posters also shimmer');
       await page.evaluate(() => api.prioritizePreview(document.querySelector('#p26')));
       assert.equal(await page.locator('#p24').getAttribute('data-preview-state'), 'loading', 'visible document not preempted');
       assert.equal(await page.locator('#p25 iframe').count(), 0, 'offscreen loading slot preempted immediately');
@@ -186,9 +190,50 @@ try {
       assert.equal(await page.locator('#p24 iframe').count(), 0, 'jump preempts farthest of two unrelated offscreen loads');
       assert.ok(await page.locator('[data-preview-state="loading"]').count() <= 2);
       await page.waitForFunction(() => document.querySelector('#p26').dataset.previewState === 'ready');
+      // Ordinary scrolling gets the same preemption as minimap navigation.
+      await page.evaluate(() => api.resetPreviews());
+      for (const route of held) await route.abort().catch(() => {});
+      held.length = 0;
+      await page.evaluate(() => {
+        document.querySelector('main').replaceChildren(); scrollTo(0, 0);
+        for (const n of [24,25,26]) window.make(n).style.marginBottom = '400px';
+        api.refreshPreviews();
+      });
+      await page.waitForFunction(() => document.querySelectorAll('[data-preview-state="loading"]').length === 2);
+      await page.evaluate(() => { document.querySelector('#p26').scrollIntoView(); api.refreshPreviews(); });
+      assert.equal(await page.locator('#p24 iframe').count(), 0, 'ordinary scroll also preempts unrelated offscreen loads');
+      await page.waitForFunction(() => document.querySelector('#p26').dataset.previewState === 'ready');
       await page.evaluate(() => api.resetPreviews());
       for (const route of held) await route.abort().catch(() => {});
       await page.unroute(delayedPattern);
+      // A timed-out offscreen preload retries once when scrolled into view.
+      await page.evaluate(() => { document.querySelector('main').replaceChildren(); scrollTo(0, 0); });
+      let returnRequests = 0;
+      let secondRequest;
+      const secondRequested = new Promise(resolve => { secondRequest = resolve; });
+      await page.route('https://web.archive.org/web/20280101000000if_/**', route => {
+        returnRequests++;
+        if (returnRequests === 2) secondRequest();
+        if (returnRequests <= 2) return; // Intentionally stalled documents.
+        return route.fulfill({ contentType: 'text/html', body: '<p>Recovered on return</p>' });
+      });
+      await page.evaluate(() => { window.make(27).style.marginBottom = '400px'; window.returning = window.make(28); api.refreshPreviews(); });
+      await page.waitForFunction(() => returning.dataset.previewState === 'loading');
+      await page.clock.fastForward(20001);
+      assert.equal(await page.locator('#p28').getAttribute('data-preview-state'), 'error');
+      await page.evaluate(() => { returning.scrollIntoView(); api.refreshPreviews(); });
+      await page.waitForFunction(() => document.querySelector('#p28 iframe')?.src && window.returning.dataset.previewState === 'loading');
+      await secondRequested;
+      await page.evaluate(() => returning.querySelector('iframe').dispatchEvent(new Event('error')));
+      assert.equal(returnRequests, 2, 'viewport entry automatically recovers timed-out preload');
+      await page.evaluate(() => { scrollTo(0, 0); api.refreshPreviews(); returning.scrollIntoView(); api.refreshPreviews(); });
+      assert.equal(await page.locator('#p28').getAttribute('data-preview-state'), 'error', 'automatic retry is bounded even across repeated viewport entry');
+      assert.equal(returnRequests, 2, 'no automatic retry storm');
+      await page.locator('#p28 .preview-retry-button').click();
+      await page.waitForFunction(() => returning.dataset.previewState === 'ready');
+      assert.equal(returnRequests, 3, 'explicit retry still works after automatic retry is exhausted');
+      await page.evaluate(() => api.resetPreviews());
+      await page.unroute('https://web.archive.org/web/20280101000000if_/**');
       await page.evaluate(() => {
         window.cached = api.livePreview({archiveUrl:'https://web.archive.org/web/20270101000000/https://example.invalid/'}, 'cached', {manual:true});
         document.querySelector('main').append(cached); cached.scrollIntoView();

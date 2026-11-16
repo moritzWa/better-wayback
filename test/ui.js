@@ -126,7 +126,7 @@ try {
   assert.match(await page.locator('#stats').innerText(), /2 text versions.*1 unavailable/);
   await page.getByRole('button', { name: 'All sampled', exact: true }).click();
   assert.equal(await page.locator('.timeline-entry').count(), 4);
-  await page.getByRole('button', { name: 'Changes only', exact: true }).click();
+  await page.getByRole('button', { name: 'Text changes', exact: true }).click();
   assert.equal(await page.locator('img').last().evaluate(n => n === window.originalPreview), true);
   await page.getByText('Settings', { exact: true }).click();
   await page.locator('#sensitivity').fill('100');
