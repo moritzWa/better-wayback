@@ -25,3 +25,9 @@ python3 ~/.claude/scripts/heavy-job.py --wait -- node tools/check-replay-recover
 ```
 
 Real archive requests can fail or render incompletely. This check does not repair missing archived assets or use a screenshot as proof that every asset loaded.
+
+## Production verification
+
+Deployed Worker version `34cbf17c-6e16-4437-b5c6-d8c08d08dfbe` on November 15, 2026. Public `previews.js`, `previews.css` and `app.js` matched the merged source byte-for-byte. A fresh headless production page showed **Text changes** and the exact 2021 a16z “Understand the Future, Now” hero. Only the job metadata was replayed from the recorded SSE; app assets and archive content came from their real public origins. No new server job was created.
+
+The archive emitted a missing `https://web-static.archive.org/_static/wombatWorkers.js` worker-script warning on the first smoke check. Later checks also saw an unexpected `loop` token (no source stack) and a null `querySelectorAll` error traced to the archived 2021 a16z JavaScript bundle. The hero still rendered. The final screenshot waited for document completion and loaded fonts, not only a DOM-visible heading. These replay-script/asset failures remain outside the client's retry/grouping fix. The production screenshot is retained locally at `artifacts/replay-recovery/production-2021.png`.
