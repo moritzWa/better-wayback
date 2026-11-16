@@ -50,6 +50,8 @@ try {
   assert.equal(await page.locator('.browser-chrome, .card-bottom, .entry-title').count(), 0);
   await page.locator('#all-view').click();
   assert.equal(await points.count(), 8);
+  assert.equal(await page.locator('.timeline-nav-year').count(), 8, 'Annual captures retain one year label per group');
+  assert.deepEqual(await page.locator('.timeline-nav-month').allTextContents(), Array(8).fill('Jan'), 'Sparse histories still show capture months');
   await page.locator('#timeline').evaluate(n => scrollTo(0, n.offsetTop));
   await page.waitForFunction(() => !document.querySelector('.timeline-nav').hidden);
   const pageGeometry = await page.locator('.page').boundingBox();
@@ -60,12 +62,12 @@ try {
   await compactBottom();
   await points.last().click();
   await lastDestinationSettled(24);
-  await page.waitForFunction(() => document.querySelector('.timeline-nav-points a:last-child').getAttribute('aria-current') === 'location');
+  await page.waitForFunction(() => [...document.querySelectorAll('.timeline-nav-points a')].at(-1).getAttribute('aria-current') === 'location');
   await page.setViewportSize({ width: 1440, height: 900 });
   assert.equal(page.url(), beforeUrl); assert.equal(await page.evaluate(() => history.length), beforeHistory);
   assert.equal(jobs, 0); assert.equal(replays, 0, 'Jump never activates a manual poster');
   await page.locator('.timeline-entry').nth(3).evaluate(n => scrollTo(0, n.getBoundingClientRect().top + scrollY - 24));
-  await page.waitForFunction(() => document.querySelector('.timeline-nav-points a:nth-child(4)').hasAttribute('aria-current'));
+  await page.waitForFunction(() => document.querySelectorAll('.timeline-nav-points a')[3].hasAttribute('aria-current'));
   await page.evaluate(() => scrollTo(0, 0));
   await page.setViewportSize({ width: 1440, height: 500 });
   await page.waitForFunction(() => document.querySelector('.timeline-nav').hidden);
@@ -86,8 +88,12 @@ try {
   await emit({ type: 'capture', capture: { ...selected[0], text: 'Updated HTML metadata', textSource: 'html' } });
   assert.equal(await points.first().evaluate(n => n === window.savedPoint && n === document.activeElement), true, 'Metadata updates preserve nav DOM and focus');
   assert.equal(await page.locator('.timeline-entry').first().evaluate(n => n === window.savedCard && n.querySelector('img') === window.savedPoster && n.querySelector('.preview-interact-button') === window.savedInteract), true);
+  await points.nth(2).focus();
+  await points.nth(2).evaluate(n => { window.survivingPoint = n; });
   await emit({ type: 'capture', capture: { ...selected[1], error: 'Fixture unavailable' } });
   assert.equal(await points.count(), 3, 'Confirmed failure leaves the date navigation immediately');
+  assert.equal(await page.locator('.timeline-nav-year').filter({ hasText: '2002' }).count(), 0, 'Removing the last capture removes its year group');
+  assert.equal(await points.nth(1).evaluate(n => n === window.survivingPoint && n === document.activeElement), true, 'Removing an earlier year preserves focus in surviving groups');
   assert.equal(await page.locator('.timeline-entry[data-capture^="2002"]').count(), 0);
   assert.equal(await page.locator('.entry-pending').count(), 2, 'Unresolved captures remain visible');
   await emit({ type: 'capture', capture: selected[2] });
@@ -142,15 +148,23 @@ try {
   await page.evaluate(() => { window.scrollTo = window.originalScroll; });
   // A dense short desktop rail must reveal its active point without scrolling
   // any ancestor (especially the outer document).
-  const dense = Array.from({ length: 24 }, (_, i) => capture(1999 + i));
-  await page.route('**/api/demos/*', route => route.fulfill({ json: { url: 'https://stripe.com/', total: 24, sampled: 24, captures: dense, curated: true } }));
+  const dense = Array.from({ length: 40 }, (_, i) => {
+    const year = 2000 + Math.floor(i / 4) * 2;
+    const timestamp = `${year}${['0312', '0326', '0608', '1119'][i % 4]}000000`;
+    return { ...capture(year, `Distinct version ${i} for capture ${timestamp}`), timestamp, archiveUrl: `https://web.archive.org/web/${timestamp}/https://fixture.test/` };
+  });
+  await page.route('**/api/demos/*', route => route.fulfill({ json: { url: 'https://stripe.com/', total: dense.length, sampled: dense.length, captures: dense, curated: true } }));
   await page.locator('[data-site="stripe.com"]').click(); await settled();
   await page.locator('#all-view').click();
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.setViewportSize({ width: 1440, height: 420 });
-  assert.equal(await points.count(), 24);
+  assert.equal(await points.count(), 40);
+  assert.equal(await page.locator('.timeline-nav-year').count(), 10, 'One year label for each group of four captures');
+  assert.deepEqual(await page.locator('.timeline-nav-group').first().locator('.timeline-nav-month').allTextContents(), ['Mar 12', 'Mar 26', 'Jun', 'Nov'], 'Only repeated months gain day labels');
+  assert.equal(await page.locator('.timeline-nav-year').filter({ hasText: '2001' }).count(), 0, 'Skipped years do not create empty groups');
+  assert.match(await points.first().getAttribute('aria-label'), /Mar 12, 2000/);
   const outerY = await page.locator('#timeline').evaluate(n => { const last = n.lastElementChild; scrollTo(0, last.getBoundingClientRect().top + scrollY - 24); return scrollY; });
-  await page.waitForFunction(() => document.querySelector('.timeline-nav-points a:last-child').hasAttribute('aria-current'));
+  await page.waitForFunction(() => [...document.querySelectorAll('.timeline-nav-points a')].at(-1).hasAttribute('aria-current'));
   const activeRail = await page.locator('.timeline-nav-points').evaluate(n => {
     const rail = n.getBoundingClientRect(), active = n.querySelector('[aria-current]').getBoundingClientRect();
     return { scrollTop: n.scrollTop, visible: active.top >= rail.top - 1 && active.bottom <= rail.bottom + 1 };
@@ -158,10 +172,40 @@ try {
   assert.ok(activeRail.scrollTop > 0, 'Dense rail scrolls internally');
   assert.equal(activeRail.visible, true, 'Last active dot stays visible in short desktop viewport');
   assert.equal(await page.evaluate(() => scrollY), outerY, 'Rail auto-reveal never moves outer document');
+  const stickyYear = await page.locator('.timeline-nav-points').evaluate(n => {
+    const group = n.querySelectorAll('.timeline-nav-group')[5];
+    n.scrollTop = group.offsetTop + 48;
+    const year = group.querySelector('.timeline-nav-year').getBoundingClientRect(), rail = n.getBoundingClientRect();
+    return { top: year.top - rail.top, groupTop: group.getBoundingClientRect().top - rail.top };
+  });
+  assert.ok(stickyYear.groupTop < 0 && stickyYear.top >= 0 && stickyYear.top <= 15, `Year sticks inside its scrolling group: ${JSON.stringify(stickyYear)}`);
+  assert.equal(await page.evaluate(() => scrollY), outerY, 'Manual rail scrolling never moves the page');
+  await page.setViewportSize({ width: 1180, height: 900 });
+  const edgeGeometry = await page.locator('.timeline-nav').boundingBox();
+  assert.ok(edgeGeometry.x >= 0 && edgeGeometry.x + edgeGeometry.width < (await page.locator('.page').boundingBox()).x, 'Wider year/month rail fits at smallest desktop breakpoint');
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await points.nth(20).click();
+  await page.waitForFunction(() => document.querySelectorAll('.timeline-nav-points a')[20].hasAttribute('aria-current'));
+  // Streaming/grouping can change which dates need day labels, without
+  // replacing the focused link or leaving behind an empty year group.
+  await page.locator('#url').fill('single-year.test'); await page.locator('#search-form').evaluate(n => n.requestSubmit());
+  await page.waitForFunction(() => window.fixtureStreams.length === 4);
+  const singleYear = dense.slice(0, 3);
+  await emit({ type: 'index', total: 3, sampled: 3, captures: singleYear });
+  assert.equal(await page.locator('.timeline-nav-year').count(), 1);
+  assert.deepEqual(await page.locator('.timeline-nav-month').allTextContents(), ['Mar 12', 'Mar 26', 'Jun']);
+  await page.locator('#timeline').evaluate(n => scrollTo(0, n.offsetTop));
+  await points.first().focus();
+  await points.first().evaluate(n => { window.singleYearPoint = n; });
+  await emit({ type: 'capture', capture: { ...singleYear[1], error: 'Fixture unavailable' } });
+  assert.deepEqual(await page.locator('.timeline-nav-month').allTextContents(), ['Mar', 'Jun']);
+  assert.equal(await points.first().evaluate(n => n === window.singleYearPoint && n === document.activeElement), true, 'Day-label changes preserve focus and link identity');
+  for (const c of [singleYear[0], singleYear[2]]) await emit({ type: 'capture', capture: c });
+  await emit({ type: 'done' });
   await mkdir('test-output', { recursive: true });
   await page.screenshot({ path: 'test-output/timeline-desktop.png' });
   assert.deepEqual(errors, []);
-  console.log('PASS: stable visible-card nav, active scroll, far jump + pre-scroll preview priming, grouping, metadata focus/DOM, pending/errors, cancellation, query Back/Forward, 320/390 picker, zero preset iframe/jobs.');
+  console.log('PASS: grouped year/month rail, repeated-month days, sticky years, annual and dense histories, 1180px gutter, stable focus/DOM, active scrolling, preview priming, pending/errors, cancellation, Back/Forward, 320/390 picker, zero preset iframe/jobs.');
 } finally {
   await browser?.close();
   await new Promise(resolve => server.close(resolve));

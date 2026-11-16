@@ -128,7 +128,7 @@ function render() {
     const current = $('timeline').children[position];
     if (current !== entry) $('timeline').insertBefore(entry, current || null);
     const state = capture.pending ? 'pending' : capture.error ? 'unavailable' : currentSite ? 'current site' : 'archived';
-    navItems.push({ entry, year: currentSite ? 'Now' : capture.timestamp?.slice(0, 4) || '…', label: `${capture.timestamp ? date(capture.timestamp) : `Sample ${capture.slot + 1}`} · ${state}`, state });
+    navItems.push({ entry, timestamp: capture.timestamp, year: currentSite ? 'Now' : capture.timestamp?.slice(0, 4) || '…', label: `${capture.timestamp ? date(capture.timestamp) : `Sample ${capture.slot + 1}`} · ${state}`, state });
     position++;
   }
   for (const entry of [...$('timeline').children]) if (!visibleKeys.has(entry.dataset.capture)) entry.remove();

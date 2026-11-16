@@ -3,10 +3,13 @@ export function timelineNavigation(timeline, prioritizePreview) {
   const nav = document.createElement('nav');
   nav.className = 'timeline-nav'; nav.setAttribute('aria-label', 'Capture timeline'); nav.hidden = true;
   const list = document.createElement('div'); list.className = 'timeline-nav-points';
+  const content = document.createElement('div'); content.className = 'timeline-nav-content'; list.append(content);
   const label = document.createElement('label'); label.className = 'timeline-year-picker'; label.append('Jump to capture');
   const select = document.createElement('select'); select.setAttribute('aria-label', 'Jump to capture');
   label.append(select); nav.append(list, label); document.body.append(nav);
   const points = new Map();
+  const years = new Map();
+  const monthFormat = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' });
   let items = [], frame, active;
   const offset = () => matchMedia('(max-width: 1179px)').matches ? 76 : 24;
   function jump(id) {
@@ -55,25 +58,53 @@ export function timelineNavigation(timeline, prioritizePreview) {
       items = next;
       const ids = new Set(items.map(item => item.entry.id));
       for (const [id, point] of points) if (!ids.has(id)) { point.link.remove(); point.option.remove(); points.delete(id); }
+      const nextYears = new Set(items.map(item => item.year));
+      for (const [year, group] of years) if (!nextYears.has(year)) { group.root.remove(); years.delete(year); }
+      const monthCounts = new Map();
+      for (const item of items) {
+        if (!item.timestamp) continue;
+        const month = item.timestamp.slice(0, 6);
+        monthCounts.set(month, (monthCounts.get(month) || 0) + 1);
+      }
+      const usedYears = new Set(), positions = new Map();
       items.forEach((item, index) => {
+        let group = years.get(item.year);
+        if (!group) {
+          const root = document.createElement('div'); root.className = 'timeline-nav-group';
+          const year = document.createElement('span'); year.className = 'timeline-nav-year'; year.textContent = item.year;
+          const captures = document.createElement('div'); captures.className = 'timeline-nav-captures';
+          root.append(year, captures); group = { root, captures }; years.set(item.year, group);
+        }
+        if (!usedYears.has(item.year)) {
+          const position = usedYears.size;
+          if (content.children[position] !== group.root) content.insertBefore(group.root, content.children[position] || null);
+          usedYears.add(item.year);
+        }
         const id = item.entry.id;
         let point = points.get(id);
         if (!point) {
           const link = document.createElement('a'); link.href = `#${encodeURIComponent(id)}`;
           link.addEventListener('click', event => { if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return; event.preventDefault(); jump(id); });
-          const year = document.createElement('span'); year.className = 'timeline-nav-year';
-          const dot = document.createElement('span'); dot.className = 'timeline-nav-dot'; dot.setAttribute('aria-hidden', 'true'); link.append(year, dot);
+          const month = document.createElement('span'); month.className = 'timeline-nav-month';
+          const dot = document.createElement('span'); dot.className = 'timeline-nav-dot'; dot.setAttribute('aria-hidden', 'true'); link.append(month, dot);
           const option = document.createElement('option'); option.value = id;
-          point = { link, year, option }; points.set(id, point);
+          point = { link, month, option }; points.set(id, point);
         }
-        point.year.textContent = item.year;
+        let text = '…';
+        if (item.timestamp) {
+          const month = monthFormat.format(new Date(`${item.timestamp.slice(0, 4)}-${item.timestamp.slice(4, 6)}-01T00:00:00Z`));
+          text = monthCounts.get(item.timestamp.slice(0, 6)) > 1 ? `${month} ${Number(item.timestamp.slice(6, 8))}` : month;
+        }
+        point.month.textContent = text;
         point.link.setAttribute('aria-label', item.label); point.link.title = item.label; point.link.dataset.state = item.state;
         point.option.textContent = item.label;
-        if (list.children[index] !== point.link) list.insertBefore(point.link, list.children[index] || null);
+        const position = positions.get(item.year) || 0;
+        if (group.captures.children[position] !== point.link) group.captures.insertBefore(point.link, group.captures.children[position] || null);
+        positions.set(item.year, position + 1);
         if (select.children[index] !== point.option) select.insertBefore(point.option, select.children[index] || null);
       });
       active = null; schedule();
     },
-    reset() { items = []; points.clear(); list.replaceChildren(); select.replaceChildren(); active = null; nav.hidden = true; },
+    reset() { items = []; points.clear(); years.clear(); content.replaceChildren(); select.replaceChildren(); active = null; nav.hidden = true; },
   };
 }
