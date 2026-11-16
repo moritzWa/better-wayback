@@ -2,6 +2,7 @@ import { normalizeUrl, keyFor, selectCaptures, replayUrl, RENDER_VERSION, USER_A
 import { quota } from './quota.js';
 import { HTML_VERSION, MAX_HTML, iframeUrl, archiveHtmlAllowed } from './html.js';
 import { lookupCaptureIndex } from '../archive-index.js';
+import { socialPage, timelineId } from './social.js';
 
 export const MAX_IMAGE = 2 * 1024 * 1024;
 const MAX_JSON = 65536;
@@ -56,9 +57,10 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
     const from = String(input.from || ''), to = String(input.to || new Date().getUTCFullYear());
     if ((from && (!/^\d{4}$/.test(from) || +from < 1996 || from > to)) || !/^\d{4}$/.test(to) || +to < 1996 || +to > new Date().getUTCFullYear()) return json(400, { error: 'Enter a valid year range from 1996 to today.' });
     const count = [8, 16, 24].includes(Number(input.count)) ? Number(input.count) : 8;
-    const id = keyFor(JSON.stringify([url, from, to, count, RENDER_VERSION, ...(env.PREVIEW_MODE === 'html' ? [HTML_VERSION] : [])]));
+    const id = timelineId(url, from, to, count, env.PREVIEW_MODE === 'html');
     if (!env.CACHE) return json(503, { error: 'Archive cache is not configured. Packaged examples still work.' });
-    if (await env.CACHE.get(`job:${id}`)) return json(200, { id, url });
+    const screenshotCache = env.ENABLE_SCREENSHOT_CACHE === 'true';
+    if (await env.CACHE.get(`job:${id}`)) return json(200, { id, url, screenshotCache });
     const allowance = await quota(env, 'job');
     if (!allowance.ok) return json(429, allowance);
     try {
@@ -93,7 +95,7 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
       const encoded = JSON.stringify(job);
       if (new TextEncoder().encode(encoded).byteLength > MAX_JSON) return json(413, { error: 'Timeline exceeds the free runtime size limit.' });
       await env.CACHE.put(`job:${id}`, encoded, { expirationTtl: rows.indexWarning ? 300 : 86400 });
-      return json(202, { id, url });
+      return json(202, { id, url, screenshotCache });
     } catch (error) { return json(502, { error: error.name === 'TimeoutError' ? 'The Internet Archive index is responding too slowly. Retry later; this is not evidence that the page has no captures.' : error.message, retryAfter: 60 }); }
   }
 
@@ -188,7 +190,7 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
     return new Response(stream, { headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
   }
 
-  async function events(request, env, id) {
+  async function events(request, env, id, warming = false) {
     const job = await env.CACHE?.get(`job:${id}`, 'json');
     if (!job) return json(404, { error: 'Timeline expired. Search again; cached captures are kept.' });
     let browser, cancelled = false, reservationToken, closeConfirmed = false;
@@ -212,7 +214,7 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
         const abort = () => { cancelled = true; void close(); };
         request.signal.addEventListener('abort', abort, { once: true });
         if (request.signal.aborted) abort();
-        let timer, captureTimer, completed = 0, stage = 'cache', attemptFinished = false, activeCapture;
+        let timer, captureTimer, completed = 0, stage = 'cache', attemptFinished = false, activeCapture, socialSaved = false;
         const missing = [];
         const saveFailure = async capture => {
           const failed = { ...capture, requestedTimestamp: capture.timestamp, archiveUrl: replayUrl(capture.timestamp, capture.original), error: String(capture.failureMessage).slice(0, 1000), renderVersion: RENDER_VERSION, failureExpiresAt: Date.now() + FAILURE_TTL * 1000 };
@@ -220,7 +222,7 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
           await env.CACHE.put(`failure:${captureKey(capture)}`, JSON.stringify(failed), { expirationTtl: FAILURE_TTL });
           emit({ type: 'capture', capture: failed, cached: false, completed: ++completed });
         };
-        const platformFailure = error => error.status === 429 || /429|503|rate limit|cooling|browser.*limit|browser.*closed|Target.*closed/i.test(error.message);
+        const platformFailure = error => error.status === 429 || /\b(?:429|503)\b|rate limit|cooling|browser.*limit|browser.*closed|Target.*closed/i.test(error.message);
         try {
           emit(job.index);
           const cachedCaptures = await Promise.all(job.captures.map(capture => cached(env, capture)));
@@ -230,6 +232,8 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
             else missing.push(capture);
           }
           if (!missing.length) { emit({ type: 'done' }); return; }
+          // Warm the newest capture first so a shared search gets an image early.
+          if (warming) missing.reverse();
           // Missing captures remain in the index, not silently hidden by grouping.
           if (env.ENABLE_RENDERING !== 'true' || !env.BROWSER) { emit({ type: 'error', message: 'New rendering is disabled. Cached previews and packaged examples remain available.' }); return; }
           const requestedBatch = Math.max(1, Math.min(8, Number(env.RENDER_BATCH_SIZE) || 1));
@@ -271,6 +275,14 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
               if (new TextEncoder().encode(encoded).byteLength > MAX_JSON) throw new Error('Capture metadata exceeds the free cache limit.');
               await env.CACHE.put(`image:${key}`, png, { expirationTtl: TTL });
               await env.CACHE.put(`capture:${key}`, encoded, { expirationTtl: TTL });
+              if (warming && !socialSaved) {
+                socialSaved = true;
+                const previous = await env.CACHE.get(`social:${id}`, 'json');
+                if (!previous || previous.timestamp <= capture.timestamp) {
+                  const write = await quota(env, 'write');
+                  if (write.ok) await env.CACHE.put(`social:${id}`, JSON.stringify(capture), { expirationTtl: TTL });
+                }
+              }
               if (cancelled || attemptFinished) return;
               emit({ type: 'capture', capture: saved, cached: false, completed: ++completed });
             }
@@ -311,6 +323,12 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
   return async function handle(request, env) {
     const path = new URL(request.url).pathname;
     if (request.method === 'POST' && path === '/api/jobs') return createJob(request, env);
+    const screenshotMatch = path.match(/^\/api\/jobs\/([a-f0-9]{24})\/screenshots$/);
+    if (request.method === 'GET' && screenshotMatch) {
+      if (env.ENABLE_SCREENSHOT_CACHE !== 'true') return json(404, { error: 'Screenshot caching is disabled.' });
+      if (request.headers.get('origin') && request.headers.get('origin') !== new URL(request.url).origin) return json(403, { error: 'Cross-origin requests are not allowed.' });
+      return events(request, { ...env, ENABLE_RENDERING: 'true' }, screenshotMatch[1], true);
+    }
     const eventMatch = path.match(/^\/api\/jobs\/([a-f0-9]{24})\/events$/);
     if (request.method === 'GET' && eventMatch) return env.PREVIEW_MODE === 'html' ? htmlEvents(request, env, eventMatch[1]) : events(request, env, eventMatch[1]);
     const image = path.match(/^\/cache\/([a-f0-9]{24})\.png$/);
@@ -319,6 +337,8 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
       return data ? new Response(request.method === 'HEAD' ? null : data, { headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400', 'X-Content-Type-Options': 'nosniff' } }) : json(404, { error: 'Preview expired. Search again.' });
     }
     if (path.startsWith('/api/')) return json(404, { error: 'Not found' });
+    const social = await socialPage(request, env, cached);
+    if (social) return social;
     return env.ASSETS.fetch(request);
   };
 }

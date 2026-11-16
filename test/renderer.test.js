@@ -57,6 +57,21 @@ test('HTTP 200 application crashes and branded 404 pages are rejected before scr
   } finally { await browser.close(); }
 });
 
+test('archive chrome CSS survives unrelated blocked analytics CSP errors', { skip: process.env.RENDERER_BROWSER_TESTS !== '1' }, async () => {
+  const browser = await launchRendererBrowser();
+  try {
+    const context = await isolatedContext(browser);
+    const page = await context.newPage();
+    await page.route('https://web.archive.org/**', route => route.fulfill({ contentType: 'text/html', body: `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'"><title>Historical homepage</title><div id="wm-ipp-base">Archive toolbar</div><h1>Historical homepage with enough meaningful archived content to render a genuine preview.</h1><script>setTimeout(()=>fetch('https://analytics.invalid/collect?cid=1503123').catch(()=>{}),50)</script>` }));
+    page.addStyleTag = () => assert.fail('Do not use the CSP-console-racing injection helper');
+    const result = await renderPage(page, { timestamp: '20250101000000', original: 'https://example.com/' });
+    assert.match(result.text, /Historical homepage/);
+    assert.ok(!result.text.includes('Archive toolbar'));
+    assert.equal(await page.locator('#wm-ipp-base').isVisible(), false);
+    await context.close();
+  } finally { await browser.close(); }
+});
+
 test('CDX cache preserves metadata, expires and never caches upstream failures', async () => {
   const cacheDir = await mkdtemp(resolve(tmpdir(), 'wayback-cdx-'));
   const originalFetch = globalThis.fetch;

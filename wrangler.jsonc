@@ -13,14 +13,14 @@
   "assets": {
     "directory": ".cache/cloudflare-assets",
     "binding": "ASSETS",
-    "run_worker_first": ["/api/jobs", "/api/jobs/*", "/api/support/*", "/cache/*"],
+    "run_worker_first": ["/", "/api/jobs", "/api/jobs/*", "/api/support/*", "/cache/*"],
     "not_found_handling": "404-page"
   },
   "browser": { "binding": "BROWSER" },
   "durable_objects": { "bindings": [{ "name": "QUOTAS", "class_name": "QuotaCoordinator" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["QuotaCoordinator"] }],
   "kv_namespaces": [{ "binding": "CACHE", "id": "3add5a5e97f445868f0a0e60e028921e" }],
-  "vars": { "PREVIEW_MODE": "html", "ENABLE_RENDERING": "false", "RENDER_BATCH_SIZE": "8", "TURNSTILE_SITE_KEY": "0x4AAAAAAGCVCeO7VLb5SjGM" },
+  "vars": { "PREVIEW_MODE": "html", "ENABLE_RENDERING": "false", "ENABLE_SCREENSHOT_CACHE": "true", "RENDER_BATCH_SIZE": "8", "TURNSTILE_SITE_KEY": "0x4AAAAAAGCVCeO7VLb5SjGM" },
   // Resource IDs and sitekeys are public. Support address and secret key stay in Worker secrets.
   // Keep the account on Workers Free. No R2, paid plans, cron or background browser jobs.
   "build": { "command": "npm run build:cloudflare" }

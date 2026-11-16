@@ -7,6 +7,7 @@ const $ = id => document.getElementById(id);
 let captures = [], changesOnly = true, total = 0, sampled = 0, capped = false, running = false, stream;
 let requested = [], indexed = false, generation = 0;
 let resumeTimer;
+let screenshotStream, screenshotTimer, screenshotPath;
 let lookupAbort, indexFailed = false;
 let indexLabel;
 const entries = new Map();
@@ -156,7 +157,7 @@ function onEvent(event) {
     $('status').textContent = `${captures.length} of ${sampled} previews returned. ${Math.max(0, sampled - captures.length)} pending.`;
     render();
   }
-  if (event.type === 'done') { stream?.close(); finish(); }
+  if (event.type === 'done') { stream?.close(); finish(); if (screenshotPath) warmScreenshots(screenshotPath, generation); }
   if (event.type === 'error') { indexFailed = !indexed; stream?.close(); $('error').textContent = event.message + (Number.isFinite(event.retryAfter) && event.retryAfter > 0 ? ` Try again in ${Math.ceil(event.retryAfter / 60)} minutes.` : ''); $('error').hidden = false; finish(); }
 }
 function connectStream(path, current, attempts = 0) {
@@ -186,8 +187,39 @@ function connectStream(path, current, attempts = 0) {
     onEvent({ type: 'error', message: 'Connection to the renderer was lost. Search again to reconnect; cached captures are kept.' });
   };
 }
+function stopScreenshots() {
+  screenshotStream?.close(); screenshotStream = null;
+  clearTimeout(screenshotTimer); screenshotPath = null;
+}
+function warmScreenshots(path, current, attempts = 0) {
+  if (current !== generation || attempts >= 3) return;
+  const connection = new EventSource(path);
+  screenshotStream = connection;
+  connection.onmessage = message => {
+    if (current !== generation || screenshotStream !== connection) return;
+    let event;
+    try { event = JSON.parse(message.data); } catch { connection.close(); return; }
+    if (event.type === 'capture' && event.capture.image && !event.capture.error) {
+      const index = captures.findIndex(c => captureKey(c) === captureKey(event.capture));
+      if (index >= 0 && !captures[index].image && !entries.get(captureKey(captures[index]))?.querySelector('.is-interacting')) {
+        // Keep HTML comparisons homogeneous. A screenshot is a poster, not a
+        // reason to replace comparison text or lose its pending/error status.
+        captures[index] = { ...captures[index], image: event.capture.image, preview: 'image', timestamp: event.capture.timestamp, requestedTimestamp: event.capture.requestedTimestamp || event.capture.timestamp, archiveUrl: event.capture.archiveUrl };
+        render();
+      }
+    }
+    if (event.type === 'continue') {
+      connection.close();
+      screenshotTimer = setTimeout(() => warmScreenshots(path, current, attempts + 1), Math.max(20, Number(event.retryAfter) || 90) * 1000);
+    }
+    // Quota failures only stop optional warming, never the usable HTML timeline.
+    if (event.type === 'done' || event.type === 'error') connection.close();
+  };
+  connection.onerror = () => connection.close();
+}
 function begin() {
   clearTimeout(resumeTimer);
+  stopScreenshots();
   lookupAbort?.abort(); lookupAbort = null; indexFailed = false;
   resetPreviews();
   navigation.reset();
@@ -228,6 +260,7 @@ async function search(recordHistory = true) {
     const response = await fetch('/api/jobs', { method: 'POST', signal: abort.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: $('url').value, from: $('from').value, to: $('to').value, count: $('count').value, previewMode: 'html' }) });
     const data = await response.json(); if (current !== generation) return; if (!response.ok) throw new Error(data.error);
     $('site-title').textContent = data.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    screenshotPath = data.screenshotCache ? `/api/jobs/${data.id}/screenshots` : null;
     connectStream(`/api/jobs/${data.id}/events`, current);
    } catch (error) { if (current === generation && !abort.signal.aborted) onEvent({ type: 'error', message: error.message }); }
   finally { if (lookupAbort === abort) lookupAbort = null; }
@@ -266,7 +299,7 @@ $('close-dialog').onclick = () => $('compare-dialog').close();
 $('compare-dialog').onclick = event => { if (event.target === $('compare-dialog')) $('compare-dialog').close(); };
 const currentYear = new Date().getFullYear();
 for (const id of ['from', 'to']) $(id).max = currentYear;
-window.addEventListener('pagehide', () => { clearTimeout(resumeTimer); lookupAbort?.abort(); stream?.close(); resetPreviews(); });
+window.addEventListener('pagehide', () => { clearTimeout(resumeTimer); lookupAbort?.abort(); stream?.close(); stopScreenshots(); resetPreviews(); });
 window.addEventListener('pageshow', event => { if (event.persisted) restoreSearch(); });
 function restoreSearch() {
   const params = new URLSearchParams(location.search);

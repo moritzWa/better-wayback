@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createRuntime, MAX_IMAGE } from '../cloudflare/runtime.js';
 import { QuotaCoordinator, LIMITS, reserve, release } from '../cloudflare/quota.js';
 import { keyFor, RENDER_VERSION } from '../lib.js';
+import { timelineId } from '../cloudflare/social.js';
 
 class FakeKV {
   values = new Map();
@@ -29,6 +30,105 @@ const eventRequest = id => new Request(`https://visualwayback.com/api/jobs/${id}
 const parse = async response => (await response.text()).split('\n\n').filter(Boolean).map(line => JSON.parse(line.slice(6)));
 const indexFetch = async () => Response.json([['timestamp', 'original', 'digest'], ...captures.map(c => [c.timestamp, c.original, c.digest])]);
 const key = c => keyFor(c.timestamp + c.original + ':' + RENDER_VERSION);
+
+test('shared searches have server-rendered metadata and reuse a genuine cached screenshot without archive calls', async () => {
+  const env = environment(); env.PREVIEW_MODE = 'html';
+  env.ASSETS.fetch = async request => {
+    assert.equal(new URL(request.url).pathname, '/');
+    return new Response('<head><title>Generic</title><link rel="canonical" href="https://visualwayback.com/"><meta property="og:title" content="Generic"><meta property="og:url" content="https://visualwayback.com/"></head>', { headers: { 'Content-Security-Policy': "default-src 'self'", etag: 'old', 'content-length': '123' } });
+  };
+  const handle = createRuntime({ fetchArchive: () => assert.fail('Unfurl must not contact archive'), launch: () => assert.fail('Unfurl must not launch browser') });
+  const target = 'https://example.com/';
+  const request = new Request(`https://visualwayback.com/?url=${encodeURIComponent(target)}`);
+  const cold = await handle(request, env);
+  assert.equal(cold.headers.get('cache-control'), 'no-store');
+  assert.match(await cold.text(), /og:image" content="https:\/\/visualwayback.com\/icon-512.png/);
+  const id = timelineId(target, '', String(new Date().getUTCFullYear()), 8, true);
+  await env.CACHE.put(`job:${id}`, JSON.stringify({ captures }));
+  await save(env, captures[0]);
+  // Missing newest PNG must fall back to an actual existing older capture.
+  await env.CACHE.put(`capture:${key(captures[1])}`, JSON.stringify({ ...captures[1], text: 'text', renderVersion: RENDER_VERSION, image: `/cache/${key(captures[1])}.png` }));
+  const response = await handle(request, env);
+  const html = await response.text();
+  assert.match(html, /<title>example.com · Visual Wayback<\/title>/);
+  assert.ok(html.includes(`property="og:image" content="https://visualwayback.com/cache/${key(captures[0])}.png"`));
+  assert.match(html, /archived 2000-01-01/);
+  assert.match(html, /twitter:card/);
+  assert.equal((html.match(/property="og:title"/g) || []).length, 1);
+  assert.equal(response.headers.get('content-length'), null);
+  assert.equal(response.headers.get('etag'), null);
+  assert.equal(response.headers.get('content-security-policy'), "default-src 'self'");
+  assert.equal(await (await handle(new Request(request.url, { method: 'HEAD' }), env)).text(), '');
+});
+
+test('shared metadata escapes query content, respects settings and leaves invalid URLs static', async () => {
+  const env = environment();
+  env.ASSETS.fetch = async () => new Response('<head><title>generic</title></head>');
+  const handle = createRuntime({});
+  const html = await (await handle(new Request('https://visualwayback.com/?url=' + encodeURIComponent('https://example.com/?q="/><script>alert(1)</script>') + '&from=2020&count=16'), env)).text();
+  assert.ok(!html.includes('<script>'));
+  assert.match(html, /&amp;from=2020&amp;count=16/);
+  assert.equal(await (await handle(new Request('https://visualwayback.com/?url=http://localhost'), env)).text(), '<head><title>generic</title></head>');
+});
+
+test('packaged example unfurls use their latest archived PNG, not the separately labelled live capture', async () => {
+  const env = environment();
+  env.ASSETS.fetch = async request => new URL(request.url).pathname.startsWith('/api/demos/') ? Response.json({ captures: [{ image: '/demos/apple/archive.png', timestamp: '20120101000000' }, { image: '/demos/apple/live.png', timestamp: '20260101000000', sourceType: 'live' }] }) : new Response('<head></head>');
+  const handle = createRuntime({});
+  const html = await (await handle(new Request('https://visualwayback.com/?url=apple.com'), env)).text();
+  assert.match(html, /https:\/\/visualwayback.com\/demos\/apple\/archive.png/);
+  assert.ok(!html.includes('/live.png'));
+});
+
+test('optional screenshot caching warms newest first and reuses PNGs in HTML mode without new archive work', async () => {
+  const env = environment(); env.PREVIEW_MODE = 'html'; env.ENABLE_RENDERING = 'false'; env.ENABLE_SCREENSHOT_CACHE = 'true'; env.RENDER_BATCH_SIZE = '8';
+  const rendered = [];
+  const handle = createRuntime({ fetchArchive: indexFetch, launch: async () => ({ close: async () => {} }), render: async (_, capture) => { rendered.push(capture.timestamp); return { ...capture, requestedTimestamp: capture.timestamp, text: 'Cached rendered text', png: new Uint8Array([1]) }; } });
+  const created = await (await handle(jobRequest({ url: 'example.com', previewMode: 'html' }), env)).json();
+  assert.equal(created.screenshotCache, true);
+  const request = new Request(`https://visualwayback.com/api/jobs/${created.id}/screenshots`);
+  const events = await parse(await handle(request, env));
+  assert.equal(events.at(-1).type, 'done');
+  assert.deepEqual(rendered, [captures[1].timestamp, captures[0].timestamp]);
+  const replay = await parse(await handle(eventRequest(created.id), env));
+  assert.equal(replay.at(-1).type, 'done');
+  assert.equal(replay.filter(e => e.type === 'capture' && e.capture.image && e.cached).length, 4);
+  await parse(await handle(request, env));
+  assert.equal(rendered.length, 2);
+  assert.equal((await env.CACHE.get(`social:${created.id}`, 'json')).timestamp, captures[1].timestamp);
+  env.CACHE.values.delete(`job:${created.id}`);
+  env.ASSETS.fetch = async () => new Response('<head></head>');
+  const shared = await (await handle(new Request('https://visualwayback.com/?url=example.com'), env)).text();
+  assert.ok(shared.includes(`/cache/${key(captures[1])}.png`), 'Share image survives the shorter job TTL');
+  assert.equal((await handle(new Request(request.url, { headers: { origin: 'https://evil.com' } }), env)).status, 403);
+  env.ENABLE_SCREENSHOT_CACHE = 'false';
+  assert.equal((await handle(request, env)).status, 404);
+});
+
+test('optional screenshot caching fails closed on quota denial without changing HTML availability', async () => {
+  const env = environment(); env.PREVIEW_MODE = 'html'; env.ENABLE_SCREENSHOT_CACHE = 'true';
+  const handle = createRuntime({ fetchArchive: indexFetch, launch: () => assert.fail('Quota denied') });
+  const { id } = await (await handle(jobRequest({ url: 'example.com', previewMode: 'html' }), env)).json();
+  delete env.QUOTAS;
+  const events = await parse(await handle(new Request(`https://visualwayback.com/api/jobs/${id}/screenshots`), env));
+  assert.equal(events.at(-1).type, 'error');
+  const html = await parse(await handle(eventRequest(id), env));
+  assert.equal(html.filter(e => e.type === 'capture' && e.capture.preview === 'iframe').length, 2);
+});
+
+test('later warm batches cannot replace the latest share screenshot with an older one', async t => {
+  let now = Date.parse('2026-11-16T12:00:00Z');
+  t.mock.method(Date, 'now', () => now);
+  const env = environment(); env.ENABLE_SCREENSHOT_CACHE = 'true'; env.RENDER_BATCH_SIZE = '1';
+  const handle = createRuntime({ fetchArchive: indexFetch, launch: async () => ({ close: async () => {} }), render: async (_, capture) => ({ ...capture, text: 'Genuine cached text', png: new Uint8Array([1]) }) });
+  const { id } = await (await handle(jobRequest(), env)).json();
+  const request = new Request(`https://visualwayback.com/api/jobs/${id}/screenshots`);
+  assert.equal((await parse(await handle(request, env))).at(-1).type, 'continue');
+  now += 20000;
+  assert.equal((await parse(await handle(request, env))).at(-1).type, 'done');
+  assert.equal((await env.CACHE.get(`social:${id}`, 'json')).timestamp, captures[1].timestamp);
+  assert.equal(env.CACHE.puts.filter(put => put.key === `social:${id}`).length, 1);
+});
 
 test('dense 24-capture jobs cache bounded index across sample sizes without monthly full scans', async () => {
   const env = environment(); env.PREVIEW_MODE = 'html';
@@ -370,6 +470,20 @@ test('launch failures and platform/archive throttles remain global errors withou
     assert.equal(env.CACHE.puts.length, 1);
     assert.equal(events.some(e => e.type === 'capture'), false);
   }
+});
+
+test('incidental status-code digits inside an asset URL do not stop the entire cache batch', async () => {
+  const env = environment(); env.RENDER_BATCH_SIZE = '8';
+  let attempts = 0;
+  const handle = createRuntime({ fetchArchive: indexFetch, launch: async () => ({ close: async () => {} }), render: async (_, capture) => {
+    if (++attempts === 1) throw new Error('Asset unavailable: https://example.com/analytics?cid=1503123429');
+    return { ...capture, text: 'Usable archive text', png: new Uint8Array([1]) };
+  } });
+  const { id } = await (await handle(jobRequest(), env)).json();
+  const events = await parse(await handle(eventRequest(id), env));
+  assert.equal(attempts, 2);
+  assert.equal(events.at(-1).type, 'done');
+  assert.equal(events.filter(e => e.type === 'capture').length, 2);
 });
 
 test('disconnect during launch closes a late browser without rendering or persisting', async () => {

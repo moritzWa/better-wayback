@@ -84,6 +84,29 @@ try {
   await page.locator('#search-form').evaluate(form => form.requestSubmit());
   await page.waitForFunction(() => !document.querySelector('#search-button').disabled);
   assert.equal(await page.locator('.live-frame').count(), 0);
+  // Fixture posters only. Real capture evidence is checked separately.
+  await page.route('**/api/jobs', route => route.fulfill({ json: { id: 'b'.repeat(24), url: 'https://fixture.invalid/', screenshotCache: true } }));
+  await page.route('**/cache/*.png', route => route.fulfill({ path: 'public/icon-512.png', contentType: 'image/png' }));
+  const previousStreams = await page.evaluate(() => window.testStreams.length);
+  await page.locator('#url').fill('fixture.invalid');
+  await page.locator('#search-form').evaluate(form => form.requestSubmit());
+  await page.waitForFunction(n => window.testStreams.length > n, previousStreams);
+  await page.evaluate(ready => {
+    window.emit({ type: 'index', total: 2, sampled: 2, captures: ready.slice(0, 2), textSource: 'html' });
+    for (const capture of ready.slice(0, 2)) window.emit({ type: 'capture', capture });
+    window.emit({ type: 'done' });
+  }, ready);
+  await page.waitForFunction(n => window.testStreams.length === n + 2, previousStreams);
+  await page.evaluate(capture => window.emit({ type: 'capture', capture: { ...capture, text: 'Different rendered text must not replace HTML.', textSource: 'rendered', image: '/cache/' + 'c'.repeat(24) + '.png' } }), ready[0]);
+  await page.locator('#changes-view').click();
+  assert.equal(await page.locator('.timeline-entry').count(), 1, 'Screenshot arrivals preserve HTML grouping');
+  assert.ok(await page.locator('img[src^="/cache/"]').count());
+  await page.evaluate(() => window.emit({ type: 'error', message: 'Free quota exhausted', retryAfter: 86400 }));
+  assert.equal(await page.locator('#error').isVisible(), false, 'Cache limits must not mark a working timeline as failed');
+  await page.locator('#url').fill('stripe.com');
+  await page.locator('#search-form').evaluate(form => form.requestSubmit());
+  await page.waitForFunction(() => !document.querySelector('#search-button').disabled);
+  assert.equal(await page.evaluate(() => window.testStreams.at(-1).closed), true);
   console.log('PASS: HTML-first cards, no false grouping, stable iframe nodes, retained resident cache, search cleanup, sandbox isolation, safe URLs, responsive desktop-scale previews and PNG presets. Fixture HTML only. Long traversal/budget checks: preview-scheduler.test.js.');
 } catch (error) {
   console.log(await page?.evaluate(() => [...document.querySelectorAll('.live-preview')].map(n => ({ disposed: n.dataset.previewDisposed, src: n.querySelector('iframe')?.getAttribute('src'), status: n.innerText, top: n.getBoundingClientRect().top, bottom: n.getBoundingClientRect().bottom }))));
