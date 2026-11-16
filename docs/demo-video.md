@@ -4,6 +4,8 @@
 
 The full edit now runs at 1.25×, including pitch-preserved narration using FFmpeg `atempo`, for a target 394 frames / about 13.13 seconds at 30 fps. Each site scrolls through four consecutive preview cards, pausing briefly on each and ending at a recent/current design. The opening still records the actual Visual Wayback header and Nvidia results; OpenAI and Apple follow the logo problem section. No editing camera translation or slideshow replaces the native continuous recording.
 
+The problem narration is: “On Wayback Machine, you open snapshots one by one.” This replaces the earlier imperative wording. The visual stream, speed and overall duration are unchanged.
+
 Nvidia: 2007, 2013, 2025, November 13, 2026. OpenAI: 2022, 2023, 2025, November 13, 2026. Apple: 1999, 2007, 2012 and a freshly captured current homepage, explicitly marked **Current / live site capture, not an archive replay**. Apple's November 13/14 archive replays had missing hero assets, so they were not packaged. The live endpoint is a real product example card with source provenance, not a fake archived timestamp injected for the video. It is excluded from comparisons with archived text.
 
 Nvidia's recent archived and live homepage were checked in a browser. OpenAI's live browser hit Cloudflare, but a direct read of its public homepage confirmed the same “What can I help with?” layout and current announcements visible in the November 13 archive. Apple's live screenshot matches its public Apple HomeView homepage. UTC capture timestamps are kept as recorded, even across local midnight.

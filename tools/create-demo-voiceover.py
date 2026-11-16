@@ -12,7 +12,7 @@ parser.add_argument('--basename', default='voiceover')
 args = parser.parse_args()
 out = pathlib.Path(args.out)
 out.mkdir(parents=True, exist_ok=True)
-text = args.text or "Visual Wayback. Website history, visualized. On Wayback, open snapshots one by one. Here, just scroll through OpenAI and Apple. Try it out now at visual wayback dot com."
+text = args.text or "Visual Wayback. Website history, visualized. On Wayback Machine, you open snapshots one by one. Here, just scroll through OpenAI and Apple. Try it out now at visual wayback dot com."
 key = subprocess.check_output(['op', 'item', 'get', args.item, '--vault', 'Main', '--fields', 'credential', '--reveal'], text=True).strip()
 voice = args.voice  # A licensed library narrator, not a voice clone.
 body = {'text': text, 'model_id': args.model, 'voice_settings': {'stability': .5, 'similarity_boost': .75, 'style': .15, 'use_speaker_boost': True, 'speed': 1.05}}
