@@ -30,3 +30,19 @@ Verification:
 These recovery cases use controlled response fixtures. They do not claim that
 the Internet Archive will always be available or that Facebook's archived assets
 are visually complete.
+
+## Production verification
+
+Merged as #8 (Recover from non-JSON archive search responses) and deployed as
+Worker version `cd11e80a-72a3-40b0-a1e3-441cc102d0d0`.
+
+A fresh headless visit to the exact reported public URL completed in 3.605
+seconds, with eight visible captures, no lookup error and no page JavaScript
+errors. Stats reported `Time-sampled index · 8/8 sampled · 7 text versions ·
+1 not compared`. Deployed `app.js` and `search-request.js` matched merged main
+byte-for-byte.
+
+This visit used the real public job and metadata stream. Archive frames were
+blocked and the optional screenshot stream was stubbed to avoid new browser
+rendering charges. The timing measures search and timeline metadata, not archived
+page rendering. The browser closed after verification.
