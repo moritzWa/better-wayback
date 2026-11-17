@@ -51,12 +51,15 @@ try {
   await page.locator('#all-view').click();
   assert.equal(await points.count(), 8);
   assert.equal(await page.locator('.timeline-nav-year').count(), 8, 'Annual captures retain one year label per group');
-  assert.deepEqual(await page.locator('.timeline-nav-month').allTextContents(), Array(8).fill('Jan'), 'Sparse histories still show capture months');
+  assert.deepEqual(await page.locator('.timeline-nav-month').allTextContents(), Array(8).fill(''), 'One capture per year needs only the year label');
+  assert.match(await points.first().getAttribute('title'), /Jan 1, 2000/, 'Annual captures retain their full date on hover');
   await page.locator('#timeline').evaluate(n => scrollTo(0, n.offsetTop));
   await page.waitForFunction(() => !document.querySelector('.timeline-nav').hidden);
   const pageGeometry = await page.locator('.page').boundingBox();
   const railGeometry = await page.locator('.timeline-nav').boundingBox();
   assert.ok(railGeometry.x + railGeometry.width < pageGeometry.x, 'Rail does not squeeze/overlap centered page');
+  await mkdir('test-output', { recursive: true });
+  await page.screenshot({ path: 'test-output/timeline-annual.png' });
   const beforeUrl = page.url(), beforeHistory = await page.evaluate(() => history.length);
   await page.setViewportSize({ width: 1440, height: 1800 });
   await compactBottom();
@@ -76,9 +79,24 @@ try {
   // New searches cancel old streams and replace, rather than retain, anchors.
   await page.locator('#url').fill('fixture.test'); await page.locator('#search-form').evaluate(n => n.requestSubmit());
   await page.waitForFunction(() => window.fixtureStreams.length === 1);
+  assert.equal(await page.locator('.timeline-nav-year[data-loading]').count(), 1, 'Unknown year uses a skeleton label');
+  assert.equal(await page.locator('.timeline-nav-month[data-loading]').count(), 8, 'Unknown capture dates use skeleton labels');
+  assert.equal(await page.locator('.timeline-nav-content').innerText(), '', 'Unknown dates never display ellipses');
+  await page.locator('#timeline').evaluate(n => scrollTo(0, n.offsetTop));
+  const skeleton = await page.locator('.timeline-nav-month[data-loading]').first().evaluate(n => {
+    const style = getComputedStyle(n, '::after');
+    return { width: style.width, height: style.height, animation: style.animationName };
+  });
+  assert.deepEqual(skeleton, { width: '32px', height: '8px', animation: 'none' }, 'Reduced-motion skeleton retains a static visible bar');
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  assert.equal(await page.locator('.timeline-nav-month[data-loading]').first().evaluate(n => getComputedStyle(n, '::after').animationName), 'timeline-label-pulse');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await mkdir('test-output', { recursive: true });
+  await page.screenshot({ path: 'test-output/timeline-loading.png' });
   const selected = [capture(1999), capture(2002), capture(2007), capture(2018)];
   await emit({ type: 'index', total: 10, sampled: 4, captures: selected });
   assert.equal(await points.count(), 4);
+  assert.equal(await page.locator('.timeline-nav [data-loading]').count(), 0, 'Indexed dates replace all skeleton labels');
   assert.equal(await page.locator('.timeline-nav-points a[data-state="pending"]').count(), 4);
   assert.match(await points.first().getAttribute('aria-label'), /Jan 1, 1999.*pending/);
   await emit({ type: 'capture', capture: selected[0] });
@@ -200,8 +218,13 @@ try {
   await emit({ type: 'capture', capture: { ...singleYear[1], error: 'Fixture unavailable' } });
   assert.deepEqual(await page.locator('.timeline-nav-month').allTextContents(), ['Mar', 'Jun']);
   assert.equal(await points.first().evaluate(n => n === window.singleYearPoint && n === document.activeElement), true, 'Day-label changes preserve focus and link identity');
-  for (const c of [singleYear[0], singleYear[2]]) await emit({ type: 'capture', capture: c });
+  for (const c of [singleYear[0], { ...singleYear[2], text: singleYear[0].text }]) await emit({ type: 'capture', capture: c });
   await emit({ type: 'done' });
+  await page.locator('#changes-view').click();
+  assert.equal(await points.count(), 1);
+  assert.deepEqual(await page.locator('.timeline-nav-month').allTextContents(), [''], 'Grouping to one visible capture hides its month');
+  await page.locator('#all-view').click();
+  assert.deepEqual(await page.locator('.timeline-nav-month').allTextContents(), ['Mar', 'Jun'], 'Showing multiple captures restores their months');
   await mkdir('test-output', { recursive: true });
   await page.screenshot({ path: 'test-output/timeline-desktop.png' });
   assert.deepEqual(errors, []);

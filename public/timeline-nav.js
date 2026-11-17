@@ -60,8 +60,9 @@ export function timelineNavigation(timeline, prioritizePreview) {
       for (const [id, point] of points) if (!ids.has(id)) { point.link.remove(); point.option.remove(); points.delete(id); }
       const nextYears = new Set(items.map(item => item.year));
       for (const [year, group] of years) if (!nextYears.has(year)) { group.root.remove(); years.delete(year); }
-      const monthCounts = new Map();
+      const monthCounts = new Map(), yearCounts = new Map();
       for (const item of items) {
+        yearCounts.set(item.year, (yearCounts.get(item.year) || 0) + 1);
         if (!item.timestamp) continue;
         const month = item.timestamp.slice(0, 6);
         monthCounts.set(month, (monthCounts.get(month) || 0) + 1);
@@ -71,7 +72,8 @@ export function timelineNavigation(timeline, prioritizePreview) {
         let group = years.get(item.year);
         if (!group) {
           const root = document.createElement('div'); root.className = 'timeline-nav-group';
-          const year = document.createElement('span'); year.className = 'timeline-nav-year'; year.textContent = item.year;
+          const year = document.createElement('span'); year.className = 'timeline-nav-year';
+          if (item.year === '…') year.dataset.loading = ''; else year.textContent = item.year;
           const captures = document.createElement('div'); captures.className = 'timeline-nav-captures';
           root.append(year, captures); group = { root, captures }; years.set(item.year, group);
         }
@@ -90,8 +92,9 @@ export function timelineNavigation(timeline, prioritizePreview) {
           const option = document.createElement('option'); option.value = id;
           point = { link, month, option }; points.set(id, point);
         }
-        let text = '…';
-        if (item.timestamp) {
+        let text = '';
+        point.month.toggleAttribute('data-loading', !item.timestamp);
+        if (item.timestamp && yearCounts.get(item.year) > 1) {
           const month = monthFormat.format(new Date(`${item.timestamp.slice(0, 4)}-${item.timestamp.slice(4, 6)}-01T00:00:00Z`));
           text = monthCounts.get(item.timestamp.slice(0, 6)) > 1 ? `${month} ${Number(item.timestamp.slice(6, 8))}` : month;
         }
