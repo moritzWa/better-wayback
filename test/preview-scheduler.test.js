@@ -8,6 +8,7 @@ try {
   for (const [memory, saveData, limit] of [[8, false, 8], [4, false, 4], [undefined, false, 6], [8, true, 4]]) {
     const page = await browser.newPage({ viewport: { width: 1000, height: 800 } });
     await page.addInitScript(({ memory, saveData }) => {
+      window.refusedLoadMs = 0;
       Object.defineProperty(navigator, 'deviceMemory', { get: () => memory });
       Object.defineProperty(navigator, 'connection', { get: () => ({ saveData }) });
     }, { memory, saveData });

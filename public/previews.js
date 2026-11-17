@@ -2,6 +2,8 @@
 const previews = new Map();
 const residentLimit = navigator.connection?.saveData || navigator.deviceMemory <= 4 ? 4 : navigator.deviceMemory ? 8 : 6;
 let scheduled = false, lastY = window.scrollY, direction = 1, clock = 0, interacting = null;
+let cooldownUntil = 0, archiveBackoff = 0;
+const refusedLoadMs = () => window.refusedLoadMs ?? 700;
 const safeReplay = input => {
   try {
     const url = new URL(input);
@@ -83,7 +85,22 @@ function activate(state) {
     if (!failed && state.poster) state.poster.hidden = true;
     status(state, failed ? 'Replay could not load here. Retry or open the archive.' : ''); schedule();
   };
-  frame.onload = () => finish(false); frame.onerror = () => finish(true);
+  const started = performance.now();
+  frame.onload = () => {
+    if (generation !== state.generation || state.phase !== 'loading') return;
+    // A refused archive request shows Chrome's sad-page icon and still fires load,
+    // within milliseconds. Real replays need a redirect, a document and subresources.
+    if (performance.now() - started >= refusedLoadMs()) { archiveBackoff = 0; return finish(false); }
+    state.refusals++;
+    archiveBackoff = Math.min(archiveBackoff + 1, 4);
+    cooldownUntil = Date.now() + 2000 * 2 ** (archiveBackoff - 1);
+    if (state.refusals >= 3) return finish(true);
+    interaction(state, false); release(state);
+    state.retryAt = cooldownUntil + 1500 * state.refusals;
+    status(state, 'The archive is busy. Retrying shortly…');
+    setTimeout(schedule, state.retryAt - Date.now() + 50);
+  };
+  frame.onerror = () => finish(true);
   status(state, 'Loading from the Internet Archive…');
   const checkDeadline = () => {
     if (generation !== state.generation || state.phase !== 'loading') return;
@@ -124,8 +141,10 @@ export function refreshPreviews() {
   }
   const candidates = [...previews.values()].filter(s => !s.manual && (s.near || s.priority || s.interacting))
     .sort((a, b) => Number(b.priority || b.interacting) - Number(a.priority || a.interacting) || Number(b.visible) - Number(a.visible) || a.distance - b.distance);
+  const now = Date.now();
+  if (now < cooldownUntil) { setTimeout(schedule, cooldownUntil - now + 50); return; }
   for (const state of candidates) {
-    if (state.frame || (state.phase === 'error' && !state.priority)) continue;
+    if (state.frame || (state.phase === 'error' && !state.priority) || state.retryAt > now) continue;
     const loading = [...previews.values()].filter(s => s.phase === 'loading');
     if (loading.length >= 2) {
       // Scrolling onto a card, like a deliberate jump, must not wait behind
@@ -168,7 +187,7 @@ export function livePreview(capture, label, { poster, manual = false } = {}) {
   const button = document.createElement('button'); button.type = 'button'; button.className = 'preview-interact-button'; button.textContent = 'Interact'; button.setAttribute('aria-pressed', 'false'); button.setAttribute('aria-label', `Interact with ${label}`);
   const retry = document.createElement('button'); retry.type = 'button'; retry.className = 'preview-retry-button'; retry.textContent = 'Retry preview'; retry.hidden = true; retry.setAttribute('aria-label', `Retry preview of ${label}`);
   const shield = document.createElement('button'); shield.type = 'button'; shield.className = 'preview-interaction-shield'; shield.tabIndex = -1; shield.setAttribute('aria-label', `Interact with ${label}`);
-  const state = { wrapper, stage, status: message, button, retry, shield, label, url, manual, generation: 0, phase: 'idle', used: 0, automaticRetries: 0 };
+  const state = { wrapper, stage, status: message, button, retry, shield, label, url, manual, generation: 0, phase: 'idle', used: 0, automaticRetries: 0, refusals: 0, retryAt: 0 };
   if (poster) {
     const image = document.createElement('img'); image.className = 'preview-poster'; image.loading = 'lazy'; image.decoding = 'async'; image.src = poster; image.alt = label;
     state.poster = image; stage.append(image);
@@ -176,7 +195,8 @@ export function livePreview(capture, label, { poster, manual = false } = {}) {
   state.toggle = () => interaction(state, !state.interacting); state.enter = () => interaction(state, true);
   state.restart = () => {
     interaction(state, false); release(state);
-    state.manual = false; state.priority = true;
+    state.manual = false; state.priority = true; state.refusals = 0; state.retryAt = 0;
+    cooldownUntil = 0; archiveBackoff = 0;
     status(state, 'Waiting for an archive loading slot…'); refreshPreviews();
   };
   button.addEventListener('click', state.toggle); shield.addEventListener('click', state.enter);
