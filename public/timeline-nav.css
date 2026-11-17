@@ -5,8 +5,13 @@
 .wayback-ui .timeline-nav-group { display: grid; grid-template-columns: 32px 1fr; gap: 12px; position: relative; margin-top: 12px; }
 .wayback-ui .timeline-nav-group:first-child { margin-top: 0; }
 .wayback-ui .timeline-nav-points a { display: grid; grid-template-columns: 48px 7px; align-items: center; height: 32px; gap: 12px; padding: 3px; position: relative; color: var(--gray); }
-.wayback-ui .timeline-nav-year { position: sticky; top: 5px; align-self: start; display: flex; align-items: center; justify-content: flex-end; height: 32px; font-variant-numeric: tabular-nums; color: var(--gray); background: var(--bg); z-index: 1; }
+.wayback-ui .timeline-nav-year { position: sticky; top: 0; align-self: start; display: flex; align-items: center; justify-content: flex-end; height: 32px; font-variant-numeric: tabular-nums; color: var(--gray); background: var(--bg); z-index: 1; }
 .wayback-ui .timeline-nav-month { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.wayback-ui .timeline-nav-month[data-loading] { display: flex; justify-content: flex-end; }
+.wayback-ui .timeline-nav [data-loading]::after { content: ''; display: block; width: 32px; height: 8px; border-radius: 2px; background: var(--rule); animation: timeline-label-pulse 1.5s ease-in-out infinite alternate; }
+.wayback-ui .timeline-nav-year[data-loading]::after { width: 26px; }
+@keyframes timeline-label-pulse { from { opacity: .35; } to { opacity: .75; } }
+@media (prefers-reduced-motion: reduce) { .wayback-ui .timeline-nav [data-loading]::after { animation: none; opacity: .55; } }
 .wayback-ui .timeline-nav-group:has(a[aria-current]) .timeline-nav-year { color: var(--ink); font-weight: 600; }
 .wayback-ui .timeline-nav-dot { width: 7px; height: 7px; flex-shrink: 0; border: 1px solid var(--gray); border-radius: 50%; background: var(--bg); }
 .wayback-ui .timeline-nav [data-state="pending"] .timeline-nav-dot { border-style: dashed; }
