@@ -67,6 +67,7 @@ export function timelineNavigation(timeline, prioritizePreview) {
         const month = item.timestamp.slice(0, 6);
         monthCounts.set(month, (monthCounts.get(month) || 0) + 1);
       }
+      content.toggleAttribute('data-year-only', items.length > 0 && items.every(item => item.timestamp) && [...yearCounts.values()].every(count => count === 1));
       const usedYears = new Set(), positions = new Map();
       items.forEach((item, index) => {
         let group = years.get(item.year);
