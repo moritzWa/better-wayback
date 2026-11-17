@@ -21,7 +21,7 @@ try {
   });
   await page.route('**/api/jobs', async route => {
     requests.push(route.request().postDataJSON());
-    await route.fulfill({ json: { id: 'test-search', url: 'https://rogo.ai/' } });
+    await route.fulfill({ json: { id: 'a'.repeat(24), url: 'https://rogo.ai/' } });
   });
   await page.goto(base);
   await page.locator('#search-button').waitFor({ state: 'visible' });

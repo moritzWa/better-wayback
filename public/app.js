@@ -2,6 +2,7 @@ import { groupCaptures, similarity, comparableText } from '/group.js';
 import { livePreview, refreshPreviews, resetPreviews, prioritizePreview } from '/previews.js';
 import { timelineNavigation } from '/timeline-nav.js';
 import { exampleForSite } from '/examples.js';
+import { requestSearchJob } from '/search-request.js';
 // A blocked analytics module must not prevent the app itself from loading.
 let tracking;
 const trackingQueue = [];
@@ -284,8 +285,8 @@ async function search(recordHistory = true) {
   const current = begin('custom', recordHistory ? 'user' : 'automatic');
   const abort = new AbortController(); lookupAbort = abort;
   try {
-    const response = await fetch('/api/jobs', { method: 'POST', signal: abort.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: $('url').value, from: $('from').value, to: $('to').value, count: $('count').value, previewMode: 'html' }) });
-    const data = await response.json(); if (current !== generation) return; if (!response.ok) throw new Error(data.error);
+    const data = await requestSearchJob({ url: $('url').value, from: $('from').value, to: $('to').value, count: $('count').value, previewMode: 'html' }, { signal: abort.signal });
+    if (current !== generation) return;
     $('site-title').textContent = data.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
     screenshotPath = data.screenshotCache ? `/api/jobs/${data.id}/screenshots` : null;
     connectStream(`/api/jobs/${data.id}/events`, current);

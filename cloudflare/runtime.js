@@ -1,7 +1,7 @@
 import { normalizeUrl, keyFor, selectCaptures, replayUrl, RENDER_VERSION, USER_AGENT, isArchiveErrorPage } from '../lib.js';
 import { quota } from './quota.js';
 import { HTML_VERSION, MAX_HTML, iframeUrl, archiveHtmlAllowed } from './html.js';
-import { lookupCaptureIndex } from '../archive-index.js';
+import { lookupCaptureIndex, readArchiveIndex } from '../archive-index.js';
 import { socialPage, timelineId } from './social.js';
 import { searchRetention, storeCache } from './cache.js';
 import { needsRefresh, retained, DAY } from './cache-policy.js';
@@ -85,16 +85,14 @@ export function createRuntime({ launch, render, extractHtml, fetchArchive = fetc
     if (!allowance.ok) return json(429, allowance);
     try {
       const deadline = AbortSignal.any([request.signal, AbortSignal.timeout(55000)]);
+      let indexRetries = 2;
       const query = async options => {
         const params = new URLSearchParams({ url, output: 'json', filter: 'statuscode:200', fl: 'timestamp,original,digest' });
         for (const [key, value] of Object.entries(options)) if (value) params.set(key, value);
         // Workers supports follow/manual, not Node's redirect:'error'. Manual keeps
         // archive redirects from reaching any other host; non-2xx fails below.
         const signal = AbortSignal.any([deadline, AbortSignal.timeout(10000)]);
-        const response = await fetchArchive(`https://web.archive.org/cdx/search/cdx?${params}`, { headers: { 'User-Agent': USER_AGENT }, redirect: 'manual', signal });
-        if (!response.ok) throw new Error(`Wayback returned ${response.status}. Please retry later.`);
-        const data = JSON.parse(await boundedText(response, 512 * 1024));
-        if (!Array.isArray(data)) throw new Error('Unexpected archive index response');
+        const data = await readArchiveIndex(() => fetchArchive(`https://web.archive.org/cdx/search/cdx?${params}`, { headers: { 'User-Agent': USER_AGENT }, redirect: 'manual', signal }), response => boundedText(response, 512 * 1024), { retry: () => indexRetries-- > 0 });
         return data.slice(1, 1201).filter(row => Array.isArray(row) && /^\d{14}$/.test(row[0]) && /^https?:\/\//.test(row[1]) && row[1].length <= 4096).map(([timestamp, original, digest]) => ({ timestamp, original, digest }));
       };
       const indexKey = `index:bounded-v1:${keyFor(JSON.stringify([url, from, to]))}`;

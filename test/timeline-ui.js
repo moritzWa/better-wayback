@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFile, mkdir } from 'node:fs/promises';
 import { createServer } from 'node:http';
 
-const assets = new Set(['app.js', 'examples.js', 'previews.js', 'previews.css', 'timeline-nav.js', 'timeline-nav.css', 'style.css', 'logo.svg', 'favicon.svg']);
+const assets = new Set(['app.js', 'search-request.js', 'examples.js', 'previews.js', 'previews.css', 'timeline-nav.js', 'timeline-nav.css', 'style.css', 'logo.svg', 'favicon.svg']);
 const server = createServer(async (req, res) => {
   const path = new URL(req.url, 'http://localhost').pathname;
   const file = path === '/' ? 'public/index.html' : path === '/group.js' ? 'group.js' : assets.has(path.slice(1)) ? `public${path}` : null;
@@ -28,7 +28,7 @@ try {
     window.emit = (event, index = window.fixtureStreams.length - 1) => window.fixtureStreams[index].onmessage({ data: JSON.stringify(event) });
   });
   await page.route('**/api/demos/*', route => route.fulfill({ json: { url: route.request().url().endsWith('amazon') ? 'https://amazon.com/' : 'https://stripe.com/', total: 1000, sampled: demo.length, captures: demo, curated: true } }));
-  await page.route('**/api/jobs', route => { jobs++; return route.fulfill({ json: { id: 'fixture', url: 'https://fixture.test/' } }); });
+  await page.route('**/api/jobs', route => { jobs++; return route.fulfill({ json: { id: 'a'.repeat(24), url: 'https://fixture.test/' } }); });
   await page.route('**/fixture.svg', route => route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800"><rect width="1280" height="800" fill="#eee"/></svg>' }));
   await page.route('https://web.archive.org/**', route => { replays++; return route.fulfill({ contentType: 'text/html', body: '<html><body style="height:2000px">Archive replay fixture</body></html>' }); });
   const emit = event => page.evaluate(event => window.emit(event), event);

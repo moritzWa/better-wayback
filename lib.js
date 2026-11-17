@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { lookupCaptureIndex } from './archive-index.js';
+import { lookupCaptureIndex, readArchiveIndex } from './archive-index.js';
 export { cleanText, similarity, groupCaptures } from './group.js';
 
 // Shared by screenshot AND completed-job keys. Old black previews cannot leak through either cache.
@@ -57,13 +57,12 @@ export async function fetchCaptures(url, from, to, { cacheDir, maxAgeMs = 864000
     } catch {}
   }
   const deadline = AbortSignal.timeout(55000);
+  let indexRetries = 2;
   const request = async options => {
     const params = new URLSearchParams({ url, output: 'json', filter: 'statuscode:200', fl: 'timestamp,original,digest' });
     for (const [key, value] of Object.entries(options)) if (value) params.set(key, value);
-    const response = await fetch(`https://web.archive.org/cdx/search/cdx?${params}`, { headers: { 'User-Agent': USER_AGENT }, redirect: 'manual', signal: AbortSignal.any([deadline, AbortSignal.timeout(10000)]) });
-    if (!response.ok) throw new Error(`Wayback returned ${response.status}. Please try again later.`);
-    const data = await response.json();
-    if (!Array.isArray(data)) throw new Error('Unexpected response from Wayback.');
+    const signal = AbortSignal.any([deadline, AbortSignal.timeout(10000)]);
+    const data = await readArchiveIndex(() => fetch(`https://web.archive.org/cdx/search/cdx?${params}`, { headers: { 'User-Agent': USER_AGENT }, redirect: 'manual', signal }), undefined, { retry: () => indexRetries-- > 0 });
     return data.slice(1).filter(row => /^\d{14}$/.test(row[0]) && /^https?:\/\//.test(row[1])).map(([timestamp, original, digest]) => ({ timestamp, original, digest }));
   };
   const rows = await lookupCaptureIndex(request, from, to || String(new Date().getUTCFullYear()));

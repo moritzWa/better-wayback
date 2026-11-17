@@ -31,7 +31,7 @@ test('blank starting year leaves the CDX query unbounded rather than inventing 1
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async url => {
     assert.equal(new URL(url).searchParams.has('from'), false);
-    return { ok: true, json: async () => [['timestamp', 'original', 'digest'], ['20010301000000', 'https://example.com/', 'X']] };
+    return Response.json([['timestamp', 'original', 'digest'], ['20010301000000', 'https://example.com/', 'X']]);
   };
   try { assert.equal((await fetchCaptures('https://example.com/', '', '2026'))[0].timestamp, '20010301000000'); }
   finally { globalThis.fetch = originalFetch; }
@@ -59,7 +59,7 @@ test('dense index uses bounded date queries rather than a full monthly collapse 
   globalThis.fetch = async url => {
     requests.push(new URL(url));
     const rows = requests.length === 1 ? Array.from({ length: 1200 }, () => ['20120101000000', 'https://example.com/', 'ABC']) : [['20120101000000', 'https://example.com/', 'ABC'], ['20260101000000', 'https://example.com/', 'DEF']];
-    return { ok: true, json: async () => [['timestamp', 'original', 'digest'], ...rows] };
+    return Response.json([['timestamp', 'original', 'digest'], ...rows]);
   };
   try {
     const rows = await fetchCaptures('https://example.com/', '2012', '2026');
