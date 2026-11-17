@@ -1,5 +1,5 @@
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const events = new Set(['page_view', 'search_started', 'timeline_ready', 'search_failed', 'quota_reached', 'preview_opened']);
+const events = new Set(['page_view', 'search_started', 'timeline_ready', 'search_failed', 'quota_reached', 'preview_opened', 'preview_health']);
 const hosts = new Set(['visualwayback.com', 'www.visualwayback.com', 'visual-wayback.moritzw.workers.dev']);
 
 export async function handleAnalytics(request, env) {
@@ -27,9 +27,13 @@ export async function handleAnalytics(request, env) {
     if (!data || !uuid.test(data.id) || !uuid.test(data.session) || !uuid.test(data.search) || !events.has(data.event)) return done();
     if (!['demo', 'custom', 'none'].includes(data.mode) || !['automatic', 'user'].includes(data.source) || !['yes', 'no', 'unknown'].includes(data.cache)) return done();
     if (!Number.isInteger(data.duration_ms) || data.duration_ms < 0 || data.duration_ms > 3600000) return done();
+    const health = data.event === 'preview_health';
+    const count = value => Number.isInteger(value) && value >= 0 && value <= 200 ? value : null;
+    const [loaded, refused, failed] = health ? [data.loaded, data.refused, data.failed].map(count) : [0, 0, 0];
+    if ([loaded, refused, failed].includes(null)) return done();
     const now = new Date().toISOString();
-    await env.ANALYTICS.prepare('INSERT OR IGNORE INTO usage_events (id, day, minute, session, search, event, mode, source, cache, duration_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-      .bind(data.id, now.slice(0, 10), now.slice(0, 16), data.session, data.search, data.event, data.mode, data.source, data.cache, data.duration_ms).run();
+    await env.ANALYTICS.prepare('INSERT OR IGNORE INTO usage_events (id, day, minute, session, search, event, mode, source, cache, duration_ms, previews_loaded, previews_refused, previews_failed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+      .bind(data.id, now.slice(0, 10), now.slice(0, 16), data.session, data.search, data.event, data.mode, data.source, data.cache, data.duration_ms, loaded, refused, failed).run();
   } catch { /* Analytics is optional, including schema or free-quota failures. */ }
   return done();
 }

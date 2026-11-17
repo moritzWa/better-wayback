@@ -1,12 +1,12 @@
 import { groupCaptures, similarity, comparableText } from '/group.js';
-import { livePreview, refreshPreviews, resetPreviews, prioritizePreview } from '/previews.js';
+import { livePreview, refreshPreviews, resetPreviews, prioritizePreview, takePreviewStats } from '/previews.js';
 import { timelineNavigation } from '/timeline-nav.js';
 import { exampleForSite } from '/examples.js';
 import { requestSearchJob } from '/search-request.js';
 // A blocked analytics module must not prevent the app itself from loading.
 let tracking;
 const trackingQueue = [];
-const analytics = Object.fromEntries(['begin', 'cache', 'ready', 'failed', 'preview'].map(name => [name, (...args) => {
+const analytics = Object.fromEntries(['begin', 'cache', 'ready', 'failed', 'preview', 'previews'].map(name => [name, (...args) => {
   if (tracking) tracking[name]?.(...args);
   else if (trackingQueue.length < 100) trackingQueue.push([name, args]);
 }]));
@@ -18,6 +18,9 @@ void import('/analytics.js').then(({ createAnalytics }) => {
 document.addEventListener('click', event => {
   if (event.target.closest?.('#timeline .preview-interact-button, #timeline .preview-interaction-shield, #timeline a[target="_blank"]')) analytics.preview();
 }, true);
+const flushPreviewStats = () => analytics.previews(takePreviewStats());
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushPreviewStats(); });
+addEventListener('pagehide', flushPreviewStats);
 
 const $ = id => document.getElementById(id);
 let captures = [], changesOnly = true, total = 0, sampled = 0, capped = false, running = false, stream;
@@ -244,6 +247,7 @@ function warmScreenshots(path, current, attempts = 0) {
   connection.onerror = () => connection.close();
 }
 function begin(mode, source) {
+  flushPreviewStats();
   analytics.begin(mode, source);
   clearTimeout(resumeTimer);
   stopScreenshots();

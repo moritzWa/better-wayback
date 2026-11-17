@@ -48,6 +48,27 @@ Cloudflare Web Analytics was not enabled: the available deployment and OAuth
 credentials cannot create a RUM site (403). The existing CSP continues to block
 external beacons. D1 page views cover the app instead, without loosening CSP.
 
+## Archive replay health
+
+Previews are live archive.org replays, so archive.org slowness or refusals show up as
+grey or empty cards. Each search reports up to three `preview_health` batches (when the
+tab is hidden or closed, and when the next search starts), holding only counts: replays
+that loaded, replays archive.org refused (and we retried), replays we gave up on, and the
+median load time of the loaded ones in `duration_ms`. Hosts, URLs and capture dates are
+never sent. The last query in `tools/usage.sql` groups these per UTC hour, so you can
+tell an archive.org incident (refused share jumps for everyone in the same hours) from a
+site bug (refusals stay near zero while cards still fail).
+
+A refusal is a replay document whose load event fires within 0.7 seconds, which is how
+Chrome reports a refused request. It is a heuristic: a fully cached replay that loads
+faster would be miscounted and retried.
+
+Existing databases need the one-time migration:
+
+```sh
+npx wrangler d1 execute visual-wayback-analytics --remote --file cloudflare/analytics-migration-2026-11-17.sql
+```
+
 ## Verification
 
 On November 16, 2026, the full suite passed (86 tests, 5 skipped). A headless

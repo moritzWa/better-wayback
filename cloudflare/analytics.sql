@@ -3,7 +3,8 @@ CREATE TABLE IF NOT EXISTS usage_days (day TEXT PRIMARY KEY, events INTEGER NOT 
 CREATE TABLE IF NOT EXISTS usage_events (
   id TEXT PRIMARY KEY, day TEXT NOT NULL, minute TEXT NOT NULL,
   session TEXT NOT NULL, search TEXT NOT NULL, event TEXT NOT NULL,
-  mode TEXT NOT NULL, source TEXT NOT NULL, cache TEXT NOT NULL, duration_ms INTEGER NOT NULL
+  mode TEXT NOT NULL, source TEXT NOT NULL, cache TEXT NOT NULL, duration_ms INTEGER NOT NULL,
+  previews_loaded INTEGER NOT NULL DEFAULT 0, previews_refused INTEGER NOT NULL DEFAULT 0, previews_failed INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS usage_events_day ON usage_events(day);
 -- SQLite serializes writes. The cap is atomic, including concurrent requests.

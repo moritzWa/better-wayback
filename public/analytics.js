@@ -12,12 +12,12 @@ export function createAnalytics() {
       sessionStorage.setItem('usage-session', session);
     }
   } catch { disabled = true; }
-  function send(event, context = active) {
-    if (disabled || !context || context.sent.has(event)) return;
+  function send(event, context = active, extra) {
+    if (disabled || !context || (!extra && context.sent.has(event))) return;
     context.sent.add(event);
     try {
       void fetch('/api/analytics', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'omit', referrerPolicy: 'no-referrer', keepalive: true,
-        body: JSON.stringify({ id: crypto.randomUUID(), session, search: context.id, event, mode: context.mode, source: context.source, cache: context.cache, duration_ms: Math.min(3600000, Math.max(0, Math.round(performance.now() - context.started))) }) }).catch(() => {});
+        body: JSON.stringify({ id: crypto.randomUUID(), session, search: context.id, event, mode: context.mode, source: context.source, cache: context.cache, duration_ms: Math.min(3600000, Math.max(0, Math.round(performance.now() - context.started))), ...extra }) }).catch(() => {});
     } catch { /* Never break searches. */ }
   }
   const context = (mode, source) => ({ id: crypto.randomUUID(), started: performance.now(), mode, source, cache: mode === 'demo' ? 'yes' : 'unknown', sent: new Set() });
@@ -28,5 +28,11 @@ export function createAnalytics() {
     ready() { send('timeline_ready'); },
     failed(quota = false) { if (active && !active.failed) { active.failed = true; send(quota ? 'quota_reached' : 'search_failed'); } },
     preview() { send('preview_opened'); },
+    // Archive replay health: counts only, at most three batches per search.
+    previews({ loaded = 0, refused = 0, failed = 0, medianMs = 0 } = {}) {
+      const clamp = n => Math.min(200, Math.max(0, Math.round(Number(n) || 0)));
+      if (!active || !(loaded || refused || failed) || (active.flushes = (active.flushes || 0) + 1) > 3) return;
+      send('preview_health', active, { loaded: clamp(loaded), refused: clamp(refused), failed: clamp(failed), duration_ms: Math.min(3600000, Math.max(0, Math.round(medianMs) || 0)) });
+    },
   };
 }
