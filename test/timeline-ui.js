@@ -58,6 +58,12 @@ try {
   const pageGeometry = await page.locator('.page').boundingBox();
   const railGeometry = await page.locator('.timeline-nav').boundingBox();
   assert.ok(railGeometry.x + railGeometry.width < pageGeometry.x, 'Rail does not squeeze/overlap centered page');
+  const annualSpacing = await page.locator('.timeline-nav-group').first().evaluate(group => {
+    const year = group.querySelector('.timeline-nav-year').getBoundingClientRect();
+    const dot = group.querySelector('.timeline-nav-dot').getBoundingClientRect();
+    return { gap: dot.left - year.right, dot: dot.left };
+  });
+  assert.equal(annualSpacing.gap, 12, 'Year-only labels sit directly beside the dots, with no empty month column');
   await mkdir('test-output', { recursive: true });
   await page.screenshot({ path: 'test-output/timeline-annual.png' });
   const beforeUrl = page.url(), beforeHistory = await page.evaluate(() => history.length);
@@ -81,6 +87,7 @@ try {
   await page.waitForFunction(() => window.fixtureStreams.length === 1);
   assert.equal(await page.locator('.timeline-nav-year[data-loading]').count(), 1, 'Unknown year uses a skeleton label');
   assert.equal(await page.locator('.timeline-nav-month[data-loading]').count(), 8, 'Unknown capture dates use skeleton labels');
+  assert.equal(await page.locator('.timeline-nav-content[data-year-only]').count(), 0, 'Loading skeletons retain their two-column layout');
   assert.equal(await page.locator('.timeline-nav-content').innerText(), '', 'Unknown dates never display ellipses');
   await page.locator('#timeline').evaluate(n => scrollTo(0, n.offsetTop));
   const skeleton = await page.locator('.timeline-nav-month[data-loading]').first().evaluate(n => {
@@ -177,12 +184,15 @@ try {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.setViewportSize({ width: 1440, height: 420 });
   assert.equal(await points.count(), 40);
+  assert.equal(await page.locator('.timeline-nav-content[data-year-only]').count(), 0, 'Multi-capture years restore the month column');
   assert.equal(await page.locator('.timeline-nav-year').count(), 10, 'One year label for each group of four captures');
   assert.deepEqual(await page.locator('.timeline-nav-group').first().locator('.timeline-nav-month').allTextContents(), ['Mar 12', 'Mar 26', 'Jun', 'Nov'], 'Only repeated months gain day labels');
   assert.equal(await page.locator('.timeline-nav-year').filter({ hasText: '2001' }).count(), 0, 'Skipped years do not create empty groups');
   assert.match(await points.first().getAttribute('aria-label'), /Mar 12, 2000/);
   const outerY = await page.locator('#timeline').evaluate(n => { const last = n.lastElementChild; scrollTo(0, last.getBoundingClientRect().top + scrollY - 24); return scrollY; });
   await page.waitForFunction(() => [...document.querySelectorAll('.timeline-nav-points a')].at(-1).hasAttribute('aria-current'));
+  const denseDot = await page.locator('.timeline-nav-dot').last().boundingBox();
+  assert.equal(denseDot.x, annualSpacing.dot, 'Switching label density never shifts the dot column');
   const activeRail = await page.locator('.timeline-nav-points').evaluate(n => {
     const rail = n.getBoundingClientRect(), active = n.querySelector('[aria-current]').getBoundingClientRect();
     return { scrollTop: n.scrollTop, visible: active.top >= rail.top - 1 && active.bottom <= rail.bottom + 1 };
@@ -223,7 +233,9 @@ try {
   await page.locator('#changes-view').click();
   assert.equal(await points.count(), 1);
   assert.deepEqual(await page.locator('.timeline-nav-month').allTextContents(), [''], 'Grouping to one visible capture hides its month');
+  assert.equal(await page.locator('.timeline-nav-content[data-year-only]').count(), 1, 'Grouping to annual captures collapses the unused column');
   await page.locator('#all-view').click();
+  assert.equal(await page.locator('.timeline-nav-content[data-year-only]').count(), 0, 'Ungrouping restores both columns');
   assert.deepEqual(await page.locator('.timeline-nav-month').allTextContents(), ['Mar', 'Jun'], 'Showing multiple captures restores their months');
   await mkdir('test-output', { recursive: true });
   await page.screenshot({ path: 'test-output/timeline-desktop.png' });

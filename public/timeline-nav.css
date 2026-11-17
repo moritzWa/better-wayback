@@ -7,6 +7,10 @@
 .wayback-ui .timeline-nav-points a { display: grid; grid-template-columns: 48px 7px; align-items: center; height: 32px; gap: 12px; padding: 3px; position: relative; color: var(--gray); }
 .wayback-ui .timeline-nav-year { position: sticky; top: 0; align-self: start; display: flex; align-items: center; justify-content: flex-end; height: 32px; font-variant-numeric: tabular-nums; color: var(--gray); background: var(--bg); z-index: 1; }
 .wayback-ui .timeline-nav-month { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+/* Keep the dots fixed, but place year-only labels in the unused month column. */
+.wayback-ui .timeline-nav-content[data-year-only] .timeline-nav-group { grid-template-columns: 95px 1fr; gap: 9px; }
+.wayback-ui .timeline-nav-content[data-year-only] a { grid-template-columns: 7px; gap: 0; }
+.wayback-ui .timeline-nav-content[data-year-only] .timeline-nav-month { display: none; }
 .wayback-ui .timeline-nav-month[data-loading] { display: flex; justify-content: flex-end; }
 .wayback-ui .timeline-nav [data-loading]::after { content: ''; display: block; width: 32px; height: 8px; border-radius: 2px; background: var(--rule); animation: timeline-label-pulse 1.5s ease-in-out infinite alternate; }
 .wayback-ui .timeline-nav-year[data-loading]::after { width: 26px; }
