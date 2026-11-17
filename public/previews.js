@@ -3,6 +3,14 @@ const previews = new Map();
 const residentLimit = navigator.connection?.saveData || navigator.deviceMemory <= 4 ? 4 : navigator.deviceMemory ? 8 : 6;
 let scheduled = false, lastY = window.scrollY, direction = 1, clock = 0, interacting = null;
 let cooldownUntil = 0, archiveBackoff = 0;
+let stats = { loaded: 0, refused: 0, failed: 0, loadMs: [] };
+// Counts since the last call. Only numbers leave this module, never URLs.
+export function takePreviewStats() {
+  const ms = stats.loadMs.sort((a, b) => a - b);
+  const taken = { loaded: stats.loaded, refused: stats.refused, failed: stats.failed, medianMs: ms.length ? Math.round(ms[Math.floor(ms.length / 2)]) : 0 };
+  stats = { loaded: 0, refused: 0, failed: 0, loadMs: [] };
+  return taken;
+}
 const refusedLoadMs = () => window.refusedLoadMs ?? 700;
 const safeReplay = input => {
   try {
@@ -78,7 +86,7 @@ function activate(state) {
     if (generation !== state.generation || state.phase !== 'loading') return;
     clearTimeout(state.timer);
     state.priority = false;
-    if (failed) { interaction(state, false); release(state); }
+    if (failed) { stats.failed++; interaction(state, false); release(state); }
     state.phase = failed ? 'error' : 'ready'; state.wrapper.dataset.previewState = state.phase;
     state.wrapper.removeAttribute('aria-busy');
     state.retry.hidden = !failed;
@@ -90,8 +98,9 @@ function activate(state) {
     if (generation !== state.generation || state.phase !== 'loading') return;
     // A refused archive request shows Chrome's sad-page icon and still fires load,
     // within milliseconds. Real replays need a redirect, a document and subresources.
-    if (performance.now() - started >= refusedLoadMs()) { archiveBackoff = 0; return finish(false); }
-    state.refusals++;
+    const elapsed = performance.now() - started;
+    if (elapsed >= refusedLoadMs()) { archiveBackoff = 0; stats.loaded++; stats.loadMs.push(elapsed); return finish(false); }
+    state.refusals++; stats.refused++;
     archiveBackoff = Math.min(archiveBackoff + 1, 4);
     cooldownUntil = Date.now() + 2000 * 2 ** (archiveBackoff - 1);
     if (state.refusals >= 3) return finish(true);
@@ -113,6 +122,7 @@ function activate(state) {
       state.timer = setTimeout(checkDeadline, 10000);
       return;
     }
+    stats.failed++;
     interaction(state, false); release(state); state.phase = 'error'; state.wrapper.dataset.previewState = 'error';
     state.retry.hidden = false;
     status(state, 'The archive took too long. Retry or open the archive.'); schedule();
