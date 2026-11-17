@@ -223,6 +223,19 @@ test('index timeout has a useful error and never fabricates an empty timeline or
   assert.equal(response.status,502); assert.match((await response.json()).error,/index is responding too slowly/);
   assert.equal(env.CACHE.puts.length,0);
 });
+
+test('Facebook CDX HTML response retries once and persistent failure stays a clean JSON error', async () => {
+  for (const recover of [true, false]) {
+    const env = environment(); let calls = 0;
+    const handle = createRuntime({ fetchArchive: async () => ++calls === 1 || !recover ? new Response('<!DOCTYPE html>upstream proxy error') : Response.json([['timestamp','original','digest'],['20000101000000','https://facebook.com/','digest']]) });
+    const response = await handle(jobRequest({ url: 'facebook.com' }), env);
+    assert.equal(calls, 2);
+    const data = await response.json();
+    assert.equal(response.status, recover ? 202 : 502);
+    if (recover) assert.ok(data.id);
+    else { assert.match(data.error, /unreadable index response/); assert.doesNotMatch(data.error, /DOCTYPE|Unexpected token/); assert.equal(env.CACHE.puts.length, 0); }
+  }
+});
 async function save(env, capture) {
   const value = { ...capture, text: 'Archived text', image: `/cache/${key(capture)}.png`, renderVersion: RENDER_VERSION };
   await env.CACHE.put(`capture:${key(capture)}`, JSON.stringify(value), { expirationTtl: 604800 });

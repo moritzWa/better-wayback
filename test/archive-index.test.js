@@ -1,11 +1,47 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { lookupCaptureIndex } from '../archive-index.js';
+import { lookupCaptureIndex, readArchiveIndex } from '../archive-index.js';
 import { selectCaptures, groupCaptures } from '../lib.js';
 import { performance } from 'node:perf_hooks';
 
 const row = timestamp => ({ timestamp, original: 'https://amazon.com/', digest: timestamp });
 const timeout = () => new DOMException('delayed index', 'TimeoutError');
+test('HTML and truncated CDX responses recover with one bounded retry, without exposing response bodies', async () => {
+  const expected = [['timestamp', 'original', 'digest'], ['20000101000000', 'https://facebook.com/', 'digest']];
+  for (const first of [new Response('<!DOCTYPE html><title>Proxy error</title>'), new Response('[["timestamp"'), new Response('Bad gateway', { status: 502 })]) {
+    let calls = 0;
+    assert.deepEqual(await readArchiveIndex(async () => ++calls === 1 ? first : Response.json(expected)), expected);
+    assert.equal(calls, 2);
+  }
+  let calls = 0;
+  await assert.rejects(readArchiveIndex(async () => { calls++; return new Response('<!DOCTYPE html>secret upstream body'); }), error => {
+    assert.match(error.message, /Internet Archive.*unreadable index response/);
+    assert.doesNotMatch(error.message, /DOCTYPE|secret|Unexpected token/);
+    return true;
+  });
+  assert.equal(calls, 2);
+});
+test('CDX throttles, invalid schemas, unsafe redirects and aborts are never retried', async () => {
+  for (const response of [new Response('Throttled', { status: 429 }), new Response(null, { status: 302, headers: { location: 'https://evil.invalid/' } }), Response.json({ error: 'invalid shape' })]) {
+    let calls = 0;
+    await assert.rejects(readArchiveIndex(async () => { calls++; return response; }));
+    assert.equal(calls, 1);
+  }
+  let calls = 0;
+  await assert.rejects(readArchiveIndex(async () => { calls++; throw new DOMException('Aborted', 'AbortError'); }), { name: 'AbortError' });
+  assert.equal(calls, 1);
+});
+test('independent date queries share a small retry budget rather than doubling the subrequest count', async () => {
+  let remaining = 2, calls = 0;
+  const options = { retry: () => remaining-- > 0 };
+  for (let i = 0; i < 3; i++) {
+    let queryCalls = 0;
+    const response = readArchiveIndex(async () => { calls++; return ++queryCalls === 1 ? new Response('<html>Temporary failure') : Response.json([]); }, undefined, options);
+    if (i < 2) assert.deepEqual(await response, []);
+    else await assert.rejects(response, /unreadable index response/);
+  }
+  assert.equal(calls, 5);
+});
 test('Amazon-style dense history uses at most two small window queries, includes both endpoints and supports 24 captures', async () => {
   let active = 0, peak = 0; const calls = [];
   const rows = await lookupCaptureIndex(async params => {

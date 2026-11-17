@@ -15,7 +15,7 @@ try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   let jobs = 0;
   await page.addInitScript(() => { window.EventSource = class { constructor() {} close() {} }; });
-  await page.route('**/api/jobs', route => { jobs++; return route.fulfill({ json: { id: 'fixture', url: 'https://example.invalid/' } }); });
+  await page.route('**/api/jobs', route => { jobs++; return route.fulfill({ json: { id: 'a'.repeat(24), url: 'https://example.invalid/' } }); });
   await page.goto(base);
   await page.waitForFunction(() => !document.querySelector('#search-button').disabled);
   for (const example of examples) {

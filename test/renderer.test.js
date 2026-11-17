@@ -76,7 +76,7 @@ test('CDX cache preserves metadata, expires and never caches upstream failures',
   const cacheDir = await mkdtemp(resolve(tmpdir(), 'wayback-cdx-'));
   const originalFetch = globalThis.fetch;
   let requests = 0;
-  globalThis.fetch = async () => { requests++; return { ok: true, json: async () => [['timestamp', 'original', 'digest'], ['20240218234204', 'https://www.harvey.ai/', 'ABC']] }; };
+  globalThis.fetch = async () => { requests++; return Response.json([['timestamp', 'original', 'digest'], ['20240218234204', 'https://www.harvey.ai/', 'ABC']]); };
   try {
     const first = await fetchCaptures('https://www.harvey.ai/', '2024', '2024', { cacheDir });
     const second = await fetchCaptures('https://www.harvey.ai/', '2024', '2024', { cacheDir });

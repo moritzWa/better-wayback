@@ -59,5 +59,35 @@ try {
   await page.locator('#sensitivity').evaluate(n=>{n.value='97';n.dispatchEvent(new Event('input'));}); await page.waitForTimeout(100);
   assert.equal(await page.locator('#empty-state').isVisible(),false);
   assert.match(await page.locator('#error').innerText(),/index is responding too slowly/);
+  // Facebook regression: an HTML intermediary response must recover or show
+  // a readable failure, never a JSON parser exception or a false empty history.
+  await page.unroute('**/api/jobs');
+  let facebookRequests = 0;
+  await page.route('**/api/jobs', route => {
+    facebookRequests++;
+    assert.equal(route.request().postDataJSON().url, 'facebook.com');
+    return facebookRequests === 2
+      ? route.fulfill({json:{id:'b'.repeat(24),url:'https://facebook.com/'},status:202})
+      : route.fulfill({contentType:'text/html',body:'<!DOCTYPE html><title>Temporary proxy failure</title>',status:502});
+  });
+  await page.goto(`${base}/?url=facebook.com`);
+  await page.waitForFunction(()=>window.connections.length===1);
+  assert.equal(facebookRequests,2);
+  assert.equal(await page.locator('#error').isVisible(),false);
+  await page.evaluate(()=>{
+    const capture={timestamp:'20060101000000',original:'https://facebook.com/',archiveUrl:'https://web.archive.org/web/20060101000000/https://facebook.com/',text:'A real timeline response can now load after an intermediary failure.',textSource:'html'};
+    window.emit({type:'index',total:1,sampled:1,captures:[capture]});
+    window.emit({type:'capture',capture});window.emit({type:'done'});
+  });
+  assert.equal(await page.locator('.timeline-entry').count(),1);
+  await page.locator('#search-button').click();
+  await page.waitForFunction(()=>!document.querySelector('#search-button').disabled);
+  assert.equal(facebookRequests,4,'Persistent HTML response is retried only once');
+  assert.match(await page.locator('#error').innerText(),/temporarily unavailable.*try again/i);
+  assert.doesNotMatch(await page.locator('#error').innerText(),/Unexpected token|DOCTYPE|not valid JSON/);
+  assert.equal(await page.locator('#empty-state').isVisible(),false);
+  assert.equal(await page.locator('.entry-pending').count(),0);
+  assert.equal(await page.locator('.timeline-entry').count(),0);
   console.log(`PASS Amazon 24-capture/98% fixture: pending slider safe, no repeated lookup, 24 results, 100 slider updates ${Math.round(ms)}ms, stable iframe, honest timeout state.`);
+  console.log('PASS Facebook HTML-response recovery: one retry, valid timeline, readable persistent failure, no parser leak or false empty history.');
 } finally {await browser?.close();server.kill('SIGTERM');await once(server,'exit');}

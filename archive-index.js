@@ -46,3 +46,25 @@ export async function lookupCaptureIndex(query, from, to) {
     indexWarning: failures ? `Partial archive index: ${failures} bounded date lookups timed out. Available captures are kept; some dates may be missing.` : '',
   });
 }
+
+// A proxy can return HTML (even HTTP 200) instead of CDX JSON. Retry that
+// response once, not the entire date-window lookup, and never expose its body.
+export async function readArchiveIndex(fetchResponse, readBody = response => response.text(), { retry = () => true } = {}) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const response = await fetchResponse();
+    if (!response.ok) {
+      await response.body?.cancel();
+      if (!attempt && [500, 502, 503, 504].includes(response.status) && retry()) continue;
+      throw new Error(`Wayback returned ${response.status}. Please try again later.`);
+    }
+    const body = await readBody(response);
+    let data;
+    try { data = JSON.parse(body); }
+    catch {
+      if (!attempt && retry()) continue;
+      throw new Error('The Internet Archive returned an unreadable index response. Please try again later.');
+    }
+    if (!Array.isArray(data)) throw new Error('Unexpected archive index response. Please try again later.');
+    return data;
+  }
+}
