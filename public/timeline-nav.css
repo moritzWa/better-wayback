@@ -18,7 +18,8 @@
 @media (prefers-reduced-motion: reduce) { .wayback-ui .timeline-nav [data-loading]::after { animation: none; opacity: .55; } }
 .wayback-ui .timeline-nav-group:has(a[aria-current]) .timeline-nav-year { color: var(--ink); font-weight: 600; }
 .wayback-ui .timeline-nav-dot { width: 7px; height: 7px; flex-shrink: 0; border: 1px solid var(--gray); border-radius: 50%; background: var(--bg); }
-.wayback-ui .timeline-nav [data-state="pending"] .timeline-nav-dot { border-style: dashed; }
+.wayback-ui .timeline-nav [data-state="pending"]:not([aria-current]) .timeline-nav-dot { border-color: transparent; background: var(--rule); animation: timeline-label-pulse 1.5s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) { .wayback-ui .timeline-nav [data-state="pending"]:not([aria-current]) .timeline-nav-dot { animation: none; opacity: .55; } }
 .wayback-ui .timeline-nav [data-state="unavailable"] .timeline-nav-dot { border-radius: 0; }
 .wayback-ui .timeline-nav a[aria-current] { color: var(--ink); font-weight: 600; }
 .wayback-ui .timeline-nav a[aria-current] .timeline-nav-dot { background: var(--ink); border-color: var(--ink); box-shadow: 0 0 0 3px var(--bg); }

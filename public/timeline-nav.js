@@ -60,13 +60,8 @@ export function timelineNavigation(timeline, prioritizePreview) {
       for (const [id, point] of points) if (!ids.has(id)) { point.link.remove(); point.option.remove(); points.delete(id); }
       const nextYears = new Set(items.map(item => item.year));
       for (const [year, group] of years) if (!nextYears.has(year)) { group.root.remove(); years.delete(year); }
-      const monthCounts = new Map(), yearCounts = new Map();
-      for (const item of items) {
-        yearCounts.set(item.year, (yearCounts.get(item.year) || 0) + 1);
-        if (!item.timestamp) continue;
-        const month = item.timestamp.slice(0, 6);
-        monthCounts.set(month, (monthCounts.get(month) || 0) + 1);
-      }
+      const yearCounts = new Map();
+      for (const item of items) yearCounts.set(item.year, (yearCounts.get(item.year) || 0) + 1);
       content.toggleAttribute('data-year-only', items.length > 0 && items.every(item => item.timestamp) && [...yearCounts.values()].every(count => count === 1));
       const usedYears = new Set(), positions = new Map();
       items.forEach((item, index) => {
@@ -96,8 +91,7 @@ export function timelineNavigation(timeline, prioritizePreview) {
         let text = '';
         point.month.toggleAttribute('data-loading', !item.timestamp);
         if (item.timestamp && yearCounts.get(item.year) > 1) {
-          const month = monthFormat.format(new Date(`${item.timestamp.slice(0, 4)}-${item.timestamp.slice(4, 6)}-01T00:00:00Z`));
-          text = monthCounts.get(item.timestamp.slice(0, 6)) > 1 ? `${month} ${Number(item.timestamp.slice(6, 8))}` : month;
+          text = monthFormat.format(new Date(`${item.timestamp.slice(0, 4)}-${item.timestamp.slice(4, 6)}-01T00:00:00Z`));
         }
         point.month.textContent = text;
         point.link.setAttribute('aria-label', item.label); point.link.title = item.label; point.link.dataset.state = item.state;

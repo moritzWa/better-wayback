@@ -186,7 +186,7 @@ try {
   assert.equal(await points.count(), 40);
   assert.equal(await page.locator('.timeline-nav-content[data-year-only]').count(), 0, 'Multi-capture years restore the month column');
   assert.equal(await page.locator('.timeline-nav-year').count(), 10, 'One year label for each group of four captures');
-  assert.deepEqual(await page.locator('.timeline-nav-group').first().locator('.timeline-nav-month').allTextContents(), ['Mar 12', 'Mar 26', 'Jun', 'Nov'], 'Only repeated months gain day labels');
+  assert.deepEqual(await page.locator('.timeline-nav-group').first().locator('.timeline-nav-month').allTextContents(), ['Mar', 'Mar', 'Jun', 'Nov'], 'Month labels never include days');
   assert.equal(await page.locator('.timeline-nav-year').filter({ hasText: '2001' }).count(), 0, 'Skipped years do not create empty groups');
   assert.match(await points.first().getAttribute('aria-label'), /Mar 12, 2000/);
   const outerY = await page.locator('#timeline').evaluate(n => { const last = n.lastElementChild; scrollTo(0, last.getBoundingClientRect().top + scrollY - 24); return scrollY; });
@@ -221,7 +221,7 @@ try {
   const singleYear = dense.slice(0, 3);
   await emit({ type: 'index', total: 3, sampled: 3, captures: singleYear });
   assert.equal(await page.locator('.timeline-nav-year').count(), 1);
-  assert.deepEqual(await page.locator('.timeline-nav-month').allTextContents(), ['Mar 12', 'Mar 26', 'Jun']);
+  assert.deepEqual(await page.locator('.timeline-nav-month').allTextContents(), ['Mar', 'Mar', 'Jun']);
   await page.locator('#timeline').evaluate(n => scrollTo(0, n.offsetTop));
   await points.first().focus();
   await points.first().evaluate(n => { window.singleYearPoint = n; });
